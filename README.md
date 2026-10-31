@@ -1,4 +1,4 @@
-# Website SMPIT Cendekia Purwakarta
+# Website Sekolah
 
 Website profil sekolah untuk menampilkan program belajar, fasilitas, kegiatan siswa, berita, pengumuman, dan informasi Sistem Penerimaan Murid Baru (SPMB).
 
