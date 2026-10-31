@@ -1,211 +1,149 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { MouseEvent } from 'react'
+import Link from 'next/link'
 import Logo from './Logo'
-import HeaderLink from '../Header/Navigation/HeaderLink'
-import MobileHeaderLink from '../Header/Navigation/MobileHeaderLink'
-import Signin from '@/app/components/Auth/SignIn'
-import SignUp from '@/app/components/Auth/SignUp'
-import { Icon } from '@iconify/react/dist/iconify.js'
-import { HeaderItem } from '@/app/types/menu'
 
-const Header: React.FC = () => {
-  const [headerData, setHeaderData] = useState<HeaderItem[]>([])
+const profileNavigation = [
+  { label: 'Ekstrakurikuler', href: '/ekstrakurikuler' },
+  { label: 'Fasilitas', href: '/fasilitas' },
+  { label: 'Pimpinan sekolah dan yayasan', href: '/guru' },
+  { label: 'Prestasi siswa', href: '/prestasi' },
+  { label: 'Sejarah sekolah', href: '/sejarah' },
+  { label: 'Struktur organisasi', href: '/struktur-organisasi' },
+  { label: 'Visi dan misi', href: '/#tentang' },
+]
 
-  const [navbarOpen, setNavbarOpen] = useState(false)
-  const [sticky, setSticky] = useState(false)
-  const [isSignInOpen, setIsSignInOpen] = useState(false)
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false)
+const informationNavigation = [
+  { label: 'Berita', href: '/berita' },
+  { label: 'Kegiatan rutin', href: '/kegiatan-rutin' },
+  { label: 'OSIS (Organisasi Siswa Intra Sekolah)', href: '/osis' },
+  { label: 'Pengumuman', href: '/pengumuman' },
+  { label: 'Program unggulan', href: '/#program' },
+  { label: 'SPMB (Sistem Penerimaan Murid Baru)', href: '/ppdb' },
+]
 
-  const navbarRef = useRef<HTMLDivElement>(null)
-  const signInRef = useRef<HTMLDivElement>(null)
-  const signUpRef = useRef<HTMLDivElement>(null)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
+const mobileNavigation = [
+  { label: 'Beranda', href: '/' },
+  { label: 'SPMB', href: '/ppdb' },
+]
+
+const mobileDropdowns = [
+  { label: 'Profil', items: profileNavigation },
+  { label: 'Informasi', items: informationNavigation },
+]
+
+function Chevron() {
+  return <svg viewBox='0 0 16 16' className='h-3.5 w-3.5 fill-none stroke-current transition-transform group-open:rotate-180' strokeWidth='1.8' aria-hidden='true'><path d='m4 6 4 4 4-4' strokeLinecap='round' strokeLinejoin='round' /></svg>
+}
+
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const headerRef = useRef<HTMLElement>(null)
+
+  function closeMenus() {
+    headerRef.current?.querySelectorAll('details[open]').forEach((dropdown) => dropdown.removeAttribute('open'))
+    setMenuOpen(false)
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/api/data')
-        if (!res.ok) throw new Error('Failed to fetch')
-        const data = await res.json()
-        setHeaderData(data.HeaderData)
-      } catch (error) {
-        console.error('Error fetching services:', error)
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) {
+        closeMenus()
       }
     }
-    fetchData()
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') closeMenus()
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
   }, [])
 
-  const handleScroll = () => {
-    setSticky(window.scrollY >= 10)
+  function closeOtherDropdowns(event: MouseEvent<HTMLElement>) {
+    const currentDropdown = event.currentTarget.closest('details')
+    currentDropdown?.parentElement?.querySelectorAll('details[open]').forEach((dropdown) => {
+      if (dropdown !== currentDropdown) dropdown.removeAttribute('open')
+    })
   }
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      signInRef.current &&
-      !signInRef.current.contains(event.target as Node)
-    ) {
-      setIsSignInOpen(false)
-    }
-    if (
-      signUpRef.current &&
-      !signUpRef.current.contains(event.target as Node)
-    ) {
-      setIsSignUpOpen(false)
-    }
-    if (
-      mobileMenuRef.current &&
-      !mobileMenuRef.current.contains(event.target as Node) &&
-      navbarOpen
-    ) {
-      setNavbarOpen(false)
-    }
-  }
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll)
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [navbarOpen, isSignInOpen, isSignUpOpen])
-
-  useEffect(() => {
-    if (isSignInOpen || isSignUpOpen || navbarOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-  }, [isSignInOpen, isSignUpOpen, navbarOpen])
 
   return (
-    <header
-      className={`fixed top-0 z-40 w-full transition-all duration-300 ${
-        sticky ? ' shadow-lg bg-white py-4' : 'shadow-none py-4'
-      }`}>
-      <div>
-        <div className='container mx-auto max-w-7xl px-4 flex items-center justify-between'>
-          <Logo />
-          <nav className='hidden lg:flex grow items-center gap-8 justify-start ml-14'>
-            {headerData.map((item, index) => (
-              <HeaderLink key={index} item={item} />
-            ))}
-          </nav>
-          <div className='flex items-center gap-4'>
-            <button
-              className='hidden lg:block bg-transparent text-primary border hover:bg-primary border-primary hover:text-white duration-300 px-6 py-2 rounded-lg hover:cursor-pointer'
-              onClick={() => {
-                setIsSignInOpen(true)
-              }}>
-              Sign In
-            </button>
-            {isSignInOpen && (
-              <div className='fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50'>
-                <div
-                  ref={signInRef}
-                  className='relative mx-auto w-full max-w-md overflow-hidden rounded-lg px-8 pt-14 pb-8 text-center bg-dark_grey/90 backdrop-blur-md bg-white'>
-                  <button
-                    onClick={() => setIsSignInOpen(false)}
-                    className='absolute top-0 right-0 mr-8 mt-8 dark:invert'
-                    aria-label='Close Sign In Modal'>
-                    <Icon
-                      icon='material-symbols:close-rounded'
-                      width={24}
-                      height={24}
-                      className='text-black hover:text-primary inline-block hover:cursor-pointer'
-                    />
-                  </button>
-                  <Signin />
-                </div>
-              </div>
-            )}
-            <button
-              className='hidden lg:block bg-primary text-white text-base font-medium hover:bg-transparent duration-300 hover:text-primary border border-primary px-6 py-2 rounded-lg hover:cursor-pointer'
-              onClick={() => {
-                setIsSignUpOpen(true)
-              }}>
-              Sign Up
-            </button>
-            {isSignUpOpen && (
-              <div className='fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50'>
-                <div
-                  ref={signUpRef}
-                  className='relative mx-auto bg-white w-full max-w-md overflow-hidden rounded-lg bg-dark_grey/90 backdrop-blur-md px-8 pt-14 pb-8 text-center'>
-                  <button
-                    onClick={() => setIsSignUpOpen(false)}
-                    className='absolute top-0 right-0 mr-8 mt-8 dark:invert'
-                    aria-label='Close Sign Up Modal'>
-                    <Icon
-                      icon='material-symbols:close-rounded'
-                      width={24}
-                      height={24}
-                      className='text-black hover:text-primary inline-block hover:cursor-pointer'
-                    />
-                  </button>
-                  <SignUp />
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => setNavbarOpen(!navbarOpen)}
-              className='block lg:hidden p-2 rounded-lg'
-              aria-label='Toggle mobile menu'>
-              <span className='block w-6 h-0.5 bg-black'></span>
-              <span className='block w-6 h-0.5 bg-black mt-1.5'></span>
-              <span className='block w-6 h-0.5 bg-black mt-1.5'></span>
-            </button>
-          </div>
-        </div>
-        {navbarOpen && (
-          <div className='fixed top-0 left-0 w-full h-full bg-black/50 z-40' />
-        )}
-        <div
-          ref={mobileMenuRef}
-          className={`lg:hidden fixed top-0 right-0 h-full w-full bg-white shadow-lg transform transition-transform duration-300 max-w-xs ${
-            navbarOpen ? 'translate-x-0' : 'translate-x-full'
-          } z-50`}>
-          <div className='flex items-center justify-between p-4'>
-            <h2 className='text-lg font-bold text-midnight_text'>
-              <Logo />
-            </h2>
-            {/*  */}
-            <button
-              onClick={() => setNavbarOpen(false)}
-              className='bg-black/30 rounded-full p-1 text-white'
-              aria-label='Close menu Modal'>
-              <Icon
-                icon={'material-symbols:close-rounded'}
-                width={24}
-                height={24}
-              />
-            </button>
-          </div>
-          <nav className='flex flex-col items-start p-4'>
-            {headerData.map((item, index) => (
-              <MobileHeaderLink key={index} item={item} />
-            ))}
-            <div className='mt-4 flex flex-col gap-4 w-full'>
-              <button
-                className='bg-primary text-white px-4 py-2 rounded-lg border  border-primary hover:text-primary hover:bg-transparent hover:cursor-pointer transition duration-300 ease-in-out'
-                onClick={() => {
-                  setIsSignInOpen(true)
-                  setNavbarOpen(false)
-                }}>
-                Sign In
-              </button>
-              <button
-                className='bg-primary text-white px-4 py-2 rounded-lg border  border-primary hover:text-primary hover:bg-transparent hover:cursor-pointer transition duration-300 ease-in-out'
-                onClick={() => {
-                  setIsSignUpOpen(true)
-                  setNavbarOpen(false)
-                }}>
-                Sign Up
-              </button>
+    <header ref={headerRef} onClick={(event) => {
+      if ((event.target as HTMLElement).closest('a')) closeMenus()
+    }} className='sticky top-0 z-50 border-b border-blue-800 bg-school-blue shadow-[0_4px_16px_-12px_rgba(4,23,44,.45)]'>
+      <div className='mx-auto flex min-h-[56px] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8 lg:px-10'>
+        <Logo />
+
+        <nav aria-label='Navigasi utama' className='hidden items-center gap-7 xl:flex'>
+          <Link href='/' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>Beranda</Link>
+          <Link href='/ppdb' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>SPMB</Link>
+          <details className='group relative'>
+          <summary onClick={closeOtherDropdowns} className='flex cursor-pointer list-none items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 group-open:bg-white/15 [&::-webkit-details-marker]:hidden'>Profil <Chevron /></summary>
+            <div className='absolute left-0 top-full z-50 mt-3 w-64 rounded-2xl border border-white/10 bg-school-blue p-2 shadow-xl shadow-blue-950/25'>
+              {profileNavigation.map((item) => <Link key={item.href} href={item.href} className='block rounded-xl px-3 py-2.5 text-sm font-semibold text-white/95 transition hover:bg-white/10 hover:text-white'>{item.label}</Link>)}
             </div>
-          </nav>
-        </div>
+          </details>
+          <details className='group relative'>
+          <summary onClick={closeOtherDropdowns} className='flex cursor-pointer list-none items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 group-open:bg-white/15 [&::-webkit-details-marker]:hidden'>Informasi <Chevron /></summary>
+            <div className='absolute left-0 top-full z-50 mt-3 w-60 rounded-2xl border border-white/10 bg-school-blue p-2 shadow-xl shadow-blue-950/25'>
+              {informationNavigation.map((item) => <Link key={item.href} href={item.href} className='block rounded-xl px-3 py-2.5 text-sm font-semibold text-white/95 transition hover:bg-white/10 hover:text-white'>{item.label}</Link>)}
+            </div>
+          </details>
+          <Link href='/fasilitas' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>Fasilitas</Link>
+        </nav>
+
+        <Link href='/#hubungi-kami' className='hidden shrink-0 whitespace-nowrap rounded-full bg-school-gold px-5 py-3 text-sm font-bold text-school-navy shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-school-butter xl:inline-flex'>Hubungi Sekolah</Link>
+
+        <button
+          type='button'
+          className='inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/25 text-white transition hover:border-sky-300 hover:text-sky-200 xl:hidden'
+          aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
+          aria-expanded={menuOpen}
+          aria-controls='mobile-navigation'
+          onClick={() => setMenuOpen((open) => !open)}>
+          <span className='sr-only'>{menuOpen ? 'Tutup menu' : 'Buka menu'}</span>
+          <span className='flex flex-col gap-1.5'>
+            <span className='h-0.5 w-5 rounded bg-current' />
+            <span className='h-0.5 w-5 rounded bg-current' />
+            <span className='h-0.5 w-5 rounded bg-current' />
+          </span>
+        </button>
       </div>
+
+      {menuOpen && (
+        <nav id='mobile-navigation' aria-label='Navigasi seluler' className='max-h-[calc(100dvh-56px)] overflow-y-auto border-t border-white/15 bg-school-blue px-5 py-4 shadow-lg xl:hidden'>
+          <div className='mx-auto flex max-w-7xl flex-col gap-1'>
+            {mobileNavigation.map((item) => (
+              <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className='rounded-lg px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-sky-200'>
+                {item.label}
+              </Link>
+            ))}
+            {mobileDropdowns.map((dropdown) => (
+              <details key={dropdown.label} className='group rounded-xl open:bg-white/5'>
+                <summary onClick={closeOtherDropdowns} className='flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10 group-open:text-sky-200 [&::-webkit-details-marker]:hidden'>
+                  {dropdown.label} <Chevron />
+                </summary>
+                <div className='mx-4 mb-2 flex flex-col border-l border-white/20 pl-3'>
+                  {dropdown.items.map((item) => (
+                    <Link key={item.href} href={item.href} className='rounded-lg px-3 py-2.5 text-sm leading-5 text-white/85 transition hover:bg-white/10 hover:text-sky-200'>
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ))}
+            <Link href='/fasilitas' className='rounded-lg px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-sky-200'>Fasilitas</Link>
+            <Link href='/#kontak' className='rounded-lg px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-sky-200'>Kontak</Link>
+            <Link href='/#hubungi-kami' className='mt-2 rounded-full bg-school-gold px-5 py-3 text-center text-sm font-bold text-school-navy transition hover:bg-school-butter'>Hubungi Sekolah</Link>
+          </div>
+        </nav>
+      )}
     </header>
   )
 }

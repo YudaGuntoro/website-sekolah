@@ -1,20 +1,9 @@
-import HeroSub from "@/app/components/SharedComponent/HeroSub";
-import NotFound from "@/app/components/NotFound";
-import { Metadata } from "next";
+import NotFoundContent from './components/NotFound'
 
-export const metadata: Metadata = {
-  title: "404 Page | Venus ",
-};
-
-const ErrorPage = () => {
+export default function NotFound() {
   return (
-    <>
-      <HeroSub
-        title="404"
-      />
-      <NotFound />
-    </>
-  );
-};
-
-export default ErrorPage;
+    <main className='min-h-[65vh] bg-white'>
+      <NotFoundContent />
+    </main>
+  )
+}

@@ -10,12 +10,9 @@ import { FooterLinkType } from '@/app/types/footerlinks'
 
 const HeaderData: HeaderItem[] = [
   { label: 'Home', href: '/#Home' },
-  { label: 'Courses', href: '/#Courses' },
-  { label: 'Mentors', href: '/#mentors-section' },
-  { label: 'Testimonial', href: '/#testimonial-section' },
-  { label: 'Join', href: '/#join-section' },
-  { label: 'Contact Us', href: '/#contact' },
-  { label: 'Docs', href: '/documentation' },
+  { label: 'Features', href: '/#courses-section' },
+  { label: 'Pricing', href: '/#courses-section' },
+  { label: 'Contact', href: '/#contact' },
 ]
 
 const CourseData: CourseType[] = [

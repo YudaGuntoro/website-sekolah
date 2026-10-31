@@ -1,54 +1,28 @@
 'use client'
-import Link from 'next/link'
+
 import { useEffect, useState } from 'react'
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false)
 
-  // Top: 0 takes us all the way back to the top of the page
-  // Behavior: smooth keeps it smooth!
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
-  }
-
   useEffect(() => {
-    // Button is displayed after scrolling for 500 pixels
-    const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
-    }
-
-    window.addEventListener('scroll', toggleVisibility)
-
+    const toggleVisibility = () => setIsVisible(window.scrollY > 300)
+    window.addEventListener('scroll', toggleVisibility, { passive: true })
+    toggleVisibility()
     return () => window.removeEventListener('scroll', toggleVisibility)
   }, [])
 
+  if (!isVisible) return null
+
   return (
-    <div className='fixed bottom-8 right-8 z-999'>
-      <div className='flex items-center gap-2.5'>
-        <Link
-          href={
-            'https://getnextjstemplates.com/products/si-educational-free-nextjs-landing-page-template'
-          }
-          target='_blank'
-          className='hidden lg:block bg-primary text-white hover:bg-darkmode text-sm px-4 py-3.5 leading-none rounded-lg font-medium text-nowrap'>
-          Download Now
-        </Link>
-        {isVisible && (
-          <div
-            onClick={scrollToTop}
-            aria-label='scroll to top'
-            className='back-to-top flex h-10 w-10 cursor-pointer items-center justify-center rounded-md bg-[#102C46] text-white shadow-md transition duration-300 ease-in-out hover:bg-dark'>
-            <span className='mt-[6px] h-3 w-3 rotate-45 border-l border-t border-white'></span>
-          </div>
-        )}
-      </div>
-    </div>
+    <button
+      type='button'
+      aria-label='Kembali ke atas'
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className='fixed bottom-24 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-school-blue text-white shadow-lg shadow-blue-950/20 transition hover:-translate-y-1 hover:bg-school-navy'>
+      <svg viewBox='0 0 24 24' aria-hidden='true' className='h-5 w-5 fill-none stroke-current'>
+        <path d='m6 14 6-6 6 6M12 8v11' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' />
+      </svg>
+    </button>
   )
 }

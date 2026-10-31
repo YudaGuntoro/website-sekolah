@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 const Banner = () => {
   return (
-    <section id='Home' className='bg-banner-image pt-28 pb-20'>
+    <section id='Home' className='bg-banner-image pt-40 pb-20'>
       <div className='relative px-6 lg:px-8'>
         <div className='container'>
           <div className='flex flex-col gap-4 text-center'>
