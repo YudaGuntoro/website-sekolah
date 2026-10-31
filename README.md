@@ -1,75 +1,59 @@
-# # Si Educational NextJs Landing Page Template
+# Website SMPIT Cendekia Purwakarta
 
-🌏[View Live Preview](https://si-educational-nextjs.vercel.app/) | 📥[Download](https://getnextjstemplates.com/products/si-educational-free-nextjs-landing-page-template) | 👉[Browse Next.js Templates](https://getnextjstemplates.com/)
+Website profil sekolah untuk menampilkan program belajar, fasilitas, kegiatan siswa, berita, pengumuman, dan informasi Sistem Penerimaan Murid Baru (SPMB).
 
+## Fitur
 
-<a target="_blank" href="https://getnextjstemplates.com/products/si-educational-free-nextjs-landing-page-template">
-  <img src="https://i.pinimg.com/736x/d9/75/54/d97554dea735a0cdb783c760dff14a8f.jpg" />
-</a>
+- Beranda responsif untuk desktop dan HP.
+- Profil sekolah, sejarah, struktur organisasi, pimpinan, dan tenaga pendidik.
+- Program belajar, ekstrakurikuler, OSIS, fasilitas, dan prestasi siswa.
+- Daftar berita dengan halaman detail untuk setiap artikel.
+- Pengumuman dengan popup detail.
+- Informasi SPMB, persyaratan, alur pendaftaran, dan formulir calon siswa.
+- Kontak sekolah dan akses WhatsApp.
 
-<br> </br>
+## Menjalankan proyek
 
-<p style="text-align:center;"> It’s built with popular tools like React and Next.js , so it’s fast and easy to work with. The design uses Tailwind CSS , which means it looks great on phones, tablets, and computers. Everything is good organized so you can find what you need fast, even if you're new to coding.
-</p>
-<p style="text-align:center;"> This landing Page comes The Template is a ready-made design for your website. It’s perfect if you want to build a landing page quickly without starting from zero. This template looks modern and professional, and it works well for all kinds of projects like schools, courses, or online services.
-</p>
-
----
-## 💾 Installation Guide
-
-Welcome to the **Si Educational Nextjs Landing Page Template**! This guide will walk you through the installation and setup process, so you can get started with building your custom web page in no time.
-
-### 📝 Steps to Install
-
-#### 1. **Clone the Repository**
-
-The easiest way to get started is by cloning the repository or download the zip file. You can do this with the following command:
+Gunakan Node.js 20 atau lebih baru. Aplikasi berada di direktori `package`.
 
 ```bash
-git clone https://github.com/GetNextjsTemplates/si-educational-nextjs.git
-```
-
-#### 2. **Install Dependencies**
-
-Install the relative Dependencies of the template. You can do this with the following command:
-
-```bash
-npm install
-```
-
-#### 3. **Start the Development Server**
-
-Once the dependencies are installed, you can start a local development server to preview the template: 
-
-```bash
+git clone https://github.com/YudaGuntoro/website-sekolah.git
+cd website-sekolah/package
+npm ci
 npm run dev
 ```
 
----
+Buka http://localhost:3000.
 
-#### 📜 License
+## Build produksi
 
-This project is licensed under the MIT License - see the [LICENSE](https://getnextjstemplates.com/privacy) file for details.
+Jalankan dari direktori `package`:
 
-#### Stay Tuned for Nextjs Templates Updates
+```bash
+npm run build
+npm start
+```
 
-[![](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](http://github.com/GetNextjsTemplates/)  [![twitter](https://img.shields.io/badge/twitter-x?style=for-the-badge&logo=x&logoColor=white&color=%230f1419) ](https://x.com/Getnextjstemplt)  [
-![facebook](https://img.shields.io/badge/facebook-logo?style=for-the-badge&logo=facebook&logoColor=white&color=%230866ff)](https://www.facebook.com/getnextjstemplates) [![instagram](https://img.shields.io/badge/instagram-logo?style=for-the-badge&logo=instagram&logoColor=white&color=%23F35369)](https://www.instagram.com/getnextjstemplates/)  [![youtube](https://img.shields.io/badge/youtube-logo?style=for-the-badge&logo=youtube&logoColor=white&color=%23cc0000)](https://www.youtube.com/@NextjsTemplates)  [![](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/nextjstemplates/)
+Untuk hosting, gunakan `package` sebagai root directory aplikasi.
 
-### Follow us for Web Design Updates
+## Struktur proyek
 
-[![dribbble](https://img.shields.io/badge/dribbble-logo?style=for-the-badge&logo=dribbble&logoColor=white&color=%23ea64d9)](https://dribbble.com/wrappixel) [![behance](https://img.shields.io/badge/behance-logo?style=for-the-badge&logo=behance&logoColor=white&color=%230057ff)](https://www.behance.net/GetNextjsTemplates/)
+```text
+package/
+  public/                 Gambar dan brosur sekolah
+  src/app/                Halaman dan routing aplikasi
+  src/app/components/     Komponen antarmuka
+  src/app/school-content.ts  Data berita, pengumuman, dan profil
+```
 
+## Catatan pengembangan
 
-#### Spread the Word 📢
+Berita dan beberapa data profil masih menggunakan contoh konten. Formulir pendaftaran saat ini berupa simulasi; data belum disimpan atau dikirim ke server. Sesuaikan konten dan integrasikan backend sebelum digunakan untuk pendaftaran resmi.
 
-If you find this template helpful, give it a ⭐️ and share it with your fellow developers. 
+## Teknologi
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/GetNextjsTemplates/si-educational-nextjs&root-directory=package)
+Next.js, React, TypeScript, dan Tailwind CSS.
 
+## Lisensi
 
-Happy coding! 💻
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-
+Ketentuan lisensi dan pemberitahuan hak cipta tersedia di [LICENSE.txt](LICENSE.txt).
