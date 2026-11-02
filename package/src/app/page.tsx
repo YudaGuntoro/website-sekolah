@@ -21,6 +21,15 @@ const missions = [
   'Mendukung bakat dan minat melalui kegiatan ekstrakurikuler yang membangun fisik sehat, jiwa sportif, dan kerja sama tim.',
 ]
 
+const missionCards = [
+  { title: 'Iman & akhlak', tone: 'bg-sky-100 text-sky-700', path: 'M3 21h18M5 21V10H2l2-4 2 4H5m14 11V10h3l-2-4-2 4h1M8 21v-8h8v8M8 13V9c0-2 4-3 4-5 0 2 4 3 4 5v4M12 4V2m-2 19v-4a2 2 0 0 1 4 0v4' },
+  { title: 'Ilmu & literasi', tone: 'bg-indigo-100 text-indigo-700', path: 'M12 5v16M3 4c4-1 7 0 9 2 2-2 5-3 9-2v15c-4-1-7 0-9 2-2-2-5-3-9-2V4Z' },
+  { title: 'Jiwa pemimpin', tone: 'bg-amber-100 text-amber-700', path: 'M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6 21v-3a6 6 0 0 1 12 0v3M3 7h2m14 0h2M5 2l1.5 1.5M19 2l-1.5 1.5M12 14l-2 3 2 3 2-3-2-3' },
+  { title: 'Budaya positif', tone: 'bg-cyan-100 text-cyan-700', path: 'M21 11a9 9 0 0 1-9 9 10 10 0 0 1-4-.9L3 21l1.9-5A9 9 0 1 1 21 11ZM8 9h.01M16 9h.01M8 13a4.5 4.5 0 0 0 8 0' },
+  { title: 'Peduli lingkungan', tone: 'bg-emerald-100 text-emerald-700', path: 'M20 3C8 3 3 8 5 15s15 7 15-12ZM4 21 15 10' },
+  { title: 'Bakat & minat', tone: 'bg-violet-100 text-violet-700', path: 'M7 3h10v5c0 5-2 7-5 7s-5-2-5-7V3ZM7 5H3v3a4 4 0 0 0 5 4M17 5h4v3a4 4 0 0 1-5 4M12 15v4M8 21h8M10 19h4' },
+]
+
 const programs = [
   { title: 'Qiyamul Lail Virtual', text: 'Program unggulan SMPIT Cendekia.', image: 'qiyamul-lail', alt: 'Ilustrasi sajadah dan laptop dengan suasana malam' },
   { title: 'Tahfidz Al-Quran', text: 'Program unggulan SMPIT Cendekia.', image: 'tahfidz', alt: 'Ilustrasi Al-Quran terbuka di atas rehal' },
@@ -168,9 +177,9 @@ function MissionList() {
 export default function Home() {
   return (
     <main>
-      <section id='beranda' className='relative isolate overflow-hidden bg-gradient-to-br from-[#edf6ff] via-white to-[#f0f7ff]'>
+      <section id='beranda' className='relative isolate overflow-hidden bg-gradient-to-br from-[#edf6ff] via-white to-[#f0f7ff] py-0 sm:py-14'>
         <div aria-hidden='true' className='pointer-events-none absolute -right-48 -top-52 -z-10 h-[34rem] w-[34rem] rounded-full bg-sky-200/40 blur-3xl' />
-        <div className='mx-auto grid max-w-7xl items-center gap-4 px-5 pb-8 pt-8 sm:gap-12 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[1fr_1.04fr] lg:gap-8 lg:px-10 lg:pb-24 lg:pt-16'>
+        <div className='mx-auto grid max-w-7xl items-center gap-8 px-5 pb-8 pt-8 sm:gap-12 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[1fr_1.04fr] lg:gap-8 lg:px-10 lg:pb-24 lg:pt-16'>
           <div className='relative z-10'>
             <p className='inline-flex rounded-full border border-school-gold/40 bg-school-butter px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-school-navy sm:text-xs'>SMPIT Cendekia Purwakarta</p>
             <h1 className='mt-4 max-w-2xl text-[32px] font-black leading-[1.12] tracking-tight text-school-navy sm:text-5xl lg:text-[3.65rem]'>Unggul dalam <span className='text-school-blue'>Bina Iman, Ilmu</span> dan Amal.</h1>
@@ -188,8 +197,8 @@ export default function Home() {
       <section id='tentang' className='border-y border-sky-100 bg-[#f7faff] py-8 sm:py-20'>
         <div className='mx-auto grid max-w-7xl items-start gap-5 px-5 sm:gap-10 sm:px-8 lg:grid-cols-[.82fr_1.18fr] lg:gap-12 lg:px-10'>
           <div className='flex min-w-0 flex-col lg:pr-3'>
-            <h2 className='mt-4 text-2xl font-black leading-[1.12] tracking-tight text-school-navy sm:text-4xl xl:text-5xl'>Arah Pendidikan <span className='block text-sky-600'>Cendekia</span></h2>
-            <p className='mt-3 max-w-md text-sm leading-6 sm:mt-5 sm:leading-7 text-slate-600 sm:text-base'>Motto, visi, dan misi menjadi arah bagi seluruh warga sekolah dalam mendampingi proses belajar dan pertumbuhan siswa.</p>
+            <h2 className='mt-4 whitespace-nowrap text-[clamp(1rem,5vw,1.25rem)] font-black leading-[1.12] tracking-tight text-school-navy sm:whitespace-normal sm:text-4xl xl:text-5xl'>Arah Pendidikan <span className='text-sky-600 sm:block'>Cendekia</span></h2>
+            <p className='mt-3 hidden max-w-md text-sm leading-6 sm:mt-5 sm:block sm:leading-7 text-slate-600 sm:text-base'>Motto, visi, dan misi menjadi arah bagi seluruh warga sekolah dalam mendampingi proses belajar dan pertumbuhan siswa.</p>
             <Image src='/images/school/arah-pendidikan.png' alt='Tiga pelajar SMP bersemangat meraih prestasi dan masa depan cemerlang' width={1122} height={1402} sizes='(min-width: 640px) 336px, 90vw' className='mx-auto mt-8 hidden h-auto max-h-[420px] w-auto max-w-full object-contain sm:block lg:mt-10' />
           </div>
           <div className='space-y-4 sm:space-y-6'>
@@ -197,29 +206,55 @@ export default function Home() {
             <article className='border-b border-sky-100 pb-3 sm:pb-5'><h3 className='text-xl font-extrabold text-school-navy sm:text-2xl'>Visi</h3><p className='mt-2 text-left font-serif text-base italic leading-6 sm:text-justify sm:leading-7 text-school-blue sm:text-xl'>Mewujudkan sekolah yang unggul dalam iman, ilmu, dan amal melalui kepemimpinan yang inklusif, berintegritas, dan berorientasi pada pembinaan karakter, prestasi, serta kepedulian lingkungan.</p></article>
             <article>
               <h3 className='text-xl font-extrabold text-school-navy sm:text-2xl'>Misi</h3>
-              <details className='mt-3 rounded-xl border border-sky-100 bg-white p-3 sm:hidden'>
-                <summary className='cursor-pointer text-sm font-bold text-school-blue'>Lihat enam misi sekolah</summary>
-                <MissionList />
-              </details>
+              <div className='mt-3 space-y-2 sm:hidden'>
+                {missionCards.map((card, index) => (
+                  <details key={card.title} name='school-missions' className='group overflow-hidden rounded-2xl border border-sky-100 bg-white transition-colors open:border-sky-300 open:bg-sky-50/60'>
+                    <summary className='flex min-h-16 cursor-pointer list-none items-center gap-3 p-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-school-blue [&::-webkit-details-marker]:hidden'>
+                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.tone}`}>
+                        <svg viewBox='0 0 24 24' className='h-5 w-5' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={card.path} /></svg>
+                      </span>
+                      <span className='min-w-0 flex-1 text-sm font-bold text-school-navy'>{card.title}</span>
+                      <span className='text-[10px] font-bold tabular-nums text-slate-400' aria-hidden='true'>{String(index + 1).padStart(2, '0')}</span>
+                      <svg viewBox='0 0 20 20' className='h-4 w-4 shrink-0 text-school-blue transition-transform group-open:rotate-180 motion-reduce:transition-none' fill='none' stroke='currentColor' strokeWidth='1.8' aria-hidden='true'><path d='m5 7.5 5 5 5-5' /></svg>
+                    </summary>
+                    <p className='mx-4 border-t border-sky-100 py-3 text-sm leading-6 text-slate-600'>{missions[index]}</p>
+                  </details>
+                ))}
+              </div>
               <div className='hidden sm:block'><MissionList /></div>
             </article>
           </div>
         </div>
       </section>
 
-      <section id='sambutan' className='border-y border-slate-100 bg-white py-8 sm:py-20'>
+      <section id='sambutan' className='border-y border-slate-100 bg-white py-10 sm:py-20'>
         <div className='mx-auto grid max-w-7xl items-center gap-9 px-5 sm:px-8 lg:grid-cols-[.35fr_.65fr] lg:gap-16 lg:px-10'>
           <div className='mx-auto hidden w-full max-w-[300px] overflow-hidden sm:block rounded-2xl border border-sky-100 bg-sky-50 shadow-[0_16px_40px_-28px_rgba(16,45,78,.35)]'><Image src='/images/mentor/girl1.svg' alt='Potret kepala sekolah SMPIT Cendekia' width={415} height={393} className='h-[300px] w-full object-cover object-top' /></div>
           <div>
-            <h2 className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Sambutan Kepala <span className='text-sky-600'>Sekolah</span></h2>
-            <span aria-hidden='true' className='mt-4 block h-1 w-20 rounded-full bg-school-blue' />
-            <div className='mt-4 space-y-3 text-sm leading-6 sm:mt-6 sm:space-y-4 sm:leading-7 text-slate-600 sm:text-base'>
-              <p className='font-semibold text-school-navy'>Assalamu?alaikum warahmatullahi wabarakatuh.</p>
+            <h2 className='text-[22px] font-black leading-tight tracking-tight text-school-navy sm:text-4xl'>Sambutan Kepala <span className='text-sky-600'>Sekolah</span></h2>
+            <span aria-hidden='true' className='mt-4 block h-1 w-12 rounded-full bg-school-blue' />
+            <div className='mx-auto mt-6 w-40 overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 shadow-sm sm:hidden'>
+              <Image src='/images/mentor/girl1.svg' alt='Potret kepala sekolah SMPIT Cendekia' width={415} height={393} sizes='160px' className='h-44 w-full object-cover object-top' />
+            </div>
+            <div className='mt-5 space-y-4 text-sm leading-7 sm:mt-6 sm:leading-7 text-slate-600 sm:text-base'>
+              <p className='border-l-2 border-sky-200 pl-3 font-medium leading-6 text-school-navy'>Assalamu’alaikum<br className='sm:hidden' /> warahmatullahi wabarakatuh.</p>
               <p>Selamat datang di website resmi SMPIT Cendekia Purwakarta. Semoga website ini menjadi jendela informasi dan komunikasi bagi siswa, orang tua, alumni, serta seluruh masyarakat.</p>
               <p className='hidden sm:block'>Kami berkomitmen mendampingi setiap anak agar tumbuh dalam ilmu, akhlak, dan kepedulian. Mari berkolaborasi menciptakan pengalaman belajar yang bermakna dan mempersiapkan generasi yang bermanfaat.</p>
             </div>
-            <details className='group mt-5'><summary className='inline-flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-school-blue hover:text-school-navy [&::-webkit-details-marker]:hidden'><span className='group-open:hidden'>Selengkapnya</span><span className='hidden group-open:inline'>Tutup sambutan</span><span aria-hidden='true'>?</span></summary><p className='mt-3 text-sm leading-6 text-slate-600 sm:hidden'>Kami berkomitmen mendampingi setiap anak agar tumbuh dalam ilmu, akhlak, dan kepedulian. Mari berkolaborasi menciptakan pengalaman belajar yang bermakna dan mempersiapkan generasi yang bermanfaat.</p><p className='mt-4 border-l-2 border-sky-200 pl-4 text-sm leading-7 text-slate-600'>Kami mengajak seluruh keluarga besar SMPIT Cendekia untuk terus menjaga semangat belajar, menghargai perbedaan, dan mendukung potensi setiap peserta didik. Terima kasih telah menjadi bagian dari perjalanan pendidikan ini.</p></details>
-            <div className='mt-4 border-t border-slate-100 pt-3 sm:mt-6 sm:pt-5'><p className='font-bold text-school-navy'>Nama Kepala Sekolah</p><p className='mt-1 text-sm text-slate-500'>Kepala Sekolah SMPIT Cendekia</p></div>
+            <div className='relative pb-16'>
+            <details className='group'>
+              <summary className='absolute bottom-0 left-0 inline-flex min-h-12 w-full cursor-pointer list-none items-center justify-center gap-3 rounded-xl border border-school-blue bg-school-blue px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:border-school-navy hover:bg-school-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-school-blue sm:w-auto [&::-webkit-details-marker]:hidden'>
+                <span className='group-open:hidden'>Baca sambutan lengkap</span><span className='hidden group-open:inline'>Tutup sambutan</span>
+                <svg viewBox='0 0 20 20' className='h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none' fill='none' stroke='currentColor' strokeWidth='1.8' aria-hidden='true'><path d='m5 7.5 5 5 5-5' /></svg>
+              </summary>
+              <p className='mt-4 text-sm leading-7 text-slate-600 sm:hidden'>Kami berkomitmen mendampingi setiap anak agar tumbuh dalam ilmu, akhlak, dan kepedulian. Mari berkolaborasi menciptakan pengalaman belajar yang bermakna dan mempersiapkan generasi yang bermanfaat.</p>
+              <p className='mt-4 text-sm leading-7 text-slate-600'>Kami mengajak seluruh keluarga besar SMPIT Cendekia untuk terus menjaga semangat belajar, menghargai perbedaan, dan mendukung potensi setiap peserta didik. Terima kasih telah menjadi bagian dari perjalanan pendidikan ini.</p>
+            </details>
+            <div className='mt-6 flex items-center gap-3 border-t border-slate-100 pt-5'>
+              <span className='flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sky-50 text-school-blue' aria-hidden='true'><svg viewBox='0 0 24 24' className='h-6 w-6' fill='none' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'><path d='M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM5 21v-2a7 7 0 0 1 14 0v2' /></svg></span>
+              <div><p className='text-sm font-bold text-school-navy sm:text-base'>Nama Kepala Sekolah</p><p className='mt-1 text-xs leading-5 text-slate-500 sm:text-sm'>Kepala Sekolah SMPIT Cendekia</p></div>
+            </div>
+            </div>
           </div>
         </div>
       </section>
@@ -249,10 +284,10 @@ export default function Home() {
               <article key={program.title} className='group flex items-center gap-3 rounded-2xl sm:rounded-[1.25rem] border border-[#dbe6f4] bg-white px-4 py-4 text-left shadow-[0_4px_0_0_#e4edfa] transition-[border-color,box-shadow] duration-200 hover:border-blue-300 hover:shadow-[0_4px_0_0_#bfdbfe] sm:gap-6 sm:px-7 sm:py-7'>
                 <div className={`flex h-10 w-10 shrink-0 -rotate-3 items-center justify-center rounded-[.9rem] transition-transform duration-200 group-hover:rotate-0 motion-reduce:transition-none sm:h-14 sm:w-14 ${['bg-[#2563eb] text-white', 'bg-school-navy text-white', 'bg-school-sky text-school-blue', 'bg-school-gold text-school-navy'][index]}`}>
                   <svg viewBox='0 0 24 24' className='h-6 w-6 fill-none stroke-current sm:h-7 sm:w-7' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
-                    {index === 0 && <><path d='M20.8 13.2A9 9 0 0 1 10.8 3a9 9 0 1 0 10 10.2Z' /><path d='M18 3v4M16 5h4' /></>}
-                    {index === 1 && <path d='M3 5.5C6 4 9 4.5 12 6v14c-3-1.5-6-2-9-.5v-14ZM21 5.5C18 4 15 4.5 12 6v14c3-1.5 6-2 9-.5v-14Z' />}
-                    {index === 2 && <><circle cx='12' cy='12' r='9' /><path d='M3 12h18M12 3a17 17 0 0 1 0 18 17 17 0 0 1 0-18Z' /></>}
-                    {index === 3 && <><path d='M20 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4 2 1.3-4.1A7.5 7.5 0 1 1 20 11.5Z' /><path d='M8 11h8M8 14h5' /></>}
+                    {index === 0 && <><rect x='3' y='3' width='18' height='14' rx='2' /><path d='M9 21h6m-3-4v4M14.5 6a4 4 0 1 0 3.5 5.5A4 4 0 0 1 14.5 6Z' /></>}
+                    {index === 1 && <><path d='M12 7C9 4.5 5 4.5 2 6v12c3-1.5 7-1.5 10 1 3-2.5 7-2.5 10-1V6c-3-1.5-7-1.5-10 1Zm0 0v12M5 9l4 1M5 12l4 1m6-3 4-1m-4 4 4-1M8 22l4-3 4 3' /></>}
+                    {index === 2 && <><path d='M12 12H6l-4 3V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v6M18 9h2a2 2 0 0 1 2 2v11l-4-3h-7a2 2 0 0 1-2-2v-2' /><path d='m6 9 2-5 2 5M6.8 7.5h2.4' /><text x='16' y='16' textAnchor='middle' fontSize='8' fontFamily='sans-serif' fill='currentColor' stroke='none'>ع</text></>}
+                    {index === 3 && <><path d='M11 5H4a2 2 0 0 0-2 2v13h7a3 3 0 0 1 3 2 3 3 0 0 1 3-2h7v-8M12 13v9M5 10h3m-3 4h3' /><path d='M16 2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-3l-3 2V4a2 2 0 0 1 2-2Z' /><text x='18' y='7.5' textAnchor='middle' fontSize='5.5' fontWeight='700' fontFamily='sans-serif' fill='currentColor' stroke='none'>EN</text></>}
                   </svg>
                 </div>
                 <div className='min-w-0'>

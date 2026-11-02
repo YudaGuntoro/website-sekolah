@@ -18,29 +18,27 @@ const facilities = [
 export default function FasilitasPage() {
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
-      <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>
+      <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc] py-0 sm:py-14'>
         <div aria-hidden='true' className='pointer-events-none absolute inset-0 -z-10 opacity-70' style={{ backgroundImage: 'linear-gradient(rgba(30,101,168,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(30,101,168,.045) 1px, transparent 1px), radial-gradient(ellipse at 90% 10%, rgba(125,211,252,.2), transparent 42%)', backgroundSize: '38px 38px, 38px 38px, auto' }} />
-        <div className='mx-auto max-w-7xl px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-10'>
-          <div className='grid items-end gap-7 lg:grid-cols-[1.1fr_.9fr] lg:gap-12'>
+        <div className='mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:pb-16 sm:pt-16 lg:px-10'>
+          <div className='grid items-end gap-4 sm:gap-7 lg:grid-cols-[1.1fr_.9fr] lg:gap-12'>
             <div>
               <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Fasilitas sekolah</p>
-              <h1 className='mt-4 max-w-2xl text-4xl font-black leading-[1.06] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Ruang belajar, <span className='text-school-blue'>ruang bertumbuh.</span></h1>
+              <h1 className='mt-3 max-w-2xl text-3xl font-black leading-[1.1] tracking-tight text-school-navy sm:mt-4 sm:text-5xl lg:text-6xl'>Ruang belajar, <span className='text-school-blue'>ruang bertumbuh.</span></h1>
             </div>
-            <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Fasilitas SMPIT Cendekia mendukung keseharian siswa dalam belajar, mengeksplorasi minat, berolahraga, dan beribadah.</p>
+            <p className='max-w-xl text-sm leading-6 text-slate-600 sm:border-l-2 sm:border-sky-300 sm:py-1 sm:pl-5 sm:text-base sm:leading-7'>Fasilitas SMPIT Cendekia mendukung keseharian siswa dalam belajar, mengeksplorasi minat, berolahraga, dan beribadah.</p>
           </div>
-          <div className='mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+          <div className='mt-6 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3'>
             {facilities.map((facility, index) => (
-              <article key={facility.title} className='group rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)]'>
-                <div className='flex items-center justify-between'>
-                  <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${facility.color}`}>
-                    <svg viewBox='0 0 24 24' className='h-8 w-8 fill-none stroke-current' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={facility.icon} /></svg>
+              <article key={facility.title} className='group grid grid-cols-[40px_1fr] items-start gap-x-3 gap-y-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)] sm:block sm:p-6'>
+                <div className='row-span-2 flex items-center justify-between'>
+                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${facility.color}`}>
+                    <svg viewBox='0 0 24 24' className='h-6 w-6 fill-none stroke-current sm:h-8 sm:w-8' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={facility.icon} /></svg>
                   </span>
-                  <span className='text-sm font-black tracking-widest text-slate-300'>{String(index + 1).padStart(2, '0')}</span>
+                  <span className='hidden text-sm font-black tracking-widest text-slate-300 sm:block'>{String(index + 1).padStart(2, '0')}</span>
                 </div>
-                <h2 className='mt-6 text-lg font-bold text-school-navy'>{facility.title}</h2>
-                <p className='mt-2 text-sm leading-6 text-slate-600'>{facility.text}</p>
-                <div className='mt-5 h-px bg-slate-100 transition group-hover:bg-sky-200' />
-                <p className='mt-4 text-xs font-semibold text-school-blue'>Mendukung keseharian siswa</p>
+                <h2 className='text-[15px] font-bold leading-6 text-school-navy sm:mt-6 sm:text-lg'>{facility.title}</h2>
+                <p className='col-start-2 text-xs leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-6'>{facility.text}</p>
               </article>
             ))}
           </div>
