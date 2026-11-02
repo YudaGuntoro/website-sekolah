@@ -14,6 +14,14 @@ const steps = [
   'Pengumuman hasil tes; calon siswa yang diterima membayar biaya masuk/registrasi.',
 ]
 
+const stepVisuals = [
+  { title: 'Daftar online', color: 'bg-sky-100 text-sky-700', icon: 'M8 3H4v18h16V3h-4M9 2h6v4H9zM8 11h8M8 15h5' },
+  { title: 'Serahkan berkas', color: 'bg-indigo-100 text-indigo-700', icon: 'M3 7V4h6l2 3h10v13H3V7ZM3 10h18' },
+  { title: 'Bayar pendaftaran', color: 'bg-amber-100 text-amber-700', icon: 'M3 5h18v14H3zM3 9h18M7 15h3m5 0h2' },
+  { title: 'Ikuti tes observasi', color: 'bg-cyan-100 text-cyan-700', icon: 'M8 3H4v18h16V3h-4M9 2h6v4H9zM8 13l3 3 5-6' },
+  { title: 'Pengumuman & registrasi', color: 'bg-emerald-100 text-emerald-700', icon: 'M21 11v1a9 9 0 1 1-5.3-8.2M9 11l3 3L22 4' },
+]
+
 const documents = [
   'Fotokopi akta kelahiran',
   'Fotokopi Kartu Keluarga',
@@ -42,9 +50,33 @@ export default function SpmbInformationPage() {
         </div>
       </section>
       <div className='mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-2'>
-        <section className='rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>
-          <h2 className='text-xl font-black text-school-navy'>Alur Pendaftaran</h2>
-          <ol className='mt-5 space-y-4'>{steps.map((step, index) => <li key={step} className='flex gap-4'><span className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-black text-school-blue'>{index + 1}</span><p className='pt-1 text-sm leading-6 text-slate-600'>{step}</p></li>)}</ol>
+        <section className='rounded-2xl border border-sky-100 bg-white p-5 sm:p-7'>
+          <div className='flex items-center justify-between gap-3'>
+            <h2 className='text-xl font-black text-school-navy'>Alur Pendaftaran</h2>
+            <span className='shrink-0 rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold text-school-blue sm:text-xs'>5 tahap</span>
+          </div>
+          <ol className='mt-6 sm:mt-7'>
+            {steps.map((step, index) => (
+              <li key={step} className='relative flex gap-3 pb-6 last:pb-0 sm:gap-4 sm:pb-7'>
+                {index < steps.length - 1 && <span aria-hidden='true' className='absolute bottom-0 left-5 top-11 w-px bg-sky-100 sm:left-6 sm:top-[52px]' />}
+                <span className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 sm:rounded-2xl ${stepVisuals[index].color}`}>
+                  <svg viewBox='0 0 24 24' className='h-5 w-5 sm:h-6 sm:w-6' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={stepVisuals[index].icon} /></svg>
+                </span>
+                <div className='min-w-0 flex-1'>
+                  <p className='text-[9px] font-bold uppercase tracking-[.15em] text-school-blue/70 sm:text-[10px]'>Tahap {String(index + 1).padStart(2, '0')}</p>
+                  <h3 className='mt-1 text-sm font-bold leading-5 text-school-navy sm:text-base sm:leading-6'>{stepVisuals[index].title}</h3>
+                  {index === 2 ? <>
+                    <div className='mt-2 max-w-sm rounded-xl border border-amber-100 bg-amber-50/60 p-3 sm:p-4'>
+                      <p className='text-lg font-extrabold tracking-tight text-school-navy sm:text-xl'>Rp350.000</p>
+                      <p className='mt-1 text-xs leading-5 text-slate-600 sm:text-sm'>Tunai atau transfer ke</p>
+                      <p className='mt-1 text-xs font-bold leading-5 text-school-navy sm:text-sm'>BRI <span className='whitespace-nowrap tabular-nums'>0075 0100 2017 563</span></p>
+                      <p className='mt-1 text-[11px] leading-5 text-slate-500 sm:text-xs'>a.n. SMPIT Cendekia Purwakarta</p>
+                    </div>
+                  </> : <p className='mt-1.5 text-xs leading-5 text-slate-600 sm:text-sm sm:leading-6'>{step}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
         <section className='rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>
           <h2 className='text-xl font-black text-school-navy'>Persyaratan Berkas</h2>
