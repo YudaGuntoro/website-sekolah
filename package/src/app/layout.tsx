@@ -7,6 +7,9 @@ import ContactBubble from '@/app/components/ContactBubble'
 
 const font = Inter({ subsets: ['latin'] })
 
+// Serve fresh page responses with Next.js's private, no-store cache policy.
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: {
     default: 'SMPIT Cendekia Purwakarta',
