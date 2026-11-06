@@ -1,0 +1,36 @@
+// One-time export from the trusted local school website. Inserts never overwrite CMS edits.
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const app = path.resolve(root, '../package/src/app');
+const source = fs.readFileSync(path.join(app, 'school-content.ts'), 'utf8');
+const content = new Function(source.replaceAll('export const ', 'const ') + '\nreturn {schoolNews, announcements, achievements, staff, schoolRoutines};')();
+const array = (file, name) => {
+  const text = fs.readFileSync(path.join(app, file), 'utf8');
+  const match = text.match(new RegExp('const ' + name + ' = (\\[[\\s\\S]*?\\n\\])'));
+  if (!match) throw new Error('Cannot find ' + name + ' in ' + file);
+  return new Function('return ' + match[1])();
+};
+const entries = [];
+const slug = text => text.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const add = (collection, title, category = '', summary = '', body = '', imageUrl = '', date = '2026-10-30') => entries.push({ collection, title, slug: slug(title), category, summary, body, imageUrl, date, sortOrder: entries.filter(e => e.collection === collection).length });
+content.schoolNews.forEach(n => { add('berita', n.title, n.category, n.text, n.body.join('\n\n'), '', n.publishedAt); entries.at(-1).slug = n.slug; });
+content.announcements.forEach((n, i) => add('pengumuman', n.title, 'Informasi sekolah', n.text, n.text, '', ['2026-08-12','2026-08-10','2026-08-03','2026-07-27'][i]));
+content.staff.forEach(n => add('guru', n.name, n.role, '', '', n.image));
+content.achievements.forEach(n => { add('prestasi', n.title, n.level); entries.at(-1).slug = slug(n.title + '-' + n.level); });
+content.schoolRoutines.forEach(n => add('kegiatan', n, 'Pembiasaan harian'));
+array('fasilitas/page.tsx', 'facilities').forEach(n => add('fasilitas', n.title, 'Fasilitas sekolah', n.text, n.text));
+array('page.tsx', 'programs').forEach(n => add('program', n.title, 'Program unggulan', n.text, n.text));
+array('ekstrakurikuler/page.tsx', 'activities').forEach(n => add('ekstrakurikuler', n.title, 'Pengembangan minat', n.text, n.detail));
+array('sejarah/HistoryStorySelector.tsx', 'stories').forEach(n => add('profil', n.title, n.eyebrow, n.text, n.text, n.image));
+add('osis', 'Organisasi Siswa Intra Sekolah', 'Organisasi siswa', 'Ruang bagi siswa untuk belajar memimpin, bekerja sama, dan berperan aktif dalam kehidupan sekolah.', 'Susunan dan nama pengurus menunggu data resmi sekolah.');
+add('spmb', 'Penerimaan Murid Baru 2027/2028', 'Informasi umum', 'Informasi SPMB SMPIT Cendekia Purwakarta tahun ajaran 2027/2028.', 'Hubungi sekolah untuk memastikan jadwal dan ketersediaan kuota pendaftaran.');
+const spmbDefaults = JSON.parse(fs.readFileSync(path.join(app, 'spmb/default-information.json'), 'utf8'));
+add('spmb', 'Alur Pendaftaran', 'Pendaftaran', '', spmbDefaults.steps.map(step => step.description || (step.showPayment ? `Membayar biaya pendaftaran Rp${new Intl.NumberFormat('id-ID').format(spmbDefaults.feeAmount)} secara ${spmbDefaults.paymentDescription.toLowerCase()} ${spmbDefaults.bankName} ${spmbDefaults.accountNumber} a.n. ${spmbDefaults.accountHolder}.` : '')).map((s, i) => `${i + 1}. ${s}`).join('\n\n'));
+add('spmb', 'Berkas Persyaratan', 'Persyaratan', '', spmbDefaults.newStudentDocuments.join('\n\n'));
+add('spmb', 'Persyaratan Murid Pindahan', 'Persyaratan', '', spmbDefaults.transferDocuments.join('\n\n'));
+const quote = value => "'" + value.replaceAll('\\', '\\\\').replaceAll("'", "''").replaceAll('\0', '') + "'";
+const normalizeAchievements = entries.filter(e => e.collection === 'prestasi').map(e => `UPDATE school_content SET Slug=${quote(e.slug)} WHERE Collection='prestasi' AND Title=${quote(e.title)} AND Category=${quote(e.category)} AND Slug=${quote(slug(e.title))};`).join('\n');
+const sql = 'USE cendekia_cms;\nSET NAMES utf8mb4;\n' + normalizeAchievements + '\n' + entries.map(e => `INSERT IGNORE INTO school_content (Collection, Title, Slug, Category, Summary, Body, ImageUrl, Status, PublishedAt, SortOrder) VALUES (${[e.collection,e.title,e.slug,e.category,e.summary,e.body,e.imageUrl,'Published',e.date + ' 00:00:00'].map(quote).join(', ')}, ${e.sortOrder});`).join('\n') + '\n';
+fs.writeFileSync(path.join(root, 'database/seed_cendekia_content.sql'), sql);
+console.log(`Exported ${entries.length} school content records.`);

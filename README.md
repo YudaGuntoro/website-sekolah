@@ -1,6 +1,19 @@
-# Website Sekolah
+# Cendekia — Website dan Portal Administrator
 
 Website profil sekolah untuk menampilkan program belajar, fasilitas, kegiatan siswa, berita, pengumuman, dan informasi Sistem Penerimaan Murid Baru (SPMB).
+
+Satu repository berisi website publik, dashboard admin, dan backend CMS. Halaman LMP (Lomba Mata Pelajaran) dan formulir pendaftarannya juga terhubung ke backend yang sama.
+
+```text
+package/                     Website utama Next.js (port 3000)
+cendekia-dashboard/
+  Frontend/                  Portal Administrator Next.js (port 3002)
+  Backend/                   ASP.NET Core API (port 5243)
+  database/                  Skema dan data awal MySQL cendekia_cms
+  scripts/                   Setup database dan pengujian integrasi
+```
+
+Panduan API, database, dan dashboard tersedia di [cendekia-dashboard/README.md](cendekia-dashboard/README.md). Setiap aplikasi memasang dependensinya sendiri. Untuk hosting, root aplikasi tetap `package` untuk website dan `cendekia-dashboard/Frontend` untuk dashboard; backend dijalankan terpisah. File `.env` lokal, data database yang sedang digunakan, cache, dan hasil build tidak disimpan di Git.
 
 ## Fitur
 
@@ -48,7 +61,7 @@ package/
 
 ## Catatan pengembangan
 
-Konten website dapat dikelola melalui proyek saudara cendekia-dashboard. Salin package/.env.example ke package/.env.local dan jalankan API CMS di port 5243; SCHOOL_API_URL mengatur alamat backend. Dengan konfigurasi ini, berita, pengumuman, guru, prestasi, profil/sejarah, kegiatan, fasilitas, ekstrakurikuler, program, OSIS, dan informasi SPMB dibaca dari database cendekia_cms. Hanya konten berstatus terbit yang ditampilkan. Tanpa SCHOOL_API_URL, website tetap menggunakan data template untuk preview mandiri.
+Konten website dikelola melalui folder `cendekia-dashboard` dalam repository ini. Salin package/.env.example ke package/.env.local dan jalankan API CMS di port 5243; SCHOOL_API_URL mengatur alamat backend. Dengan konfigurasi ini, berita, pengumuman, guru, prestasi, profil/sejarah, kegiatan, fasilitas, ekstrakurikuler, program, OSIS, dan informasi SPMB dibaca dari database cendekia_cms. Hanya konten berstatus terbit yang ditampilkan. Tanpa SCHOOL_API_URL, website tetap menggunakan data template untuk preview mandiri.
 
 Formulir pendaftaran SPMB kini menyimpan data melalui API sekolah. Menu SPMB > Pengaturan Gelombang pada dashboard mengatur tahun ajaran dan empat jadwal gelombang. Pendaftaran tertutup di luar rentang aktif (WIB). Gelombang ditentukan server saat submit; nomor pendaftaran ditampilkan setelah berhasil. Data dapat diperiksa pada SPMB > Pendaftar SPMB. Sebelum dipakai, isi tanggal resmi dan aktifkan pendaftaran di dashboard.
 

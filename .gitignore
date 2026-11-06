@@ -1,0 +1,19 @@
+# Local credentials and environment overrides
+**/.env
+**/.env.*
+!**/.env.example
+**/Settings.ini
+*.pem
+*.key
+
+# Dependency, build, runtime, and local verification output
+**/node_modules/
+**/.next/
+**/bin/
+**/obj/
+**/logs/
+**/.build-check/
+**/.verify-*/
+**/local-mysql/
+*.tsbuildinfo
+*.log
