@@ -5,7 +5,7 @@ namespace DentalCare.Domain.School;
 public class LmpSettings
 {
     public int Id { get; set; } = 1;
-    public string ConfigJson { get; set; } = "{}";
+    public LmpConfig Config { get; set; } = new();
     public int Version { get; set; } = 1;
 }
 
@@ -45,15 +45,27 @@ public class LmpApplication
     [MaxLength(150)] public string StudentName { get; set; } = "";
     [MaxLength(150)] public string PreviousSchool { get; set; } = "";
     public int Grade { get; set; }
-    [MaxLength(100)] public string Subjects { get; set; } = "";
+    public int SubjectId { get; set; }
+    public LmpSubject Subject { get; set; } = null!;
     [MaxLength(150)] public string ContactName { get; set; } = "";
     [MaxLength(20)] public string ContactPhone { get; set; } = "";
     public int FeeAmount { get; set; }
-    public byte[]? Document { get; set; }
+    public LmpDocument? Attachment { get; set; }
     [MaxLength(30)] public string Status { get; set; } = "Baru";
     [MaxLength(20)] public string PaymentStatus { get; set; } = "Belum bayar";
     public DateTime SubmittedAt { get; set; }
     public int Version { get; set; } = 1;
+}
+public class LmpSubject
+{
+    public int Id { get; set; }
+    [MaxLength(30)] public string Code { get; set; } = "";
+    [MaxLength(100)] public string Name { get; set; } = "";
+}
+public class LmpDocument
+{
+    public int ApplicationId { get; set; }
+    public byte[] Content { get; set; } = [];
 }
 public class LmpSubmissionRequest
 {

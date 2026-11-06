@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 // Keep the SVG coordinate system when CSS scales TailAdmin icons.
 const svgLoader = {
@@ -18,6 +19,7 @@ const svgLoader = {
 const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
+  outputFileTracingRoot: path.resolve(__dirname),
   async headers() {
     return [{
       // Exclude Next.js assets and public files; include every page and /api.
@@ -43,6 +45,7 @@ const nextConfig: NextConfig = {
   },
 
     turbopack: {
+      root: path.resolve(__dirname),
       rules: {
         '*.svg': {
           loaders: [svgLoader],

@@ -1,5 +1,5 @@
 using DentalCare.Domain.Auth;
-using DentalCare.Persistence.Services.AuthService;
+using DentalCare.Application.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

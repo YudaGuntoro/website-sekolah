@@ -5,8 +5,28 @@ namespace DentalCare.Domain.School;
 public class SpmbInformation
 {
     public int Id { get; set; } = 1;
-    public string ConfigJson { get; set; } = "{}";
+    public SpmbInformationConfig Config { get; set; } = new();
+    public List<SpmbInformationStepRecord> StepRecords { get; set; } = [];
+    public List<SpmbDocumentRequirement> DocumentRecords { get; set; } = [];
     public int Version { get; set; } = 1;
+}
+public class SpmbInformationStepRecord
+{
+    public int Id { get; set; }
+    public int InformationId { get; set; }
+    public int Position { get; set; }
+    [MaxLength(150)] public string Title { get; set; } = "";
+    [MaxLength(3000)] public string Description { get; set; } = "";
+    [MaxLength(20)] public string Icon { get; set; } = "register";
+    public bool ShowPayment { get; set; }
+}
+public class SpmbDocumentRequirement
+{
+    public int Id { get; set; }
+    public int InformationId { get; set; }
+    [MaxLength(10)] public string ApplicantType { get; set; } = "new";
+    public int Position { get; set; }
+    [MaxLength(500)] public string Description { get; set; } = "";
 }
 public class SpmbInformationStep
 {

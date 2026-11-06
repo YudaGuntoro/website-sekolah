@@ -7,6 +7,20 @@ namespace DentalCare.WebAPI.Controllers;
 
 public abstract class ApiControllerBase : ControllerBase
 {
+    protected IActionResult FromService(DentalCare.Application.ServiceResult result)
+    {
+        var status = result.Kind switch {
+            DentalCare.Application.ResultKind.Success => 200,
+            DentalCare.Application.ResultKind.Created => 201,
+            DentalCare.Application.ResultKind.NotFound => 404,
+            DentalCare.Application.ResultKind.ValidationError => 400,
+            DentalCare.Application.ResultKind.Conflict => 409,
+            _ => 500
+        };
+        return StatusCode(status, result.Pagination is null
+            ? (object)new { success = status < 400, statusCode = status, message = result.Message, data = result.Data }
+            : new { success = status < 400, statusCode = status, message = result.Message, data = result.Data, pagination = result.Pagination });
+    }
     protected IActionResult ApiOk<T>(T data, string message = "Data retrieved successfully")
     {
         return Ok(new ApiResponse<T>

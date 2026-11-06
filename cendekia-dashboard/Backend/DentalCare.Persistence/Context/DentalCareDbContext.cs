@@ -35,16 +35,27 @@ public class DentalCareDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<SchoolContentCollection>(e => { e.ToTable("school_content_collections"); e.HasKey(x => x.Code); });
+        modelBuilder.Entity<SchoolMissionRecord>(e => { e.ToTable("school_missions"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.IdentityId, x.Position }).IsUnique(); });
+        modelBuilder.Entity<SpmbInformationStepRecord>(e => { e.ToTable("spmb_information_steps"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.Position }).IsUnique(); });
+        modelBuilder.Entity<SpmbDocumentRequirement>(e => { e.ToTable("spmb_document_requirements"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.ApplicantType, x.Position }).IsUnique(); });
+        modelBuilder.Entity<LmpSubject>(e => { e.ToTable("lmp_subjects"); e.HasKey(x => x.Id); e.HasIndex(x => x.Code).IsUnique(); e.HasIndex(x => x.Name).IsUnique(); });
+        modelBuilder.Entity<LmpDocument>(e => { e.ToTable("lmp_application_documents"); e.HasKey(x => x.ApplicationId); e.Property(x => x.Content).HasColumnType("mediumblob"); });
 
         modelBuilder.Entity<LmpSettings>(entity => {
             entity.ToTable("lmp_settings"); entity.HasKey(x => x.Id);
-            entity.Property(x => x.ConfigJson).HasColumnType("longtext");
+            entity.OwnsOne(x => x.Config, owned => {
+                foreach (var property in typeof(LmpConfig).GetProperties()) owned.Property(property.Name).HasColumnName(property.Name);
+            });
+            entity.Navigation(x => x.Config).IsRequired();
             entity.Property(x => x.Version).IsConcurrencyToken();
         });
         modelBuilder.Entity<LmpApplication>(entity => {
             entity.ToTable("lmp_applications"); entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.SubmissionKey).IsUnique();
-            entity.Property(x => x.Document).HasColumnType("mediumblob");
+            entity.HasOne(x => x.Subject).WithMany().HasForeignKey(x => x.SubjectId).OnDelete(DeleteBehavior.Restrict);
+            entity.Navigation(x => x.Subject).AutoInclude();
+            entity.HasOne(x => x.Attachment).WithOne().HasForeignKey<LmpDocument>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
             entity.Property(x => x.Version).IsConcurrencyToken();
             entity.Property(x => x.SubmittedAt).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
         });
@@ -53,7 +64,15 @@ public class DentalCareDbContext : DbContext
         {
             entity.ToTable("spmb_information");
             entity.HasKey(x => x.Id);
-            entity.Property(x => x.ConfigJson).HasColumnType("longtext");
+            entity.OwnsOne(x => x.Config, owned => {
+                owned.Ignore(x => x.Steps); owned.Ignore(x => x.NewStudentDocuments); owned.Ignore(x => x.TransferDocuments);
+                foreach (var property in typeof(SpmbInformationConfig).GetProperties().Where(p => p.PropertyType != typeof(List<string>) && p.PropertyType != typeof(List<SpmbInformationStep>)))
+                    owned.Property(property.Name).HasColumnName(property.Name);
+            });
+            entity.Navigation(x => x.Config).IsRequired();
+            entity.HasMany(x => x.StepRecords).WithOne().HasForeignKey(x => x.InformationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(x => x.DocumentRecords).WithOne().HasForeignKey(x => x.InformationId).OnDelete(DeleteBehavior.Cascade);
+            entity.Navigation(x => x.StepRecords).AutoInclude(); entity.Navigation(x => x.DocumentRecords).AutoInclude();
             entity.Property(x => x.Version).IsConcurrencyToken();
         });
 
@@ -68,7 +87,8 @@ public class DentalCareDbContext : DbContext
         {
             entity.ToTable("school_identity");
             entity.HasKey(x => x.Id);
-            entity.Property(x => x.MissionsJson).HasColumnType("longtext");
+            entity.HasMany(x => x.MissionRecords).WithOne().HasForeignKey(x => x.IdentityId).OnDelete(DeleteBehavior.Cascade);
+            entity.Navigation(x => x.MissionRecords).AutoInclude();
             entity.Property(x => x.Version).IsConcurrencyToken();
         });
 
@@ -108,6 +128,7 @@ public class DentalCareDbContext : DbContext
             entity.ToTable("school_content");
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => new { x.Collection, x.Slug }).IsUnique();
+            entity.HasOne<SchoolContentCollection>().WithMany().HasForeignKey(x => x.Collection).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => new { x.Collection, x.Status });
             entity.Property(x => x.Body).HasColumnType("longtext");
             entity.Property(x => x.Version).IsConcurrencyToken();

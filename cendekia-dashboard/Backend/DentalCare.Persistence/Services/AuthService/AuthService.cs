@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using DentalCare.Domain.Auth;
-using DentalCare.Persistence.Repositories;
+using DentalCare.Application.Abstractions;
 using DentalCare.Persistence.Services.Shared;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,12 +12,14 @@ namespace DentalCare.Persistence.Services.AuthService;
 
 public class AuthService : IAuthService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IApplicationUnitOfWork _unitOfWork;
+    private readonly IEntityRepository<AppUser> _users;
     private readonly JwtSettings _jwtSettings;
 
-    public AuthService(IUnitOfWork unitOfWork, IOptions<JwtSettings> jwtOptions)
+    public AuthService(IApplicationUnitOfWork unitOfWork, IEntityRepository<AppUser> users, IOptions<JwtSettings> jwtOptions)
     {
         _unitOfWork = unitOfWork;
+        _users = users;
         _jwtSettings = jwtOptions.Value;
     }
 
@@ -29,7 +31,7 @@ public class AuthService : IAuthService
         }
 
         var username = request.Username.Trim();
-        var user = await _unitOfWork.Repository<AppUser>().Query().FirstOrDefaultAsync(x => x.Username == username);
+        var user = await _users.FirstAsync(x => x.Username == username, tracking: true);
         if (user == null || !AuthPasswordHasher.VerifyPassword(request.Password, user.PasswordSalt, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Invalid username or password.");

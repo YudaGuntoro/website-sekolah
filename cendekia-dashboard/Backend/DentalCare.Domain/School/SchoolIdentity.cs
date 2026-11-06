@@ -7,8 +7,17 @@ public class SchoolIdentity
     public int Id { get; set; } = 1;
     [MaxLength(4000)] public string Vision { get; set; } = "";
     [MaxLength(500)] public string Motto { get; set; } = "";
-    public string MissionsJson { get; set; } = "[]";
+    public List<SchoolMissionRecord> MissionRecords { get; set; } = [];
     public int Version { get; set; } = 1;
+}
+
+public class SchoolMissionRecord
+{
+    public int Id { get; set; }
+    public int IdentityId { get; set; }
+    public int Position { get; set; }
+    [MaxLength(150)] public string Title { get; set; } = "";
+    [MaxLength(2000)] public string Text { get; set; } = "";
 }
 
 public class SchoolMission

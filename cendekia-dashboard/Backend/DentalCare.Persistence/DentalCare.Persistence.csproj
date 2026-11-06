@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DentalCare.Domain\DentalCare.Domain.csproj" />
+    <ProjectReference Include="..\DentalCare.Application\DentalCare.Application.csproj" />
   </ItemGroup>
 
 </Project>

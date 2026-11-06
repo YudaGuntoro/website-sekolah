@@ -2,6 +2,10 @@
 
 CMS website SMPIT Cendekia Purwakarta, dikembangkan dari template dashboard lokal. Frontend Next.js 16 dengan tema navy, backend ASP.NET Core 8, database MySQL 8 bernama **cendekia_cms**. Repository ini tidak memiliki remote Dental Care.
 
+## Arsitektur dan database
+
+Backend kini memakai lapisan Application service ? repository ? EF Core/DbContext. Konfigurasi terstruktur menggunakan tabel relasional, foreign key, dan constraint; arsip JSON migrasi tidak dipakai aplikasi. Panduan lengkap, diagram relasi, migrasi aman, dan pengujian: [docs/architecture-and-database.md](docs/architecture-and-database.md). Setelah clone gunakan setup di bawah; database lama dapat diperbarui dengan `scripts/init-local-db.ps1 -NormalizeOnly` setelah API lama dihentikan.
+
 ## Konten
 
 Berita, pengumuman, profil/sejarah, guru dan staf, prestasi, fasilitas, program belajar, kegiatan rutin, ekstrakurikuler, OSIS, dan informasi SPMB. Semua koleksi mendukung tambah, edit, hapus, pencarian, pagination, serta status draf/terbit. Isi ditulis sebagai teks dengan paragraf; gambar menggunakan URL HTTPS atau path gambar website.
