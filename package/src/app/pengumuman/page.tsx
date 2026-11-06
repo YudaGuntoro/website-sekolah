@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
-import { announcements } from '../school-content'
+import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
   title: 'Pengumuman Terbaru',
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 
 const iconColors = ['bg-sky-100 text-sky-700', 'bg-blue-100 text-blue-700', 'bg-cyan-100 text-cyan-800', 'bg-sky-100 text-school-blue']
 
-export default function PengumumanPage() {
+export default async function PengumumanPage() {
+  const { announcements } = await getSchoolContent()
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>

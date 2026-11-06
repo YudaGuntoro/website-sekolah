@@ -1,3 +1,4 @@
+import { getCmsCollection } from '../cms-content'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -27,7 +28,9 @@ function ActivityIcon({ type }: { type: string }) {
   return <svg viewBox='0 0 32 32' {...common}><circle cx='16' cy='16' r='12' /><path d='M4 16h24M16 4a19 19 0 0 1 0 24M16 4a19 19 0 0 0 0 24M7 9h18M7 23h18' /></svg>
 }
 
-export default function EkstrakurikulerPage() {
+export default async function EkstrakurikulerPage() {
+  const cmsEntries = await getCmsCollection('ekstrakurikuler')
+  const visible = cmsEntries === null ? activities.map(e => ({ ...e, imageUrl: '' })) : cmsEntries.map((e, index) => ({ ...activities[index % activities.length], imageUrl: e.imageUrl, title: e.title, text: e.summary, detail: e.body !== e.summary ? e.body : '', number: String(index + 1).padStart(2, '0') }))
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>
@@ -41,9 +44,10 @@ export default function EkstrakurikulerPage() {
             <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan di luar kelas memberi ruang bagi siswa untuk mencoba hal baru, mengasah keterampilan, dan belajar bekerja sama.</p>
           </div>
           <div className='mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
-            {activities.map((activity) => (
+            {visible.map((activity) => (
               <article key={activity.number} className='group rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)]'>
                 <div className='flex items-center justify-between'><span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${activity.color}`}><ActivityIcon type={activity.icon} /></span><span className='text-sm font-black tracking-widest text-slate-300'>{activity.number}</span></div>
+                {activity.imageUrl && <img src={activity.imageUrl} alt={activity.title} className='col-span-full mb-4 mt-4 max-h-56 w-full rounded-xl object-cover' loading='lazy' />}
                 <h2 className='mt-6 text-lg font-bold text-school-navy'>{activity.title}</h2>
                 <p className='mt-2 min-h-12 text-sm leading-6 text-slate-600'>{activity.text}</p>
                 <details className='mt-5 border-t border-slate-100 pt-4'>

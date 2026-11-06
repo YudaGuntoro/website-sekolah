@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import StaffGrid from './StaffGrid'
-import { staff } from '../school-content'
+import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
   title: 'Pimpinan Sekolah, Yayasan, dan Tenaga Pendidik',
   description: 'Kenali pimpinan sekolah, Yayasan YASRI Purwakarta, dan tenaga pendidik SMPIT Cendekia.',
 }
 
-const educators = staff.filter((person) => person.role.startsWith('Guru '))
-const leadership = staff.filter((person) => !person.role.startsWith('Guru '))
 
-export default function GuruPage() {
+export default async function GuruPage() {
+  const { staff } = await getSchoolContent()
+  const educators = staff.filter(person => person.role.startsWith('Guru '))
+  const leadership = staff.filter(person => !person.role.startsWith('Guru '))
   return (
     <main className='min-h-[70vh] bg-[#f6f9fc]'>
       <section className='relative isolate overflow-hidden border-b border-slate-200/70 bg-[#f7faff]'>

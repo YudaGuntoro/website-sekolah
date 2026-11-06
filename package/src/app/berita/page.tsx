@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { schoolNews } from '../school-content'
+import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = { title: 'Berita Terbaru', description: 'Berita dan cerita terbaru dari Sekolah Cendekia.' }
 
@@ -17,7 +17,8 @@ const icons = [
   'M3 21h18M5 21V8l7-5 7 5v13M9 11h2M14 11h1M10 21v-5h4v5',
 ]
 
-export default function BeritaPage() {
+export default async function BeritaPage() {
+  const { schoolNews } = await getSchoolContent()
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>

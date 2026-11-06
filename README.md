@@ -48,7 +48,9 @@ package/
 
 ## Catatan pengembangan
 
-Berita dan beberapa data profil masih menggunakan contoh konten. Formulir pendaftaran saat ini berupa simulasi; data belum disimpan atau dikirim ke server. Sesuaikan konten dan integrasikan backend sebelum digunakan untuk pendaftaran resmi.
+Konten website dapat dikelola melalui proyek saudara cendekia-dashboard. Salin package/.env.example ke package/.env.local dan jalankan API CMS di port 5243; SCHOOL_API_URL mengatur alamat backend. Dengan konfigurasi ini, berita, pengumuman, guru, prestasi, profil/sejarah, kegiatan, fasilitas, ekstrakurikuler, program, OSIS, dan informasi SPMB dibaca dari database cendekia_cms. Hanya konten berstatus terbit yang ditampilkan. Tanpa SCHOOL_API_URL, website tetap menggunakan data template untuk preview mandiri.
+
+Formulir pendaftaran SPMB kini menyimpan data melalui API sekolah. Menu SPMB > Pengaturan Gelombang pada dashboard mengatur tahun ajaran dan empat jadwal gelombang. Pendaftaran tertutup di luar rentang aktif (WIB). Gelombang ditentukan server saat submit; nomor pendaftaran ditampilkan setelah berhasil. Data dapat diperiksa pada SPMB > Pendaftar SPMB. Sebelum dipakai, isi tanggal resmi dan aktifkan pendaftaran di dashboard.
 
 ## Teknologi
 

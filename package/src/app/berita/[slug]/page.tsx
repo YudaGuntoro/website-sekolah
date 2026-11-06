@@ -1,16 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { schoolNews } from '../../school-content'
+import { getSchoolContent } from '../../cms-content'
 
 type PageProps = { params: Promise<{ slug: string }> }
 
-export function generateStaticParams() {
-  return schoolNews.map(({ slug }) => ({ slug }))
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const { schoolNews } = await getSchoolContent()
   const news = schoolNews.find((item) => item.slug === slug)
   if (!news) notFound()
   return { title: news.title, description: news.text }
@@ -18,6 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function NewsDetailPage({ params }: PageProps) {
   const { slug } = await params
+  const { schoolNews } = await getSchoolContent()
   const news = schoolNews.find((item) => item.slug === slug)
   if (!news) notFound()
 
@@ -40,6 +39,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
             <time dateTime={news.publishedAt} className='mt-4 block text-sm text-slate-500'>{news.date}</time>
           </header>
           <div className='p-6 sm:p-10'>
+            {news.image && <img src={news.image} alt={news.title} className='mb-6 max-h-96 w-full rounded-xl object-cover' />}
             <p className='text-base leading-8 text-slate-600 sm:text-lg'>{news.text}</p>
             <div className='mt-6 space-y-5 border-t border-sky-100 pt-6 text-base leading-8 text-slate-600'>
               {news.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}

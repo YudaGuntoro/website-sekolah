@@ -21,12 +21,13 @@ const informationNavigation = [
   { label: 'OSIS (Organisasi Siswa Intra Sekolah)', href: '/osis' },
   { label: 'Pengumuman', href: '/pengumuman' },
   { label: 'Program unggulan', href: '/#program' },
-  { label: 'SPMB (Sistem Penerimaan Murid Baru)', href: '/ppdb' },
+  { label: 'SPMB (Sistem Penerimaan Murid Baru)', href: '/spmb' },
 ]
 
 const mobileNavigation = [
   { label: 'Beranda', href: '/' },
-  { label: 'SPMB', href: '/ppdb' },
+  { label: 'LMP', href: '/lmp' },
+  { label: 'SPMB', href: '/spmb' },
 ]
 
 const mobileDropdowns = [
@@ -82,7 +83,8 @@ const Header = () => {
 
         <nav aria-label='Navigasi utama' className='hidden items-center gap-7 xl:flex'>
           <Link href='/' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>Beranda</Link>
-          <Link href='/ppdb' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>SPMB</Link>
+          <Link href='/lmp' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>LMP</Link>
+          <Link href='/spmb' className='whitespace-nowrap text-sm font-semibold text-white transition hover:text-sky-300'>SPMB</Link>
           <details className='group relative'>
           <summary onClick={closeOtherDropdowns} className='flex cursor-pointer list-none items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 group-open:bg-white/15 [&::-webkit-details-marker]:hidden'>Profil <Chevron /></summary>
             <div className='absolute left-0 top-full z-50 mt-3 w-64 rounded-2xl border border-white/10 bg-school-blue p-2 shadow-xl shadow-blue-950/25'>

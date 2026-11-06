@@ -1,3 +1,5 @@
+import { getCmsCollection } from '../cms-content'
+import { ContentSections } from '../components/CmsSections'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import HistoryStorySelector from './HistoryStorySelector'
@@ -7,7 +9,8 @@ export const metadata: Metadata = {
   description: 'Sejarah dan perjalanan SMPIT Cendekia Purwakarta.',
 }
 
-export default function SejarahPage() {
+export default async function SejarahPage() {
+  const entries = await getCmsCollection('profil')
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>
@@ -21,7 +24,7 @@ export default function SejarahPage() {
             <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Perjalanan, awal mula, dan arah pendidikan SMPIT Cendekia Purwakarta.</p>
           </div>
 
-          <div className='mt-12'><HistoryStorySelector /></div>
+          <div className='mt-12'>{entries === null ? <HistoryStorySelector /> : <ContentSections entries={entries} />}</div>
 
           <div className='mt-8 flex flex-wrap gap-3'>
             <Link href='/#tentang' className='inline-flex items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'>Tentang sekolah <span aria-hidden='true'>→</span></Link>

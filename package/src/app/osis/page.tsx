@@ -1,3 +1,5 @@
+import { getCmsCollection } from '../cms-content'
+import { ContentSections } from '../components/CmsSections'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import OrganizationIllustration from '../components/OrganizationIllustration'
@@ -7,7 +9,8 @@ export const metadata: Metadata = {
   description: 'Informasi struktur kepengurusan Organisasi Siswa Intra Sekolah (OSIS) SMPIT Cendekia Purwakarta.',
 }
 
-export default function OsisPage() {
+export default async function OsisPage() {
+  const entries = await getCmsCollection('osis')
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>
@@ -20,10 +23,10 @@ export default function OsisPage() {
             </div>
             <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Organisasi Siswa Intra Sekolah (OSIS) menjadi ruang bagi siswa untuk belajar memimpin, bekerja sama, dan berperan aktif dalam kehidupan sekolah.</p>
           </div>
-          <figure className='mx-auto mt-12 max-w-5xl rounded-2xl border border-sky-200 bg-white p-3 shadow-[0_18px_50px_-36px_rgba(16,45,78,.35)] sm:p-6'>
+          {entries !== null ? <div className='mt-12'><ContentSections entries={entries} /></div> : <figure className='mx-auto mt-12 max-w-5xl rounded-2xl border border-sky-200 bg-white p-3 shadow-[0_18px_50px_-36px_rgba(16,45,78,.35)] sm:p-6'>
             <div className='flex min-h-[260px] items-center justify-center rounded-xl bg-[#f7fbff] px-3 py-8 sm:min-h-[380px] sm:px-8'><OrganizationIllustration /></div>
             <figcaption className='pt-4 text-center text-xs font-medium text-slate-500'>Ilustrasi sementara struktur kepengurusan OSIS. Susunan dan nama pengurus menunggu data resmi sekolah.</figcaption>
-          </figure>
+          </figure>}
           <div className='mt-8 text-center'><Link href='/#kontak' className='inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-school-blue transition hover:border-school-blue hover:bg-sky-50'>Hubungi sekolah untuk informasi lebih lanjut <span aria-hidden='true'>→</span></Link></div>
         </div>
       </section>

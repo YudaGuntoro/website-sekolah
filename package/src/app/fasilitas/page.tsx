@@ -1,3 +1,4 @@
+import { getCmsCollection } from '../cms-content'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
@@ -15,7 +16,9 @@ const facilities = [
   { title: 'Masjid', text: 'Tempat beribadah dan membangun kebiasaan baik melalui kegiatan keagamaan.', icon: 'M4 21V10h16v11M8 10V7l4-4 4 4v3M10 21v-6h4v6M2 21h20', color: 'bg-blue-100 text-blue-700' },
 ]
 
-export default function FasilitasPage() {
+export default async function FasilitasPage() {
+  const cmsEntries = await getCmsCollection('fasilitas')
+  const visible = cmsEntries === null ? facilities.map(e => ({ ...e, imageUrl: '' })) : cmsEntries.map((e, index) => ({ ...facilities[index % facilities.length], imageUrl: e.imageUrl, title: e.title, text: [e.summary, e.body !== e.summary ? e.body : ''].filter(Boolean).join('\n\n'), detail: e.body, number: String(index + 1).padStart(2, '0') }))
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc] py-0 sm:py-14'>
@@ -29,7 +32,7 @@ export default function FasilitasPage() {
             <p className='max-w-xl text-sm leading-6 text-slate-600 sm:border-l-2 sm:border-sky-300 sm:py-1 sm:pl-5 sm:text-base sm:leading-7'>Fasilitas SMPIT Cendekia mendukung keseharian siswa dalam belajar, mengeksplorasi minat, berolahraga, dan beribadah.</p>
           </div>
           <div className='mt-6 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3'>
-            {facilities.map((facility, index) => (
+            {visible.map((facility, index) => (
               <article key={facility.title} className='group grid grid-cols-[40px_1fr] items-start gap-x-3 gap-y-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)] sm:block sm:p-6'>
                 <div className='row-span-2 flex items-center justify-between'>
                   <span className={`flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${facility.color}`}>
@@ -37,6 +40,7 @@ export default function FasilitasPage() {
                   </span>
                   <span className='hidden text-sm font-black tracking-widest text-slate-300 sm:block'>{String(index + 1).padStart(2, '0')}</span>
                 </div>
+                {facility.imageUrl && <img src={facility.imageUrl} alt={facility.title} className='col-span-full mb-4 mt-4 max-h-56 w-full rounded-xl object-cover' loading='lazy' />}
                 <h2 className='text-[15px] font-bold leading-6 text-school-navy sm:mt-6 sm:text-lg'>{facility.title}</h2>
                 <p className='col-start-2 text-xs leading-5 text-slate-600 sm:mt-2 sm:text-sm sm:leading-6'>{facility.text}</p>
               </article>

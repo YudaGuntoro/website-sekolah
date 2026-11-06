@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import AchievementGrid from './AchievementGrid'
-import { achievements } from '../school-content'
+import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
   title: 'Prestasi Siswa',
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 }
 
 
-export default function PrestasiPage() {
+export default async function PrestasiPage() {
+  const { achievements } = await getSchoolContent()
   return (
     <main className='min-h-[70vh] bg-[#f6f9fc]'>
       <section className='relative isolate overflow-hidden border-b border-slate-200/70 bg-[#f7faff]'>

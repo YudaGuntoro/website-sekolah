@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { schoolRoutines } from '../school-content'
+import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
   title: 'Kegiatan Rutin',
@@ -40,7 +40,11 @@ const routineDetails: Record<string, { text: string; icon: string }> = {
 
 const iconColors = ['bg-sky-100 text-sky-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-cyan-100 text-cyan-800']
 
-export default function KegiatanRutinPage() {
+export default async function KegiatanRutinPage() {
+  const { schoolRoutines } = await getSchoolContent()
+  const cmsRoutines = await getCmsCollection('kegiatan')
+  const details = { ...routineDetails }
+  cmsRoutines?.forEach(e => { details[e.title] = { text: e.body || e.summary || routineDetails[e.title]?.text || '', icon: routineDetails[e.title]?.icon || routineDetails.Pembelajaran.icon } })
   return (
     <main className='min-h-[70vh] bg-[#f3f8fd]'>
       <section className='relative isolate overflow-hidden border-b border-sky-100 bg-[#f7f9fc]'>
@@ -58,12 +62,12 @@ export default function KegiatanRutinPage() {
               <article key={routine} className='group rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)]'>
                 <div className='flex items-center justify-between'>
                   <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${iconColors[index % iconColors.length]}`}>
-                    <svg viewBox='0 0 24 24' className='h-8 w-8 fill-none stroke-current' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={routineDetails[routine].icon} /></svg>
+                    <svg viewBox='0 0 24 24' className='h-8 w-8 fill-none stroke-current' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d={details[routine].icon} /></svg>
                   </span>
                   <span className='text-sm font-black tracking-widest text-slate-300'>{String(index + 1).padStart(2, '0')}</span>
                 </div>
                 <h2 className='mt-6 text-lg font-bold text-school-navy'>{routine}</h2>
-                <p className='mt-2 text-sm leading-6 text-slate-600'>{routineDetails[routine].text}</p>
+                <p className='mt-2 text-sm leading-6 text-slate-600'>{details[routine].text}</p>
                 <div className='mt-5 h-px bg-slate-100 transition group-hover:bg-sky-200' />
                 <p className='mt-4 text-xs font-semibold text-school-blue'>Belajar dan membiasakan kebaikan</p>
               </article>

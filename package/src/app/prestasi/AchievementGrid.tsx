@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 
 type Achievement = {
+  body?: string
+  image?: string
   level: string
   title: string
 }
@@ -55,13 +57,13 @@ export default function AchievementGrid({ achievements }: { achievements: Achiev
                 <div aria-hidden='true' className='absolute -right-8 -top-12 h-40 w-40 rounded-full border-[22px] border-white/55' />
                 <div aria-hidden='true' className='absolute -bottom-14 -left-4 h-32 w-32 rounded-full bg-white/50 blur-sm' />
                 <span className='absolute left-4 top-4 rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-school-blue shadow-sm'><span aria-hidden='true'>&#127942;</span> Juara</span>
-                <TrophyIcon />
+                {achievement.image ? <img src={achievement.image} alt={achievement.title} className='absolute inset-0 h-full w-full object-cover' loading='lazy' /> : <TrophyIcon />}
                 <span className='absolute bottom-4 left-5 text-[9px] font-black uppercase tracking-[.2em] opacity-60'>Prestasi Siswa SMPIT Cendekia</span>
               </div>
               <div className='flex min-h-[203px] flex-col p-5'>
                 <p className='flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-sky-700'><span className='flex h-5 w-5 items-center justify-center rounded-full bg-sky-50 text-xs' aria-hidden='true'>&#10022;</span>{achievement.level}</p>
                 <h2 className='mt-3 min-h-[2.75rem] text-base font-bold leading-snug text-slate-900'>{achievement.title}</h2>
-                <a href='#prestasi' className='mt-auto flex items-center gap-2 border-t border-slate-100 pt-4 text-[10px] font-extrabold uppercase tracking-[0.12em] text-school-blue hover:text-indigo-700'>Detail prestasi <span aria-hidden='true'>&#8599;</span></a>
+                {achievement.body && <details className='mt-4 border-t border-slate-100 pt-4 text-sm text-slate-600'><summary className='cursor-pointer font-bold text-school-blue'>Cerita prestasi</summary><p className='mt-3 whitespace-pre-line leading-7'>{achievement.body}</p></details>}
               </div>
             </article>
           ))}

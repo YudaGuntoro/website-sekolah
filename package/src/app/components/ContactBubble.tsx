@@ -1,9 +1,13 @@
 
 import Image from 'next/image'
+import { getContactSettings, whatsappUrl } from '../contact-settings'
 
-export default function ContactBubble() {
+export default async function ContactBubble() {
+  const contact = await getContactSettings()
+  const whatsapp = whatsappUrl(contact.whatsappNumber)
+  if (!whatsapp) return null
   return (
-    <a href='https://wa.me/6287896397106' aria-label='Butuh informasi? Hubungi SMPIT Cendekia melalui WhatsApp' className='group fixed bottom-4 right-4 z-40 flex items-center rounded-full border border-slate-200 bg-white p-1 shadow-[0_10px_32px_-12px_rgba(16,45,78,.38)] transition hover:-translate-y-1 hover:shadow-[0_14px_36px_-12px_rgba(16,45,78,.45)] sm:bottom-5 sm:right-5 sm:gap-3 sm:pl-[4.8rem] sm:pr-2'>
+    <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label='Butuh informasi? Hubungi SMPIT Cendekia melalui WhatsApp' className='group fixed bottom-4 right-4 z-40 flex items-center rounded-full border border-slate-200 bg-white p-1 shadow-[0_10px_32px_-12px_rgba(16,45,78,.38)] transition hover:-translate-y-1 hover:shadow-[0_14px_36px_-12px_rgba(16,45,78,.45)] sm:bottom-5 sm:right-5 sm:gap-3 sm:pl-[4.8rem] sm:pr-2'>
       <Image src='/images/school/siswa-ppdb-formulir.png' alt='' width={90} height={120} className='absolute -bottom-1 left-1 hidden h-[88px] w-[66px] object-cover object-[28%_12%] drop-shadow-md sm:block' />
       <span className='hidden whitespace-nowrap pr-1 text-sm font-bold text-school-navy sm:inline'>Butuh Informasi ?</span>
       <span className='contact-whatsapp-pulse relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#18c96e] text-white shadow-[0_4px_12px_rgba(24,201,110,.35)] transition group-hover:bg-[#11b85f] group-hover:[animation-play-state:paused]'>

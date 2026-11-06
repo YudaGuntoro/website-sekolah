@@ -1,0 +1,54 @@
+{
+  "introduction": "Syarat dan alur pendaftaran siswa baru serta murid pindahan.",
+  "steps": [
+    {
+      "title": "Daftar online",
+      "description": "Melakukan pendaftaran online melalui tautan pada kode QR di brosur.",
+      "icon": "register",
+      "showPayment": false
+    },
+    {
+      "title": "Serahkan berkas",
+      "description": "Menyerahkan berkas persyaratan ke sekolah.",
+      "icon": "folder",
+      "showPayment": false
+    },
+    {
+      "title": "Bayar pendaftaran",
+      "description": "",
+      "icon": "payment",
+      "showPayment": true
+    },
+    {
+      "title": "Ikuti tes observasi",
+      "description": "Mengikuti tes observasi: psikotes, BTQ, dan wawancara.",
+      "icon": "test",
+      "showPayment": false
+    },
+    {
+      "title": "Pengumuman & registrasi",
+      "description": "Pengumuman hasil tes; calon siswa yang diterima membayar biaya masuk/registrasi.",
+      "icon": "check",
+      "showPayment": false
+    }
+  ],
+  "feeAmount": 350000,
+  "paymentDescription": "Tunai atau transfer ke",
+  "bankName": "BRI",
+  "accountNumber": "0075 0100 2017 563",
+  "accountHolder": "SMPIT Cendekia Purwakarta",
+  "newStudentDocuments": [
+    "Fotokopi akta kelahiran",
+    "Fotokopi Kartu Keluarga",
+    "Fotokopi KTP orang tua",
+    "Fotokopi KIA (jika ada)"
+  ],
+  "transferDocuments": [
+    "Surat keterangan dari sekolah asal",
+    "Surat keterangan mutasi Dapodik dari operator sekolah",
+    "Rapor asli dari sekolah asal",
+    "Surat kelakuan baik dari sekolah",
+    "Kartu NISN"
+  ],
+  "brochureUrl": "/brosur-ppdb.pdf"
+}

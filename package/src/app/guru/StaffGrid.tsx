@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 type StaffMember = {
   name: string
   role: string
+  bio?: string
   image: string
 }
 
@@ -34,10 +35,11 @@ export default function StaffGrid({ staff, category, countLabel }: { staff: Staf
         <div className='grid gap-5 sm:grid-cols-2 xl:grid-cols-3'>
           {filteredStaff.map((person) => (
             <article key={person.name} className='group overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_12px_32px_-22px_rgba(15,45,78,.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_44px_-24px_rgba(16,45,78,.3)] sm:p-5'>
-              <Image src={person.image} alt={`Foto ${person.name}`} width={415} height={393} className='aspect-[1.7] w-full rounded-lg object-cover' />
+              <Image unoptimized src={person.image} alt={`Foto ${person.name}`} width={415} height={393} className='aspect-[1.7] w-full rounded-lg object-cover' />
               <div className='px-1 pb-1 pt-5'>
                 <h3 className='text-lg font-bold leading-snug text-school-navy'>{person.name}</h3>
                 <p className='mt-2 text-sm font-semibold text-school-blue'>{person.role}</p>
+                {person.bio && <p className='mt-3 whitespace-pre-line text-sm leading-6 text-slate-600'>{person.bio}</p>}
               </div>
             </article>
           ))}
