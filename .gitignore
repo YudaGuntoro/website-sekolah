@@ -17,3 +17,6 @@
 **/local-mysql/
 *.tsbuildinfo
 *.log
+
+# Per-developer database credentials and signing keys
+**/appsettings.Development.json

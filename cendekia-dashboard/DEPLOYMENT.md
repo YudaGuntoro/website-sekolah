@@ -1,7 +1,7 @@
-# Deployment Cendekia CMS
+# Deployment Cendekia
 
-Aplikasi ini belum dipublikasikan. Gunakan README.md untuk setup lokal.
+Panduan production yang berlaku: [docs/deploy-vps.md](docs/deploy-vps.md).
 
-Untuk hosting, jalankan website publik (port 3000), dashboard (port 3002), dan API (port 5243) sebagai layanan terpisah. Set SCHOOL_API_URL di server website; API_PROXY_TARGET dan NEXT_PUBLIC_SCHOOL_URL di dashboard; ConnectionStrings__DefaultConnection dan Jwt__SigningKey di server API. Database yang digunakan adalah cendekia_cms. Gunakan identitas JWT Cendekia/Cendekia.Frontend dan rahasia penandatanganan tersendiri.
+Website publik berada di `../package` (3000), dashboard di `Frontend` (3002), dan API `Backend/Cendekia.WebAPI` (5243). Gunakan hanya database `cendekia_cms`.
 
-Impor hanya database/cendekia_cms.sql dan database/seed_cendekia_content.sql. Jangan menjalankan SQL klinik lama atau memakai docs/deploy-vps.md sebagai instruksi deployment sekolah.
+Untuk instalasi baru jalankan `scripts/init-local-db.ps1`. Untuk database yang sudah berjalan hentikan API, buat backup, lalu jalankan `scripts/init-local-db.ps1 -NormalizeOnly`; jangan mengimpor ulang seed konten ke data aktif. Konfigurasi production memerlukan secret privat, akun database khusus, HTTPS, proxy tepercaya, dan volume key persisten sesuai panduan.

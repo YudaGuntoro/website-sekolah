@@ -18,7 +18,7 @@ const Signin = () => {
   })
   const [loading, setLoading] = useState(false)
 
-  const loginUser = (e: any) => {
+  const loginUser = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
     setLoading(true)

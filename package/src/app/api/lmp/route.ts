@@ -1,3 +1,4 @@
+import { schoolApiHeaders } from '../../school-api-headers'
 const headers = { 'Cache-Control': 'no-store' }
 const maxBytes = 2200000
 async function forward(request?: Request) {
@@ -16,10 +17,10 @@ async function forward(request?: Request) {
       while (true) { const { done, value } = await reader.read(); if (done) break; length += value.length; if (length > maxBytes) { await reader.cancel(); return Response.json({ success: false, message: 'Berkas terlalu besar. Maksimal PDF 2 MB.' }, { status: 413, headers }) } chunks.push(value) }
       body = new Uint8Array(length); let offset = 0; for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length }
     }
-    const response = await fetch(`${api.replace(/\/$/, '')}/api/lmp/${request ? 'applications' : 'information'}`, { method: request ? 'POST' : 'GET', body: body as BodyInit | undefined, headers: { 'Content-Type': contentType }, cache: 'no-store', signal: AbortSignal.timeout(20000) })
+    const response = await fetch(`${api.replace(/\/$/, '')}/api/lmp/${request ? 'applications' : 'information'}`, { method: request ? 'POST' : 'GET', body: body as BodyInit | undefined, headers: { ...schoolApiHeaders(request), 'Content-Type': contentType }, cache: 'no-store', signal: AbortSignal.timeout(20000) })
     if (response.status >= 500) throw new Error('Unavailable')
     const payload = await response.json()
-    return Response.json(payload, { status: response.status, headers })
+    return Response.json(payload, { status: response.status, headers: { ...headers, ...(response.headers.get('retry-after') ? { 'Retry-After': response.headers.get('retry-after')! } : {}) } })
   } catch { return Response.json({ success: false, message: 'Layanan LMP belum dapat dihubungi. Coba kembali dari formulir ini.' }, { status: 503, headers }) }
 }
 export async function GET() { return forward() }

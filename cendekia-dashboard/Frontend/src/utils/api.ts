@@ -1,5 +1,5 @@
 import { getApiBaseUrl } from "@/lib/api";
-import { clearAuthSession, getStoredToken, redirectToSignIn } from "@/lib/auth";
+import { clearAuthSession, getCsrfToken, redirectToSignIn } from "@/lib/auth";
 
 export type QueryParamValue =
   | string
@@ -78,9 +78,8 @@ const buildUrl = (endpoint: string, params?: QueryParams) => {
 const isFormData = (body: unknown): body is FormData =>
   typeof FormData !== "undefined" && body instanceof FormData;
 
-const createHeaders = (body: ApiRequestOptions["body"], headers?: HeadersInit) => {
+const createHeaders = async (body: ApiRequestOptions["body"], headers?: HeadersInit) => {
   const requestHeaders = new Headers(headers);
-  const token = getStoredToken();
 
   if (body !== undefined && body !== null && !isFormData(body)) {
     requestHeaders.set("Content-Type", "application/json");
@@ -90,9 +89,7 @@ const createHeaders = (body: ApiRequestOptions["body"], headers?: HeadersInit) =
     requestHeaders.set("Accept", "application/json");
   }
 
-  if (token && !requestHeaders.has("Authorization")) {
-    requestHeaders.set("Authorization", `Bearer ${token}`);
-  }
+
 
   return requestHeaders;
 };
@@ -124,7 +121,11 @@ const request = async <T>(
   signal?.addEventListener("abort", abortRequest);
 
   try {
-    const response = await fetch(buildUrl(endpoint, params), {
+    const url = buildUrl(endpoint, params);
+    if (!url.startsWith("/api/")) throw new Error("API requests must use a same-origin /api path.");
+    const headers = await createHeaders(body, fetchOptions.headers);
+    if (!["GET", "HEAD", "OPTIONS"].includes((fetchOptions.method || "GET").toUpperCase())) headers.set("X-CSRF-TOKEN", await getCsrfToken());
+    const response = await fetch(url, {
       ...fetchOptions,
       cache: "no-store",
       body:
@@ -132,7 +133,7 @@ const request = async <T>(
           ? (body as BodyInit | null | undefined)
           : JSON.stringify(body),
       credentials: fetchOptions.credentials ?? "same-origin",
-      headers: createHeaders(body, fetchOptions.headers),
+      headers,
       signal: controller.signal,
     });
     const data = await parseResponse<T>(response);

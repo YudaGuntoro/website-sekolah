@@ -24,7 +24,7 @@ flowchart LR
 
 Semua repository dan `IApplicationUnitOfWork` memakai DbContext scoped yang sama. Pengiriman formulir mengambil lock pengaturan **di dalam transaksi**, memeriksa jadwal/versi, menyimpan data, membuat nomor pendaftaran, lalu commit. Repository menolak lock tanpa transaksi. SubmissionKey unik menjaga idempotensi; Version menjaga konflik edit. Exception konkurensi/duplikat diterjemahkan ke tipe Application, bukan dibiarkan sebagai ketergantungan EF pada service.
 
-Repository dan controller klinik lama tetap tersedia sebagai referensi template, tetapi tidak didaftarkan sebagai endpoint aktif. Pemeriksaan arsitektur mengikuti allowlist `CmsControllerFeatureProvider`; file legacy tidak dianggap implementasi CMS aktif. Nama assembly DentalCare dipertahankan untuk kompatibilitas.
+Backend hanya berisi modul sekolah dan autentikasi. Project, assembly, namespace, dan DbContext menggunakan nama Cendekia. Pemeriksaan arsitektur mengikuti allowlist `CmsControllerFeatureProvider` dan memeriksa seluruh controller yang dikompilasi.
 
 Dashboard dijalankan dari `cendekia-dashboard/Frontend`, dengan tracing root eksplisit untuk monorepo. Script dev/build memakai Webpack dan konfigurasi SVG yang sudah tersedia; ini menghindari kegagalan worker Turbopack yang ditemukan saat verifikasi pada Windows. Website publik tetap aplikasi terpisah pada `package`.
 
@@ -38,7 +38,11 @@ erDiagram
     LMP_SUBJECTS ||--o{ LMP_APPLICATIONS : dipilih
     LMP_APPLICATIONS ||--o| LMP_APPLICATION_DOCUMENTS : melampirkan
     SCHOOL_CONTENT_COLLECTIONS ||--o{ SCHOOL_CONTENT : mengelompokkan
-    SPMB_WAVES ||--o{ SPMB_APPLICATIONS : nomor_gelombang
+    ACADEMIC_YEARS ||--o{ SPMB_SETTINGS : tahun_aktif
+    ACADEMIC_YEARS ||--o{ SPMB_WAVE_PERIODS : tahun_ajaran
+    SPMB_WAVES ||--o{ SPMB_WAVE_PERIODS : nomor_gelombang
+    SPMB_WAVE_PERIODS ||--o{ SPMB_APPLICATIONS : versi_jadwal
+    LMP_EVENTS ||--o{ LMP_APPLICATIONS : versi_acara
 ```
 
 | Data | Penyimpanan aktif |
@@ -51,6 +55,9 @@ erDiagram
 | Pengaturan LMP | Kolom bertipe pada `lmp_settings`; tanggal DATE, biaya INT, sakelar BOOLEAN |
 | Mata pelajaran LMP | Master `lmp_subjects`; satu SubjectId dengan FK pada setiap peserta |
 | PDF peserta | Relasi opsional satu-ke-satu `lmp_application_documents`, FK/PK ApplicationId |
+| Tahun ajaran | Master `academic_years`; FK dari pengaturan dan periode SPMB |
+| Riwayat jadwal SPMB | `spmb_wave_periods`, PK gabungan AcademicYear/WaveNumber/Revision; FK gabungan dari pendaftar |
+| Riwayat acara LMP | `lmp_events`; FK EventId pada pendaftar, judul/tanggal/biaya tidak disalin per peserta |
 | Koleksi CMS | Master kode `school_content_collections` dan FK pada `school_content` |
 
 Target desain adalah relasional hingga 3NF untuk data operasional terstruktur: kelompok berulang menjadi tabel anak, master mata pelajaran dipisahkan, foreign key mencegah referensi tidak valid, dan unique/check constraints menjaga posisi, kelas, status, biaya, serta rentang tanggal. Kolom ConfigJson/MissionsJson dan Subjects lama tidak lagi berada pada tabel operasional. EF owned types memetakan konfigurasi ke kolom biasa, **bukan** JSON.
@@ -59,14 +66,14 @@ Kontak website dengan satu nomor/email per sekolah dan kategori konten berupa la
 
 Ada dua keputusan yang disengaja:
 
-1. **Snapshot pendaftaran dipertahankan.** Tahun/gelombang/tanggal SPMB dan judul/tanggal/biaya LMP saat submit adalah fakta historis. Mengubah pengaturan tidak boleh mengubah riwayat peserta. Ini denormalisasi terbatas untuk audit, bukan referensi ke pengaturan yang selalu berubah. Nama asal sekolah dan kontak adalah isian formulir; peserta tidak digabung otomatis hanya karena nama/nomor sama.
+1. **Riwayat pendaftaran menggunakan relasi ke fakta historis yang immutable.** Tahun, nomor gelombang dan revisi merupakan composite foreign key ke `spmb_wave_periods`; tanggal disimpan sekali pada periode tersebut. Kunci gabungan membuat tahun/gelombang/revisi tidak dapat saling bertentangan sekaligus mempertahankan unique `(AcademicYear,Nisn)` di pendaftar. Judul, tanggal dan biaya LMP disimpan sekali pada `lmp_events`, dirujuk lewat `EventId`. Perubahan pengaturan membuat periode/acara historis baru ketika ada pendaftaran; baris lama tidak diperbarui. Trigger menolak UPDATE fakta historis dan FK menolak penghapusan jika masih dipakai. Nama asal sekolah dan kontak tetap fakta isian formulir; kesamaan teks bukan bukti identitas sekolah/orang yang sama dan tidak digunakan untuk menggabungkan data pribadi secara otomatis.
 2. **PDF dipisahkan untuk akses dan performa.** BLOB dalam baris peserta sebelumnya bukan otomatis pelanggaran 1NF; pemisahan vertikal mencegah pemuatan berkas saat daftar/status dibaca. PDF hanya diambil lewat endpoint staf yang terotorisasi. Berkas tidak menjadi URL publik.
 
 Index mendukung slug per koleksi, publikasi terbaru, pencarian/filter peserta, dan submission key unik. Semua urutan publik/admin yang sudah disepakati tetap dipertahankan.
 
 ## Migrasi dan pemulihan
 
-Sumber skema adalah SQL berversi, bukan EnsureCreated atau EF auto-migration. File migrasi: `database/migrations/20261106_school_normalization.sql`.
+Sumber skema adalah SQL berversi, bukan EnsureCreated atau EF auto-migration. File migrasi berurutan: `database/migrations/20261106_school_normalization.sql`, kemudian `database/migrations/20261106_registration_relations.sql`. Runner menjalankan keduanya secara otomatis.
 
 Untuk database yang sudah berjalan:
 
@@ -84,9 +91,10 @@ Untuk instalasi kosong, gunakan `scripts/init-local-db.ps1` seperti biasa. Basel
 ## Validasi
 
 ```powershell
-dotnet build Backend/DentalCare.sln
+dotnet build Backend/Cendekia.sln
 node scripts/check-architecture.mjs
 node scripts/check-normalization.mjs
+node scripts/check-registration-relations.mjs
 node scripts/check-cms.mjs
 node scripts/check-contact-settings.mjs
 node scripts/check-homepage-images.mjs
@@ -101,3 +109,11 @@ node scripts/check-social-feeds.mjs
 Suite SPMB membuat SQL cleanup dengan submission key khusus di `.verify-cms/spmb-test-cleanup.sql`; jalankan cleanup itu setelah tes. Suite pengaturan memulihkan nilai awal dan suite LMP membersihkan peserta uji miliknya. Pengujian browser opsional memakai `LMP_BROWSER_CHECK=1` / `SPMB_BROWSER_CHECK=1` dan dependensi Playwright pada direktori verifikasi lokal.
 
 Validasi implementasi mencakup perbandingan respons sembilan endpoint sebelum/sesudah migrasi, setup dari kosong pada instance MySQL terpisah, setup/migrasi ulang, penolakan FK/posisi duplikat/tanggal/biaya tidak valid, login dan role, CRUD CMS, konflik edit, idempotensi pendaftaran, jadwal WIB, snapshot historis, download PDF privat, dan alur formulir–admin desktop/mobile. UI serta kontrak API tetap kompatibel.
+
+## Normalisasi relasi pendaftaran v2
+
+Jalankan `scripts/init-local-db.ps1 -NormalizeOnly` setelah menghentikan API. Runner membuat backup jika masih menemukan kolom snapshot lama. Migrasi mengelompokkan jadwal/acara historis, mengisi FK, membandingkan kembali setiap fakta dengan nilai lama, lalu menghapus kolom tanggal SPMB serta judul/tanggal/biaya LMP yang berulang. Pendaftar, nomor registrasi, PDF, status, dan unique NISN per tahun tetap dipertahankan. Kolom `CompetitionDateKey` pada acara adalah generated key untuk menjamin uniqueness meskipun tanggal belum ditentukan; bukan data yang diedit terpisah.
+
+API tetap mengirim `waveStartDate`, `waveEndDate`, `eventTitle`, `competitionDate`, dan `feeAmount` dengan mengambilnya dari relasi. Tidak ada perubahan kontrak formulir/dashboard. Jadwal aktif tetap memiliki tepat empat gelombang. Riwayat tidak menunjuk ke tanggal pengaturan yang bisa berubah. Transaksi submit mengunci pengaturan sebelum mencari/membuat versi historis, sehingga concurrent retry tidak membuat baris versi atau pendaftaran ganda.
+
+Verifikasi v2 mencakup fingerprint seluruh riwayat sebelum/sesudah, migrasi ulang, bootstrap kosong dan seed dummy berulang pada MySQL terpisah, pemulihan backup pra-v2, migrasi acara bertanggal NULL, penolakan FK/composite key tidak valid, larangan update/penghapusan riwayat yang digunakan, serta integrasi API SPMB/LMP dan CMS. `check-registration-relations.mjs` menggunakan transaksi terpisah dan rollback untuk fixture pengujian constraint.

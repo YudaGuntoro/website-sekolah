@@ -1,3 +1,4 @@
+import { browserSignIn } from './lib/browser-sign-in.mjs';
 // Local integration check: temporarily edits the school identity, then restores it.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -26,11 +27,7 @@ try {
     const { chromium } = createRequire(import.meta.url)('../.verify-cms/node_modules/playwright');
     browser = await chromium.launch({ channel: 'msedge', headless: true });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    await page.addInitScript(auth => {
-      localStorage.setItem('cendekia_access_token', auth.access_token);
-      localStorage.setItem('cendekia_user', JSON.stringify(auth.user));
-      localStorage.setItem('cendekia_expires_at', auth.expires_at);
-    }, login.data);
+    await browserSignIn(page);
     await page.goto('http://localhost:3002/settings/identity');
     await page.getByLabel('Isi visi').fill(`Visi ${tag}`);
     await page.getByLabel('Isi motto').fill(`Motto ${tag}`);

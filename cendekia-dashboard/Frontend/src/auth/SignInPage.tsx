@@ -11,10 +11,10 @@ import { FormEvent, useEffect, useId, useState } from "react";
 import Image from "next/image";
 import { apiPost } from "@/lib/api";
 import { hasValidAuthSession, saveAuthSession } from "@/lib/auth";
-import type { LoginResponse } from "@/lib/types";
+import type { SessionResponse } from "@/lib/types";
 
 function safeNextPath(value: string | null) {
-  return value?.startsWith("/") && !value.startsWith("//") && !value.startsWith("/signin") ? value : "/";
+  return value?.startsWith("/") && !value.startsWith("//") && !value.includes("\\") && !value.startsWith("/signin") ? value : "/";
 }
 
 export default function SignInPage() {
@@ -30,9 +30,9 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (hasValidAuthSession()) {
-      router.replace(nextPath);
-    }
+    let active = true;
+    void hasValidAuthSession().then(valid => { if (active && valid) router.replace(nextPath); }).catch(() => {});
+    return () => { active = false; };
   }, [nextPath, router]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -46,7 +46,7 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      const response = await apiPost<LoginResponse>("/api/auth/login", {
+      const response = await apiPost<SessionResponse>("/api/auth/session", {
         username: username.trim(),
         password,
       });

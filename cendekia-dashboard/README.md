@@ -1,6 +1,6 @@
 # Cendekia Dashboard
 
-CMS website SMPIT Cendekia Purwakarta, dikembangkan dari template dashboard lokal. Frontend Next.js 16 dengan tema navy, backend ASP.NET Core 8, database MySQL 8 bernama **cendekia_cms**. Repository ini tidak memiliki remote Dental Care.
+CMS website SMPIT Cendekia Purwakarta, dikembangkan dari template dashboard lokal. Frontend Next.js 16 dengan tema navy, backend ASP.NET Core 8, database MySQL 8 bernama **cendekia_cms**.
 
 ## Arsitektur dan database
 
@@ -19,10 +19,10 @@ Website publik di `../package` membaca konten yang sudah terbit melalui API. Web
 
     powershell -NoProfile -File scripts/init-local-db.ps1
 
-   Script membuat database dan mengimpor 61 konten awal; aman dijalankan kembali tanpa menimpa penyuntingan. Alternatif: jalankan database/cendekia_cms.sql lalu database/seed_cendekia_content.sql melalui klien MySQL. Tidak ada tabel klinik di database baru.
+   Script membuat database dan mengimpor 61 konten awal; aman dijalankan kembali tanpa menimpa penyuntingan. Alternatif: jalankan database/cendekia_cms.sql lalu database/seed_cendekia_content.sql melalui klien MySQL.
 3. Jalankan API:
 
-    dotnet run --project Backend/DentalCare.WebAPI/DentalCare.WebAPI.csproj --launch-profile http
+    dotnet run --project Backend/Cendekia.WebAPI/Cendekia.WebAPI.csproj --launch-profile http
 
 4. Di terminal lain, jalankan dashboard:
 
@@ -43,7 +43,7 @@ API_PROXY_TARGET di Frontend/.env.local mengatur proxy API (default http://127.0
 
 ## Validasi
 
-    dotnet build Backend/DentalCare.sln
+    dotnet build Backend/Cendekia.sln
     cd Frontend
     npm run build
 
@@ -51,7 +51,7 @@ Dengan API aktif, jalankan node scripts/check-cms.mjs dari root dashboard untuk 
 
 ## Catatan
 
-Formulir pendaftaran siswa kini menyimpan data ke database dan memilih gelombang otomatis. Atur tanggal di menu SPMB > Pengaturan Gelombang sebelum membuka formulir. Penataan visual dan ilustrasi beranda tetap bagian template website. Nama assembly .NET DentalCare dipertahankan untuk kompatibilitas internal; seluruh koneksi default sudah menggunakan cendekia_cms, identitas JWT Cendekia, dan hanya controller CMS/auth/pengguna yang aktif. Halaman klinik lama dialihkan ke dashboard; dokumen dan SQL klinik lama adalah referensi template, bukan panduan setup Cendekia.
+Formulir pendaftaran siswa kini menyimpan data ke database dan memilih gelombang otomatis. Atur tanggal di menu SPMB > Pengaturan Gelombang sebelum membuka formulir. Penataan visual dan ilustrasi beranda tetap bagian template website. Backend menggunakan assembly dan namespace Cendekia dengan modul CMS, autentikasi/pengguna, SPMB, dan LMP. API memakai database cendekia_cms.
 
 Semua daftar admin menampilkan konten baru di baris pertama. Semua koleksi website menampilkan tanggal terbit terbaru lebih dahulu (kiri atas pada susunan kartu). Urutan manual tidak digunakan.
 
@@ -117,6 +117,10 @@ Website `/lmp` berisi alur pendaftaran, jadwal lomba/gebyar, biaya, berkas, meka
 
 Portal Administrator > LMP > Informasi & Pengaturan (`/lmp/informasi`) mengatur konten dan tanggal buka/tutup pendaftaran dalam WIB. Awalnya pendaftaran ditutup dan unggah berkas opsional karena persyaratan belum pasti. Jadwal lomba awal 21 Januari 2027 pukul 07.30–16.00 WIB, pengumuman/gebyar 28 Januari 2027. Rekening, berkas wajib, serta jam/tempat gebyar menunggu konfirmasi. Kontak panitia menggunakan pengaturan kontak sekolah.
 
-Menu Pendaftar LMP (`/lmp/pendaftar`) menampilkan peserta terbaru paling atas, filter kelas/mapel/status/pembayaran, detail kontak, unduh PDF privat, dan konfirmasi pembayaran manual. ADMIN/SUPERVISOR/OPERATOR dapat mengelola; VIEWER tidak dapat mengakses data peserta LMP. LMP terpisah dari gelombang dan tahun ajaran SPMB. Data peserta menyimpan salinan judul/tanggal lomba/biaya saat mendaftar.
+Menu Pendaftar LMP (`/lmp/pendaftar`) menampilkan peserta terbaru paling atas, filter kelas/mapel/status/pembayaran, detail kontak, unduh PDF privat, dan konfirmasi pembayaran manual. ADMIN/SUPERVISOR/OPERATOR dapat mengelola; VIEWER tidak dapat mengakses data peserta LMP. LMP terpisah dari gelombang dan tahun ajaran SPMB. Data peserta berelasi ke versi acara historis untuk judul, tanggal, dan biaya saat mendaftar.
 
 Upgrade: `powershell -NoProfile -File scripts/init-local-db.ps1 -LmpOnly`. Bootstrap tidak menimpa pengaturan atau peserta yang sudah ada. API publik hanya GET `/api/lmp/information` dan POST `/api/lmp/applications`; daftar/detail/status/unduh PDF memerlukan login staf. PDF disimpan sebagai MEDIUMBLOB pada database, sehingga ikut backup database. Tes lokal: `node scripts/check-lmp.mjs`; tambahkan `LMP_BROWSER_CHECK=1` untuk alur website–admin. Tes memulihkan pengaturan dan menghapus hanya peserta sintetis miliknya.
+
+## Pengaturan lokal dan production
+
+Backend menggunakan `Backend/Cendekia.sln` dan `Backend/Cendekia.WebAPI`. Salin `appsettings.Development.example.json` ke `appsettings.Development.json` pada project WebAPI, lalu isi kredensial database lokal; file lokal diabaikan Git. Konfigurasi production wajib berasal dari environment server, bukan file development. Lihat [panduan deployment](docs/deploy-vps.md) untuk HTTPS, sesi aman, backup dan monitoring.

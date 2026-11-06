@@ -2,8 +2,8 @@ import SignInPage from "@/auth/SignInPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Masuk | Dental Care",
-  description: "Masuk untuk staf klinik Dental Care",
+  title: "Masuk | Cendekia",
+  description: "Masuk untuk administrator sekolah Cendekia",
 };
 
 export const dynamic = "force-dynamic";

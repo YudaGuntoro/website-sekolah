@@ -10,7 +10,7 @@ const SignUp = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     setLoading(true)

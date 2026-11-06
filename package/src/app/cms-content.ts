@@ -1,3 +1,4 @@
+import { schoolApiHeaders } from './school-api-headers'
 import 'server-only'
 import { cache } from 'react'
 import * as defaults from './school-content'
@@ -9,7 +10,7 @@ export type CmsEntry = { collection: string; title: string; slug: string; catego
 export const getCmsContent = cache(async (): Promise<CmsEntry[] | null> => {
   const api = process.env.SCHOOL_API_URL
   if (!api) return null
-  const response = await fetch(`${api.replace(/\/$/, '')}/api/school/content`, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+  const response = await fetch(`${api.replace(/\/$/, '')}/api/school/content`, { headers: schoolApiHeaders(), cache: 'no-store', signal: AbortSignal.timeout(5000) })
   if (!response.ok) throw new Error('Konten sekolah belum dapat dimuat. Coba lagi beberapa saat.')
   const payload = await response.json() as { success: boolean; data: CmsEntry[] }
   if (!payload.success || !Array.isArray(payload.data)) throw new Error('Respons konten sekolah tidak valid.')

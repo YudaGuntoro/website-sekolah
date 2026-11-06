@@ -1,9 +1,11 @@
-param([string]$MySqlExecutable = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe', [switch]$SpmbOnly, [switch]$SpmbDummy, [switch]$SocialOnly, [switch]$WebsiteSettingsOnly, [switch]$PrincipalOnly, [switch]$IdentityOnly, [switch]$ImagesOnly, [switch]$SpmbInformationOnly, [switch]$LmpOnly, [switch]$NormalizeOnly)
+param([string]$MySqlExecutable = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe', [switch]$SpmbOnly, [switch]$SpmbDummy, [switch]$SocialOnly, [switch]$WebsiteSettingsOnly, [switch]$PrincipalOnly, [switch]$IdentityOnly, [switch]$ImagesOnly, [switch]$SpmbInformationOnly, [switch]$LmpOnly, [switch]$NormalizeOnly, [switch]$SecurityOnly)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$settings = Get-Content -LiteralPath (Join-Path $projectRoot 'Backend/DentalCare.WebAPI/appsettings.Development.json') -Raw | ConvertFrom-Json
 $connectionString = $env:ConnectionStrings__DefaultConnection
-if (-not $connectionString) { $connectionString = $settings.ConnectionStrings.DefaultConnection }
+if (-not $connectionString) {
+    $settings = Get-Content -LiteralPath (Join-Path $projectRoot 'Backend/Cendekia.WebAPI/appsettings.Development.json') -Raw | ConvertFrom-Json
+    $connectionString = $settings.ConnectionStrings.DefaultConnection
+}
 $connectionParts = @{}
 $connectionString.Split(';') | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { $connectionParts[$matches[1]] = $matches[2] } }
 if ($connectionParts['Database'] -ne 'cendekia_cms') { throw 'Only the cendekia_cms database may be bootstrapped by this script.' }
@@ -37,7 +39,7 @@ $spmbInformation = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'databa
 if ($SpmbInformationOnly) { $sql = $spmbInformation } elseif (-not $SpmbOnly -and -not $SpmbDummy -and -not $SocialOnly -and -not $WebsiteSettingsOnly -and -not $PrincipalOnly -and -not $IdentityOnly -and -not $ImagesOnly) { $sql += "`n" + $spmbInformation }
 $lmp = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/lmp.sql'))
 if ($LmpOnly) { $sql = $lmp } elseif (-not $SpmbOnly -and -not $SpmbDummy -and -not $SocialOnly -and -not $WebsiteSettingsOnly -and -not $PrincipalOnly -and -not $IdentityOnly -and -not $ImagesOnly -and -not $SpmbInformationOnly) { $sql += "`n" + $lmp }
-$normalization = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261106_school_normalization.sql'))
+$normalization = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261106_school_normalization.sql')) + "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261106_registration_relations.sql'))
 # Once migrated, legacy JSON seeds must not run against the relational tables.
 $check = New-Object System.Diagnostics.Process
 $check.StartInfo.FileName = $MySqlExecutable
@@ -49,7 +51,7 @@ $check.StartInfo.RedirectStandardOutput = $true
 $check.StartInfo.RedirectStandardError = $true
 $check.StartInfo.EnvironmentVariables['MYSQL_PWD'] = $connectionParts['Password']
 [void]$check.Start()
-$check.StandardInput.WriteLine("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='cendekia_cms' AND TABLE_NAME='schema_migrations'; SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='cendekia_cms' AND TABLE_NAME IN('lmp_settings','spmb_information','school_identity') AND COLUMN_NAME IN('ConfigJson','MissionsJson');")
+$check.StandardInput.WriteLine("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='cendekia_cms' AND TABLE_NAME='schema_migrations'; SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='cendekia_cms' AND ((TABLE_NAME IN('lmp_settings','spmb_information','school_identity') AND COLUMN_NAME IN('ConfigJson','MissionsJson')) OR (TABLE_NAME='spmb_applications' AND COLUMN_NAME='WaveStartDate') OR (TABLE_NAME='lmp_applications' AND COLUMN_NAME='EventTitle'));")
 $check.StandardInput.Close()
 $checkValues = $check.StandardOutput.ReadToEnd().Trim() -split '\s+'
 $hasMigrationTable = $checkValues[0] -eq '1'
@@ -65,6 +67,8 @@ if ($NormalizeOnly -or $hasMigrationTable) {
     if ($SpmbDummy) { $sql = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/seed_spmb_dummy.sql')) }
     if ($PrincipalOnly) { $sql = $principal }
 } else { $sql += "`n" + $normalization }
+$sessionSchema = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/auth_sessions.sql'))
+if ($SecurityOnly) { $sql = $sessionSchema } else { $sql += "`n" + $sessionSchema }
 $sqlBytes = [System.Text.Encoding]::UTF8.GetBytes($sql)
 $mysqlProcess.StandardInput.BaseStream.Write($sqlBytes, 0, $sqlBytes.Length)
 $mysqlProcess.StandardInput.Close()

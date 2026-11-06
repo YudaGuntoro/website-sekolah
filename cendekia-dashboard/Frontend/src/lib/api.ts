@@ -1,5 +1,5 @@
 import type { ApiResponse } from "./types";
-import { clearAuthSession, getStoredToken, redirectToSignIn } from "./auth";
+import { clearAuthSession, getCsrfToken, redirectToSignIn } from "./auth";
 
 // Browser API calls must stay on the page's origin, including HTTPS on the VPS.
 export function getApiBaseUrl() {
@@ -7,21 +7,20 @@ export function getApiBaseUrl() {
 }
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (!path.startsWith("/api/")) throw new Error("API requests must use a same-origin /api path.");
   const headers = new Headers(init.headers);
-  const token = getStoredToken();
   const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
 
   if (!headers.has("Content-Type") && init.body && !isFormData) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  if (!["GET", "HEAD", "OPTIONS"].includes((init.method || "GET").toUpperCase())) headers.set("X-CSRF-TOKEN", await getCsrfToken());
 
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     cache: "no-store",
+    credentials: "same-origin",
     headers,
   });
   const text = await response.text();

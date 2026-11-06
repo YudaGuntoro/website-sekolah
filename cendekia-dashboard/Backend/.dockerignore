@@ -1,0 +1,7 @@
+**/bin
+**/obj
+**/logs
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/*.env
+**/Settings.ini

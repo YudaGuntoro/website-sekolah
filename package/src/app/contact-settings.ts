@@ -1,3 +1,4 @@
+import { schoolApiHeaders } from './school-api-headers'
 import 'server-only'
 import { cache } from 'react'
 
@@ -11,7 +12,7 @@ const defaults: ContactSettings = {
 export const getContactSettings = cache(async (): Promise<ContactSettings> => {
   const api = process.env.SCHOOL_API_URL
   if (!api) return defaults
-  const response = await fetch(`${api.replace(/\/$/, '')}/api/school/contact`, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+  const response = await fetch(`${api.replace(/\/$/, '')}/api/school/contact`, { headers: schoolApiHeaders(), cache: 'no-store', signal: AbortSignal.timeout(5000) })
   if (!response.ok) throw new Error('Informasi kontak sekolah belum dapat dimuat.')
   const payload = await response.json()
   if (!payload.success || !payload.data) throw new Error('Informasi kontak tidak valid.')

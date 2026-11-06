@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { clearAuthSession, getStoredUser } from "@/lib/auth";
+import { signOut, getStoredUser } from "@/lib/auth";
 
 type AuthUser = {
   fullName: string;
@@ -98,7 +98,11 @@ export default function UserDropdown() {
 
         <Link
           href="/signin"
-          onClick={clearAuthSession}
+          onClick={async event => {
+            event.preventDefault();
+            try { await signOut(); window.location.assign("/signin"); }
+            catch { window.alert("Gagal keluar. Silakan coba kembali."); }
+          }}
           className="mt-4 flex items-center gap-3 rounded-lg border-t border-gray-200 px-3 py-3 font-medium text-gray-700 group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg

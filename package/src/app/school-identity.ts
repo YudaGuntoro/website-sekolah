@@ -1,3 +1,4 @@
+import { schoolApiHeaders } from './school-api-headers'
 import 'server-only'
 import { cache } from 'react'
 export type SchoolIdentity = { vision: string; motto: string; missions: { title: string; text: string }[] }
@@ -34,7 +35,7 @@ const defaults: SchoolIdentity = {
 export const getSchoolIdentity = cache(async (): Promise<SchoolIdentity> => {
   const api = process.env.SCHOOL_API_URL
   if (!api) return defaults
-  const response = await fetch(api.replace(/\/$/, '') + '/api/school/identity', { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+  const response = await fetch(api.replace(/\/$/, '') + '/api/school/identity', { headers: schoolApiHeaders(), cache: 'no-store', signal: AbortSignal.timeout(5000) })
   if (!response.ok) throw new Error('Profil sekolah belum dapat dimuat.')
   const payload = await response.json()
   if (!payload.success || !payload.data || !Array.isArray(payload.data.missions)) throw new Error('Profil sekolah tidak valid.')

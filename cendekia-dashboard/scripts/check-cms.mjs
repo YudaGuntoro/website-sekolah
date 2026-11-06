@@ -12,7 +12,7 @@ try {
   const login = await request('/api/auth/login', 'POST', { username: 'admin', password: process.env.CMS_ADMIN_PASSWORD || 'admin123' }, '');
   assert.equal(login.status, 200); token = login.payload.data.access_token;
   assert.ok(token);
-  assert.equal((await request('/api/clinic/patients')).status, 404, 'Legacy clinic API must not be registered');
+  assert.equal((await request('/api/not-registered')).status, 404, 'Unknown routes must not be registered');
   const dashboard = await request('/api/cms/dashboard');
   assert.equal(dashboard.status, 200);
   assert.ok(dashboard.payload.data.counts.length >= 11);
@@ -45,7 +45,7 @@ try {
   assert.equal((await request('/api/users', 'GET', undefined, viewerToken)).status, 403);
   assert.equal((await request('/api/cms/content/berita/' + entryId, 'DELETE')).status, 200); entryId = undefined;
   assert.ok(!(await publicEntries()).some(e => e.slug === form.slug), 'Deleted entry returned to public API');
-  console.log('PASS: login, authorization, collections, draft/publish/delete, duplicate slugs, concurrent edits, future visibility, viewer restrictions, legacy API disabled.');
+  console.log('PASS: login, authorization, collections, draft/publish/delete, duplicate slugs, concurrent edits, future visibility, viewer restrictions, unknown API rejected.');
 } finally {
   if (entryId) await request('/api/cms/content/berita/' + entryId, 'DELETE');
   if (viewerId) await request('/api/users/' + viewerId, 'DELETE');

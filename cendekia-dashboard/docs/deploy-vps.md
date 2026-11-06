@@ -1,131 +1,80 @@
-# Dental Care VPS deployment
+# Deployment production Cendekia
 
-Use this guide for routine Dental Care updates on the confirmed Ubuntu VPS. Run commands as `root` (`sudo -i` if logged in as `ubuntu`).
+Sumber yang digunakan adalah repository `si-educational-nextjs`. Website: `package`; dashboard: `cendekia-dashboard/Frontend`; API: `cendekia-dashboard/Backend`. Database hanya `cendekia_cms`.
 
-## Confirmed production settings
+## Prasyarat dan konfigurasi wajib
 
-| Setting | Value |
-| --- | --- |
-| Repository | `https://github.com/YudaGuntoro/dental-care.git` |
-| VPS checkout | `/www/wwwroot/dental-care` |
-| Branch | `main` |
-| Domain | `https://dental-care.nusakaryadigital.com` |
-| aaPanel proxy upstream | `http://127.0.0.1:8099` |
-| Frontend container/image/host port | `dental-care-fe` / `dental-care-fe:latest` / `127.0.0.1:8099 -> 3000` |
-| API container/image/host port | `dental-care-api` / `dental-care-api:latest` / `127.0.0.1:5280 -> 8080` |
-| Docker network | `dental-care-net` |
-| MySQL container/hostname | `mysql_vps` |
-| Database | `dental_care` |
-| Database user | `yudaguntoro` |
-| API environment file | `/root/dental-care-api.env` (server only; mode `600`) |
+Gunakan MySQL 8, reverse proxy HTTPS, runtime .NET 8 yang sudah mendapat patch keamanan, dan Node 22 untuk image frontend. Jangan mempublikasikan port MySQL/API/Next secara langsung; bind port host ke loopback dan gunakan firewall. Jalankan aplikasi dengan user non-root. Dockerfile tersedia pada setiap aplikasi dan tidak menyertakan `.env` atau appsettings lokal. Build image dengan `--pull` agar patch base image diperbarui.
 
-The frontend sends browser requests to the same-origin `/api` route. Its Next.js rewrite forwards requests internally to `http://dental-care-api:8080`. The API is published on localhost port `5280` for VPS-side diagnostics; it does not need its own public proxy. Keep the aaPanel proxy pointed at port `8099` and configure SSL for the domain there.
+Simpan environment API di file server berizin 600, di luar repository:
 
-The production database password and JWT signing key belong only in `/root/dental-care-api.env`. Never copy them into this repository or this document. The frontend and API Dockerfiles (`Dockerfile.fe` and `Dockerfile.api`) were created on the VPS checkout during initial setup and are used by the commands below.
-
-## Routine update: frontend and API
-
-Build both new images before replacing either running container. The runtime configuration is reused from the existing API environment file and Docker network.
-
-```bash
-cd /www/wwwroot/dental-care
-git pull --ff-only origin main
-
-docker build -f Dockerfile.api -t dental-care-api:latest .
-docker build -f Dockerfile.fe -t dental-care-fe:latest .
-
-docker rm -f dental-care-api
-docker run -d \
-  --name dental-care-api \
-  --restart unless-stopped \
-  --network dental-care-net \
-  --env-file /root/dental-care-api.env \
-  -p 127.0.0.1:5280:8080 \
-  dental-care-api:latest
-
-docker rm -f dental-care-fe
-docker run -d \
-  --name dental-care-fe \
-  --restart unless-stopped \
-  --network dental-care-net \
-  -e API_PROXY_TARGET=http://dental-care-api:8080 \
-  -p 127.0.0.1:8099:3000 \
-  dental-care-fe:latest
-
-docker ps --filter name=dental-care
-docker logs --since 5m --tail 100 dental-care-api
-docker logs --since 5m --tail 100 dental-care-fe
-curl -I https://dental-care.nusakaryadigital.com/signin
+```dotenv
+ASPNETCORE_ENVIRONMENT=Production
+AllowedHosts=admin.sekolah.example;sekolah.example;api;localhost;127.0.0.1
+Jwt__Issuer=Cendekia
+Jwt__Audience=Cendekia.Frontend
+Jwt__SigningKey=<random-private-key>
+Jwt__ExpiresHours=1
+ConnectionStrings__DefaultConnection=<dedicated-account-connection-to-cendekia_cms>
+Security__DataProtectionKeyPath=/var/lib/cendekia/keys
+ReverseProxy__KnownProxies__0=<exact-dashboard-container-IP>
+ReverseProxy__KnownProxies__1=<exact-public-website-container-IP>
+RateLimits__LoginPerMinute=10
+RateLimits__RegistrationsPerMinute=10
 ```
 
-This replaces the selected containers and causes a short interruption during restart. It does not restart or recreate MySQL. Check the logs and test login plus the clinic menus after deployment.
+Ganti semua placeholder. Buat signing key acak minimal 32 byte, misalnya `openssl rand -base64 48`, langsung ke secret manager/file privat. Jangan salin output ke Git/log/chat. Akun database runtime memerlukan SELECT/INSERT/UPDATE/DELETE, bukan root atau hak DDL. Akun migrasi terpisah membutuhkan hak membuat tabel/FK/trigger/routine. Gunakan TLS database jika koneksi melewati host/jaringan yang tidak dipercaya.
 
-### Frontend-only update
+`AllowedHosts` harus memuat hostname yang benar-benar diterima backend setelah forwarding. `KnownProxies` hanya berisi alamat hop langsung yang dikontrol, bukan jaringan umum. Default tetap loopback, ForwardLimit=1. Jangan memakai `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` atau middleware tambahan yang mempercayai semua proxy. CORS kosong menolak akses lintas origin; alur dashboard tetap same-origin `/api`. Jika benar-benar memerlukan CORS, set `Cors__AllowedOrigins__0=https://origin-yang-disetujui` secara eksplisit tanpa wildcard.
 
-```bash
-cd /www/wwwroot/dental-care
-git pull --ff-only origin main
-docker build -f Dockerfile.fe -t dental-care-fe:latest .
-docker rm -f dental-care-fe
-docker run -d --name dental-care-fe --restart unless-stopped \
-  --network dental-care-net \
-  -e API_PROXY_TARGET=http://dental-care-api:8080 \
-  -p 127.0.0.1:8099:3000 dental-care-fe:latest
+Direktori Data Protection harus persisten dan hanya bisa dibaca user aplikasi. Pada Linux lindungi volume dengan permission dan enkripsi disk; key tersebut menjaga CSRF lintas restart. Cookie session adalah HttpOnly, Secure, SameSite=Strict, host-only dan Path=/api. Cookie CSRF juga HttpOnly; request token diperoleh lewat `/api/auth/csrf` dan dikirim sebagai `X-CSRF-TOKEN`. Endpoint login browser adalah `/api/auth/session`, tidak mengembalikan bearer token. `/api/auth/login` tetap untuk integrasi non-browser yang dipercaya, dibatasi rate limit yang sama. Logout mencabut sesi server; perubahan username/status/role mencabut semua sesi pengguna.
+
+## Urutan upgrade
+
+1. Backup database; hentikan API lama.
+2. Dari dashboard jalankan `scripts/init-local-db.ps1 -NormalizeOnly` di Windows, atau jalankan SQL berurutan dengan akun migrasi di Linux: `20261106_school_normalization.sql`, `20261106_registration_relations.sql`, lalu `database/auth_sessions.sql`. Jangan jalankan seed/reset konten pada database berisi data.
+3. Ganti password demo sebelum menjalankan Production. Utility `node scripts/set-admin-password.mjs` memerlukan `ConnectionStrings__DefaultConnection`, `CMS_ADMIN_USERNAME` (default admin), dan `CMS_NEW_ADMIN_PASSWORD` dari secret manager/environment proses sementara. Password wajib 12-128 karakter, tidak dicetak utility. Hapus environment password setelah selesai. Utility mencabut sesi lama.
+4. Build ketiga image sebelum mengganti container aktif. Build API dari context `cendekia-dashboard/Backend`, dashboard dari `cendekia-dashboard/Frontend`, website dari `package`. Dashboard memerlukan build argument `API_PROXY_TARGET=http://api:8080`; rewrite Next disimpan saat build, sehingga mengubah environment runtime saja tidak mengganti upstream.
+5. Jalankan API dengan environment privat, volume key persisten, network privat, restart policy, serta batas memory/CPU/log rotation. Website menggunakan runtime `SCHOOL_API_URL=http://api:8080`. Dashboard/website harus berada pada alamat privat tetap yang masuk KnownProxies. Host port: 127.0.0.1:5243->8080, 127.0.0.1:3002->3002, 127.0.0.1:3000->3000. Gunakan nama container/alias API `api` sesuai build argument.
+6. Pasang konfigurasi edge pada `deployment/nginx.conf.example`, sesuaikan domain dan sertifikat, jalankan `nginx -t`, lalu reload. Untuk website public, `TRUST_PROXY_HEADERS=true` hanya boleh diaktifkan bila edge menimpa X-Real-IP dan port Next tidak dapat diakses langsung. Jika tidak diaktifkan, limiter backend menghitung traffic website sebagai satu IP proxy; sesuaikan batas dan gunakan limiter edge per pengguna.
+7. Periksa readiness, login, edit konten, pendaftaran, PDF staf, logout, serta akses tanpa otorisasi. Semua sesi/token lama dari sebelum tabel auth_sessions harus login ulang.
+
+Startup Production menolak secret kosong/bawaan/lemah, AllowedHosts wildcard, CORS wildcard/HTTP, akun database root/password kosong, key directory yang belum dikonfigurasi, tabel sesi yang belum tersedia, dan akun aktif dengan password demo `admin123`. Startup gagal berarti deployment harus diperbaiki sebelum traffic dialihkan.
+
+## Backup otomatis dan restore
+
+`scripts/backup-production.sh` menggunakan `MYSQL_DEFAULTS_FILE` (file MySQL client private berizin 600) dan `BACKUP_DIRECTORY` di luar repository. Jalankan dengan akun backup yang sesuai; dump mencakup routine dan trigger. Script memakai single transaction, gzip verification, permission privat dan SHA-256. Backup harus disalin terenkripsi ke lokasi terpisah dari VPS, disertai kebijakan retensi; jangan simpan satu-satunya backup pada disk aplikasi.
+
+Contoh jadwal `/etc/cron.d/cendekia` setelah mengisi path server yang benar:
+
+```cron
+15 2 * * * backup-user MYSQL_DEFAULTS_FILE=/etc/cendekia/mysql-backup.cnf BACKUP_DIRECTORY=/var/backups/cendekia /usr/bin/bash /opt/cendekia/cendekia-dashboard/scripts/backup-production.sh >> /var/log/cendekia-backup.log 2>&1
+* * * * * app-user HEALTH_URL=http://127.0.0.1:5243/health/ready ALERT_COMMAND=/usr/local/bin/notify-operations /usr/bin/bash /opt/cendekia/cendekia-dashboard/scripts/monitor-production.sh
 ```
 
-### API-only update
+User/path/notification command adalah contoh dan harus dipasang pada server. Chat ini tidak memasang cron atau mengirim notifikasi. Monitor keluar nonzero dan menulis syslog saat readiness gagal. Hubungkan juga metrik disk, memory, CPU, restart container, HTTP 5xx/429, umur backup dan sertifikat ke sistem monitoring yang tersedia. Konfigurasikan journald/Docker log rotation; log tidak merekam body formulir, password atau token.
 
-```bash
-cd /www/wwwroot/dental-care
-git pull --ff-only origin main
-docker build -f Dockerfile.api -t dental-care-api:latest .
-docker rm -f dental-care-api
-docker run -d --name dental-care-api --restart unless-stopped \
-  --network dental-care-net \
-  --env-file /root/dental-care-api.env \
-  -p 127.0.0.1:5280:8080 dental-care-api:latest
+Uji restore secara berkala pada instance MySQL TERPISAH dengan database bernama `cendekia_cms`. Verifikasi SHA-256 dan gzip, restore dump ke instance kosong, periksa schema_migrations, jumlah baris, FK, trigger, hash dokumen, dan smoke test aplikasi. Jangan menguji restore pada database aktif. Setelah pemulihan bencana, rotasi JWT key agar sesi dari backup lama tidak hidup kembali. Catat waktu backup/restore, hasil pemeriksaan, RPO dan RTO yang disepakati.
+
+## Health, pengujian dan rollback
+
+`GET /health/live` memeriksa proses; `GET /health/ready` memeriksa konektivitas dan tabel sesi, memberikan 200/503 tanpa detail privat. Batasi endpoint ini pada edge ke monitoring internal. Rate limit aplikasi bersifat per-instance/in-memory; untuk banyak replica gunakan limiter terpusat pada edge/WAF. Batas request backend adalah 2.2 MB; endpoint SPMB 32 KB dan login 4 KB. Proxy SPMB membatasi ukuran ketika membaca stream, bukan setelah seluruh body dimuat.
+
+```powershell
+dotnet build Backend/Cendekia.sln
+node scripts/check-architecture.mjs
+node scripts/check-normalization.mjs
+node scripts/check-registration-relations.mjs
+node scripts/check-security.mjs
+node scripts/check-production-startup.mjs
+node scripts/check-cms.mjs
+node scripts/check-lmp.mjs
+$env:SPMB_ALLOW_TEST_SETUP='1'
+node scripts/check-spmb.mjs
+$env:ALLOW_LOAD_CHECK='1'
+node scripts/check-load.mjs
 ```
 
-If the application release includes a database migration, review and run that migration against `dental_care` as a separate step before testing the updated app. Routine image updates do not run SQL automatically.
+Suite security/CMS/LMP/SPMB melakukan perubahan fixture lokal/staging dan membersihkannya; jalankan cleanup SQL yang dihasilkan SPMB. `check-load` hanya membaca 100 request dengan concurrency 10; ini smoke test, bukan jaminan kapasitas. Ukur beban realistis sesuai jumlah pendaftar di staging. Uji limiter menggunakan API kedua dengan LoginPerMinute=2 dan RegistrationsPerMinute=2 di port 5245, kemudian `node scripts/check-security-limits.mjs`. Jalankan audit npm pada kedua frontend dan `dotnet list Backend/Cendekia.sln package --vulnerable --include-transitive` pada setiap rilis.
 
-## Clinic appointment services migration
-
-The base `database/dental_care.sql` does not create `appointment_services`. The API uses this table when listing appointments, so the clinic dashboard and doctor room can return HTTP 500 until the migration is applied. This migration was applied during the initial production setup; do not rerun it for every app update.
-
-If a new installation needs it, run from the repository checkout. The password prompt does not echo the database password:
-
-```bash
-cd /www/wwwroot/dental-care
-read -rsp 'Database password: ' DB_PASSWORD
-echo
-docker run --rm -i \
-  --network dental-care-net \
-  -e MYSQL_PWD="$DB_PASSWORD" \
-  mysql:8.0 \
-  mysql -h mysql_vps -u yudaguntoro dental_care \
-  < Backend/DentalCare.Persistence/Migrations/20261021_002_add_appointment_services.sql
-unset DB_PASSWORD
-```
-
-To confirm that the table exists, use the same password prompt and run:
-
-```bash
-read -rsp 'Database password: ' DB_PASSWORD
-echo
-docker run --rm --network dental-care-net -e MYSQL_PWD="$DB_PASSWORD" mysql:8.0 \
-  mysql -h mysql_vps -u yudaguntoro dental_care \
-  -e "SHOW TABLES LIKE 'appointment_services';"
-unset DB_PASSWORD
-```
-
-## Troubleshooting
-
-```bash
-docker ps --filter name=dental-care
-docker logs --since 10m --tail 100 dental-care-api
-docker logs --since 10m --tail 100 dental-care-fe
-curl -i http://127.0.0.1:5280/api/clinic/appointments
-curl -I https://dental-care.nusakaryadigital.com/signin
-```
-
-An unauthenticated API request may return `401`; that confirms the API answered. For an authenticated request, inspect the browser Network response and the API logs. HTTP `500` for appointments can indicate that `appointment_services` has not been created; apply the migration above and check the API log for any further database schema error.
+Simpan image rilis sebelumnya untuk rollback aplikasi hanya bila kompatibel dengan skema saat ini. API sebelum migrasi relasi pendaftaran tidak kompatibel; jangan menghidupkannya kembali tanpa prosedur pemulihan database yang sudah diuji. DDL MySQL bukan satu transaksi penuh.

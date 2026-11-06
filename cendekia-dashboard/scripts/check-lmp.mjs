@@ -1,3 +1,4 @@
+import { browserSignIn } from './lib/browser-sign-in.mjs';
 // Local integration check; restores settings and removes only its own synthetic records.
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -54,6 +55,10 @@ try {
   assert.equal((await api(`/lmp/applications/${id}/status`,'PUT',{status:'Baru',paymentStatus:'Belum bayar',version:detail.version})).status,409);
   await save({ ...enabled, feeAmount: 40000 });
   assert.equal((await api('/lmp/applications/' + id)).data.feeAmount, original.config.feeAmount);
+  for (let i = 0; i < 2; i++) assert.equal((await api('/lmp/applications', 'POST', form({}, pdf), '')).status, 200);
+  const repriced = (await api('/lmp/applications?search=' + tag)).data;
+  assert.equal(repriced.total, 3);
+  for (const item of repriced.items.filter(x => x.id !== id)) assert.equal((await api('/lmp/applications/' + item.id)).data.feeAmount, 40000);
   assert.equal((await api('/lmp/applications','POST',form({settingsVersion:1}), '')).status,409);
   const future = new Date(today + 'T00:00:00Z'); future.setUTCDate(future.getUTCDate()+1); const tomorrow = future.toISOString().slice(0,10);
   await save({ ...enabled, registrationStart: tomorrow, registrationEnd: tomorrow });
@@ -80,7 +85,7 @@ try {
     await page.screenshot({path:'.verify-cms/lmp-form-mobile.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Kirim pendaftaran LMP',exact:true}).click(); await page.getByRole('heading',{name:'Data peserta telah diterima'}).waitFor();
     // Get the server-generated test key for narrowly scoped cleanup of the browser record.
-    await page.addInitScript(auth => {localStorage.setItem('cendekia_access_token',auth.access_token);localStorage.setItem('cendekia_user',JSON.stringify(auth.user));localStorage.setItem('cendekia_expires_at',auth.expires_at)},login.data);
+    await browserSignIn(page);
     await page.setViewportSize({width:1600,height:1000});
     await page.goto('http://localhost:3002/lmp/pendaftar',{waitUntil:'domcontentloaded'});
     await page.getByRole('button',{name:'Detail '+tag+'-browser',exact:true}).waitFor();
@@ -102,7 +107,7 @@ try {
   if(browser) await browser.close();
   if(original && token) { current=(await api('/lmp/settings')).data; await save(original.config); }
   if(viewerId) assert.equal((await api('/users/'+viewerId,'DELETE')).status,200);
-  const settings = JSON.parse(readFileSync(new URL('Backend/DentalCare.WebAPI/appsettings.Development.json',root),'utf8'));
+  const settings = JSON.parse(readFileSync(new URL('Backend/Cendekia.WebAPI/appsettings.Development.json',root),'utf8'));
   const parts = Object.fromEntries((process.env.ConnectionStrings__DefaultConnection || settings.ConnectionStrings.DefaultConnection).split(';').filter(Boolean).map(s=>{const i=s.indexOf('=');return[s.slice(0,i),s.slice(i+1)]}));
   assert.equal(parts.Database,'cendekia_cms'); assert(/^LMP-TEST-\d+$/.test(tag));
   const result = spawnSync(process.env.MYSQL_EXE || 'C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe', [`--host=${parts.Server}`,`--port=${parts.Port}`,`--user=${parts['User ID']}`,'--default-character-set=utf8mb4'],{env:{...process.env,MYSQL_PWD:parts.Password},input:`USE cendekia_cms; DELETE FROM lmp_applications WHERE StudentName IN ('${tag}','${tag}-browser');`,encoding:'utf8',windowsHide:true});

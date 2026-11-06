@@ -1,0 +1,68 @@
+# Include from nginx http context. Replace example domains and certificate paths.
+map $request_method $cendekia_write_ip { default ""; POST $binary_remote_addr; }
+limit_req_zone $cendekia_write_ip zone=cendekia_login:10m rate=10r/m;
+limit_req_zone $cendekia_write_ip zone=cendekia_submit:10m rate=10r/m;
+limit_conn_zone $binary_remote_addr zone=cendekia_connections:10m;
+
+server {
+    listen 80;
+    server_name sekolah.example admin.sekolah.example;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name admin.sekolah.example;
+    ssl_certificate /etc/letsencrypt/live/admin.sekolah.example/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/admin.sekolah.example/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 2200k;
+    client_body_timeout 15s;
+    limit_conn cendekia_connections 20;
+    limit_req_status 429;
+    location ~ ^/api/auth/(login|session)$ {
+        limit_req zone=cendekia_login burst=5 nodelay;
+        proxy_pass http://127.0.0.1:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+}
+server {
+    listen 443 ssl;
+    server_name sekolah.example;
+    ssl_certificate /etc/letsencrypt/live/sekolah.example/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/sekolah.example/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 2200k;
+    client_body_timeout 15s;
+    limit_conn cendekia_connections 20;
+    limit_req_status 429;
+    location ~ ^/api/(spmb|lmp)$ {
+        limit_req zone=cendekia_submit burst=5 nodelay;
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        # Overwrite client-supplied headers. TRUST_PROXY_HEADERS requires this boundary.
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+}

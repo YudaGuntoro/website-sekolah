@@ -1,90 +1,59 @@
-import type { LoginResponse, UserResponse } from "./types";
+import type { SessionResponse, UserResponse } from "./types";
 
-const tokenKey = "cendekia_access_token";
-const userKey = "cendekia_user";
-const expiresKey = "cendekia_expires_at";
+let session: SessionResponse | null = null;
+let csrfRequest: Promise<string> | null = null;
 
-function readStorage(key: string) {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage.getItem(key);
+function removeLegacySession() {
+  if (typeof window === "undefined") return;
+  for (const key of ["cendekia_access_token", "cendekia_user", "cendekia_expires_at"]) window.localStorage.removeItem(key);
 }
 
-function parseJwtPayload(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) {
-      return null;
-    }
-
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
-    return JSON.parse(window.atob(normalized)) as { exp?: number };
-  } catch {
-    return null;
-  }
-}
-
-export function saveAuthSession(response: LoginResponse) {
-  window.localStorage.setItem(tokenKey, response.access_token);
-  window.localStorage.setItem(userKey, JSON.stringify(response.user));
-  window.localStorage.setItem(expiresKey, response.expires_at);
+export function saveAuthSession(response: SessionResponse) {
+  removeLegacySession();
+  session = response;
+  // Antiforgery request tokens are bound to the authenticated identity.
+  csrfRequest = null;
 }
 
 export function clearAuthSession() {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.removeItem(tokenKey);
-  window.localStorage.removeItem(userKey);
-  window.localStorage.removeItem(expiresKey);
+  removeLegacySession();
+  session = null;
+  csrfRequest = null;
 }
 
-export function getStoredToken() {
-  return readStorage(tokenKey);
+export function getStoredUser(): UserResponse | null { return session?.user ?? null; }
+
+export async function getCsrfToken(): Promise<string> {
+  if (!csrfRequest) csrfRequest = fetch("/api/auth/csrf", { cache: "no-store", credentials: "same-origin" })
+    .then(async response => {
+      if (!response.ok) throw new Error("Sesi formulir tidak dapat dimuat. Coba kembali.");
+      const payload = await response.json();
+      if (!payload.data?.token) throw new Error("Sesi formulir tidak valid.");
+      return payload.data.token as string;
+    }).catch(error => { csrfRequest = null; throw error; });
+  return csrfRequest;
 }
 
-export function getStoredUser(): UserResponse | null {
-  const raw = readStorage(userKey);
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw) as UserResponse;
-  } catch {
-    return null;
-  }
-}
-
-export function isTokenExpired(token: string) {
-  const payload = parseJwtPayload(token);
-  const expiresAt = payload?.exp ? payload.exp * 1000 : Date.parse(readStorage(expiresKey) || "");
-
-  if (!Number.isFinite(expiresAt)) {
-    return true;
-  }
-
-  return Date.now() >= expiresAt - 30_000;
-}
-
-export function hasValidAuthSession() {
-  const token = getStoredToken();
-  if (!token || isTokenExpired(token)) {
-    clearAuthSession();
-    return false;
-  }
-
+export async function hasValidAuthSession(): Promise<boolean> {
+  removeLegacySession();
+  const response = await fetch("/api/auth/session", { cache: "no-store", credentials: "same-origin" });
+  if (response.status === 401) { clearAuthSession(); return false; }
+  if (!response.ok) throw new Error("Sesi login tidak dapat diperiksa. Coba kembali.");
+  const payload = await response.json();
+  session = payload.data as SessionResponse;
   return true;
 }
 
-export function redirectToSignIn() {
-  if (typeof window === "undefined") {
-    return;
-  }
+export async function signOut() {
+  csrfRequest = null;
+  const token = await getCsrfToken();
+  const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin", headers: { "X-CSRF-TOKEN": token } });
+  if (!response.ok && response.status !== 401) throw new Error("Gagal keluar. Silakan coba kembali.");
+  clearAuthSession();
+}
 
+export function redirectToSignIn() {
+  if (typeof window === "undefined") return;
   const next = `${window.location.pathname}${window.location.search}`;
   window.location.href = `/signin?next=${encodeURIComponent(next)}`;
 }

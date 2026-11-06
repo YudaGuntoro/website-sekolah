@@ -1,3 +1,4 @@
+import { browserSignIn } from './lib/browser-sign-in.mjs';
 // Local check: temporarily changes settings and restores the original values in finally.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -36,11 +37,7 @@ try {
     const { chromium } = createRequire(import.meta.url)('../.verify-cms/node_modules/playwright');
     browser = await chromium.launch({ channel: 'msedge', headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    await context.addInitScript(auth => {
-      localStorage.setItem('cendekia_access_token', auth.access_token);
-      localStorage.setItem('cendekia_user', JSON.stringify(auth.user));
-      localStorage.setItem('cendekia_expires_at', auth.expires_at);
-    }, login.body.data);
+    await browserSignIn(context);
     const page = await context.newPage();
     await page.goto('http://localhost:3002/settings/contact');
     await page.getByLabel('Email sekolah').waitFor();

@@ -1,0 +1,9 @@
+@CendekiaApi = http://localhost:5243
+
+GET {{CendekiaApi}}/health/ready
+Accept: application/json
+
+###
+
+GET {{CendekiaApi}}/api/school/identity
+Accept: application/json

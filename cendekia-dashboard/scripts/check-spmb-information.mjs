@@ -1,3 +1,4 @@
+import { browserSignIn } from './lib/browser-sign-in.mjs';
 // Local check: temporarily edits the SPMB page configuration and restores it.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -27,11 +28,7 @@ try {
     const { chromium } = createRequire(import.meta.url)('../.verify-cms/node_modules/playwright');
     browser = await chromium.launch({ channel: 'msedge', headless: true });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
-    await page.addInitScript(auth => {
-      localStorage.setItem('cendekia_access_token', auth.access_token);
-      localStorage.setItem('cendekia_user', JSON.stringify(auth.user));
-      localStorage.setItem('cendekia_expires_at', auth.expires_at);
-    }, login.data);
+    await browserSignIn(page);
     await page.goto('http://localhost:3000/spmb');
     assert((await page.locator('h1').innerText()).includes(year));
     assert.equal(await page.locator('main ol > li').count(), original.config.steps.length);

@@ -1,9 +1,11 @@
 param([string]$MySqlDumpExecutable = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$settings = Get-Content -LiteralPath (Join-Path $root 'Backend/DentalCare.WebAPI/appsettings.Development.json') -Raw | ConvertFrom-Json
 $connection = $env:ConnectionStrings__DefaultConnection
-if (-not $connection) { $connection = $settings.ConnectionStrings.DefaultConnection }
+if (-not $connection) {
+    $settings = Get-Content -LiteralPath (Join-Path $root 'Backend/Cendekia.WebAPI/appsettings.Development.json') -Raw | ConvertFrom-Json
+    $connection = $settings.ConnectionStrings.DefaultConnection
+}
 $parts = @{}
 $connection.Split(';') | ForEach-Object { if ($_ -match '^([^=]+)=(.*)$') { $parts[$matches[1]] = $matches[2] } }
 if ($parts['Database'] -ne 'cendekia_cms') { throw 'Only cendekia_cms may be backed up by this script.' }

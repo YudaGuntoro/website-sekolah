@@ -32,8 +32,8 @@ const ResetPassword = ({ token }: { token: string }) => {
             email: res.data.email,
           });
         }
-      } catch (error: any) {
-        toast.error(error?.response?.data);
+      } catch (error: unknown) {
+        toast.error("Permintaan tidak dapat diproses. Coba kembali.");
         router.push("/forgot-password");
       }
     };
@@ -71,8 +71,8 @@ const ResetPassword = ({ token }: { token: string }) => {
       }
 
       setLoader(false);
-    } catch (error: any) {
-      toast.error(error.response.data);
+    } catch (error: unknown) {
+      toast.error("Permintaan tidak dapat diproses. Coba kembali.");
       setLoader(false);
     }
   };

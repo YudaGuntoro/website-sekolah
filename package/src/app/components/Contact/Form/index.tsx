@@ -21,7 +21,7 @@ const ContactForm = () => {
     )
     setIsFormValid(isValid)
   }, [formData])
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prevData) => ({
       ...prevData,
@@ -35,39 +35,15 @@ const ContactForm = () => {
     formData.phnumber = ''
     formData.Message = ''
   }
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoader(true)
 
-    fetch('https://formsubmit.co/ajax/bhainirav772@gmail.com', {
-      method: 'POST',
-      headers: { 'Content-type': 'application/json' },
-      body: JSON.stringify({
-        Name: formData.firstname,
-        LastName: formData.lastname,
-        Email: formData.email,
-        PhoneNo: formData.phnumber,
-        Message: formData.Message,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setSubmitted(true)
-          setShowThanks(true)
-          reset()
+    // The inherited template destination was an unrelated third party.
+    // Do not transmit visitors' personal information without a school-owned service.
+    setLoader(false)
+    window.alert('Formulir pesan belum tersedia. Silakan gunakan kontak resmi sekolah.')
 
-          setTimeout(() => {
-            setShowThanks(false)
-          }, 5000)
-        }
-
-        reset()
-      })
-      .catch((error) => {
-        setLoader(false)
-        console.log(error.message)
-      })
   }
   return (
     <section id='contact'>

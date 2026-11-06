@@ -5,7 +5,7 @@ export type ApiResponse<T> = {
   data: T;
 };
 
-export type UserRole = "ADMIN" | "SUPERVISOR" | "OPERATOR" | "DOCTOR" | "VIEWER";
+export type UserRole = "ADMIN" | "SUPERVISOR" | "OPERATOR" | "VIEWER";
 export type UserStatus = "ACTIVE" | "INACTIVE";
 
 export type UserResponse = {
@@ -27,3 +27,5 @@ export type LoginResponse = {
   expires_at: string;
   user: UserResponse;
 };
+
+export type SessionResponse = { expires_at: string; user: UserResponse };

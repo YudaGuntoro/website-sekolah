@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
 // Run against a production server, optionally through Nginx:
-// node scripts/check-cache.mjs https://your-dental-care-domain.example
-const origin = process.argv[2] || "http://localhost:3100";
-const pages = ["/", "/signin", "/patients", "/appointments", "/users"];
+// node scripts/check-cache.mjs https://admin.sekolah.example
+const origin = process.argv[2] || "http://localhost:3002";
+const pages = ["/", "/signin", "/spmb/pendaftar", "/lmp/pendaftar", "/users"];
 
 function assertUncached(response, path) {
   const cacheControl = response.headers.get("cache-control") || "";

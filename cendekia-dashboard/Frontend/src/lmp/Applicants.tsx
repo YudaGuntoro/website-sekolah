@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiGet, apiPut, apiRequest } from "@/lib/api";
-import { getStoredToken } from "@/lib/auth";
 import { EyeIcon, CloseIcon } from "@/icons";
 import { useToast } from "@/context/ToastContext";
 import { dateTime, payments, statuses, subjects, type Applicant, type Detail } from "./types";
@@ -30,7 +29,7 @@ export default function Applicants() {
   }
   async function download() {
     if (!detail || downloading) return; setDownloading(true); setDetailError("");
-    try { const response = await fetch(`/api/lmp/applications/${detail.id}/document`, { headers: { Authorization: `Bearer ${getStoredToken()}` }, cache: "no-store" }); if (!response.ok) throw new Error("Berkas tidak dapat diunduh. Periksa sesi login Anda."); const url = URL.createObjectURL(await response.blob()); const a = document.createElement("a"); a.href = url; a.download = `${detail.registrationNumber}.pdf`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 10000); }
+    try { const response = await fetch(`/api/lmp/applications/${detail.id}/document`, { credentials: "same-origin", cache: "no-store" }); if (!response.ok) throw new Error("Berkas tidak dapat diunduh. Periksa sesi login Anda."); const url = URL.createObjectURL(await response.blob()); const a = document.createElement("a"); a.href = url; a.download = `${detail.registrationNumber}.pdf`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 10000); }
     catch (e) { setDetailError(e instanceof Error ? e.message : "Gagal mengunduh."); } finally { setDownloading(false); }
   }
   const pages = Math.max(1, Math.ceil(data.total / limit));

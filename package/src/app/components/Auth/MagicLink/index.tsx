@@ -8,7 +8,7 @@ const MagicLink = () => {
   const [email, setEmail] = useState("");
   const [loader, setLoader] = useState(false);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!email) {
