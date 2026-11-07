@@ -1,20 +1,7 @@
 import type { CmsEntry } from '../cms-content'
 import SocialCard from './SocialCard'
 import Link from 'next/link'
-
-type Platform = 'instagram' | 'tiktok'
-
-// Validate links again at the rendering boundary, including any imported records.
-function validPostUrl(value: string, platform: Platform) {
-  try {
-    const url = new URL(value)
-    if (url.protocol !== 'https:' || url.username || url.password || url.port) return false
-    if (platform === 'instagram') return ['instagram.com', 'www.instagram.com', 'm.instagram.com'].includes(url.hostname)
-      && /^\/(p|reel|reels|tv)\/[A-Za-z0-9_-]+\/?$/.test(url.pathname)
-    return (['tiktok.com', 'www.tiktok.com', 'm.tiktok.com'].includes(url.hostname) && /^\/@[^/]+\/(video|photo)\/[0-9]+\/?$/.test(url.pathname))
-      || (['vm.tiktok.com', 'vt.tiktok.com'].includes(url.hostname) && /^\/[A-Za-z0-9]+\/?$/.test(url.pathname))
-  } catch { return false }
-}
+import { validPostUrl, type SocialPlatform as Platform } from '../social-post-url'
 
 function PlatformIcon({ platform }: { platform: Platform }) {
   return <svg viewBox='0 0 24 24' className='h-7 w-7 fill-none stroke-current' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>

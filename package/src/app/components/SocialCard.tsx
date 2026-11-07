@@ -3,15 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CmsEntry } from '../cms-content'
 
-function imageSource(value: string) {
-  if (value.startsWith('/images/') && !value.includes('..')) return value
-  try {
-    const url = new URL(value)
-    if (url.protocol === 'https:' && !url.username && !url.password && !/(^|\.)(instagram|tiktok)\.com$/.test(url.hostname)) return value
-  } catch { /* Older posts can contain a post link instead of a photo. */ }
-  return ''
-}
-
 function SocialIcon({ platform, className = 'h-4 w-4' }: { platform: 'instagram' | 'tiktok'; className?: string }) {
   return <svg viewBox='0 0 24 24' className={`${className} fill-none stroke-current`} strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
     {platform === 'instagram' ? <><rect x='3' y='3' width='18' height='18' rx='5' /><circle cx='12' cy='12' r='4' /><circle cx='17.5' cy='6.5' r='.8' fill='currentColor' stroke='none' /></> : <path d='M14 3v12.5a4.5 4.5 0 1 1-4-4.47V15a1.5 1.5 0 1 0 1 1.4V3h3c.4 3 2.4 4.7 5 5v3c-2-.1-3.6-.7-5-1.8' />}
@@ -22,7 +13,7 @@ export default function SocialCard({ post, platform }: { post: CmsEntry; platfor
   const name = platform === 'instagram' ? 'Instagram' : 'TikTok'
   const [failedSource, setFailedSource] = useState('')
   const image = useRef<HTMLImageElement>(null)
-  const source = imageSource(post.imageUrl)
+  const source = `/api/social-image?${new URLSearchParams({ platform, slug: post.slug, post: post.postUrl })}`
   const hasPhoto = source && failedSource !== source
   useEffect(() => {
     // A cached failure can occur before React attaches the error handler.

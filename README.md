@@ -65,6 +65,8 @@ Konten website dikelola melalui folder `cendekia-dashboard` dalam repository ini
 
 Formulir pendaftaran SPMB kini menyimpan data melalui API sekolah. Menu SPMB > Pengaturan Gelombang pada dashboard mengatur tahun ajaran dan empat jadwal gelombang. Pendaftaran tertutup di luar rentang aktif (WIB). Gelombang ditentukan server saat submit; nomor pendaftaran ditampilkan setelah berhasil. Data dapat diperiksa pada SPMB > Pendaftar SPMB. Sebelum dipakai, isi tanggal resmi dan aktifkan pendaftaran di dashboard.
 
+Feed Instagram/TikTok memakai kartu custom dengan maksimal empat postingan terbaru di beranda dan halaman daftar `/instagram` serta `/tiktok`. Admin cukup mengisi URL postingan; judul dan ringkasan opsional. Foto diambil server website melalui `/api/social-image` dari postingan publik yang sudah terbit di CMS, tanpa kolom URL foto manual. Website memerlukan akses HTTPS keluar ke platform dan CDN gambarnya. Pengambilan otomatis mengikuti ketersediaan halaman publik; postingan privat, dihapus, atau dibatasi platform memakai ilustrasi pengganti dan tetap menyediakan tautan ke postingan. Tidak menggunakan akun/cookie Instagram pribadi atau layanan proxy pihak ketiga. Verifikasi resolver: `cd package && node scripts/check-social-thumbnails.mjs`.
+
 ## Teknologi
 
 Next.js, React, TypeScript, dan Tailwind CSS.
