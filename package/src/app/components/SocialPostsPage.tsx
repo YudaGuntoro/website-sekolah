@@ -17,7 +17,7 @@ export default async function SocialPostsPage({ platform }: { platform: 'instagr
           </div>
           <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan, prestasi, dan kebersamaan keluarga Cendekia. Temukan semua postingan sekolah, mulai dari yang terbaru.</p>
         </div>
-        {posts.length ? <div className='mt-10 grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-4'>
+        {posts.length ? <div className='mt-10 grid auto-rows-fr items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4'>
           {posts.map(post => <SocialCard key={post.slug} post={post} platform={platform} />)}
         </div> : <p className='mt-10 rounded-2xl border border-dashed border-sky-200 bg-white px-5 py-12 text-center text-sm text-slate-500'>Postingan {name} sekolah akan tampil di sini.</p>}
         <div className='mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-sky-100 bg-white/80 p-5 sm:flex-row sm:items-center sm:px-6'>

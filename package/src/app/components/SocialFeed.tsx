@@ -26,7 +26,7 @@ export default function SocialFeed({ platform, entries }: { platform: Platform; 
         <h2 id={`${platform}-heading`} className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Feed <span className='text-sky-600'>{name}</span></h2>
         <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:text-base sm:leading-7'>Cerita, kegiatan, dan momen seru keluarga Cendekia di {name}.</p>
       </div>
-      {posts.length ? <div className={`mx-auto mt-8 grid items-start gap-5 sm:mt-10 ${posts.length === 1 ? 'max-w-[320px]' : posts.length === 2 ? 'max-w-[660px] sm:grid-cols-2' : posts.length === 3 ? 'max-w-[1000px] sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4'}`}>
+      {posts.length ? <div className={`mx-auto mt-8 grid auto-rows-fr items-stretch gap-5 sm:mt-10 ${posts.length === 1 ? 'max-w-[320px]' : posts.length === 2 ? 'max-w-[660px] sm:grid-cols-2' : posts.length === 3 ? 'max-w-[1000px] sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4'}`}>
         {posts.map(post => <SocialCard key={post.slug} post={post} platform={platform} />)}
       </div> : <div className='mt-6 rounded-xl border border-dashed border-sky-200 bg-white px-5 py-10 text-center sm:mt-8'>
         <span className='mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-school-blue'><PlatformIcon platform={platform} /></span>
