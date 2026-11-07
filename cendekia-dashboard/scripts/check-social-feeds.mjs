@@ -32,7 +32,9 @@ try {
   assert(html.indexOf('id="pengumuman"') < html.indexOf('id="instagram"'));
   assert(html.indexOf('id="instagram"') < html.indexOf('id="tiktok"'));
   assert(html.indexOf('id="tiktok"') < html.indexOf('id="guru"'));
-  for (const post of created) assert(html.includes(post.postUrl));
+  assert(html.includes('data-instgrm-permalink="https://www.instagram.com/smpitcendekia/"'));
+  const instagramArchive = await (await fetch('http://localhost:3000/instagram')).text();
+  for (const post of created) assert((post.platform === 'instagram' ? instagramArchive : html).includes(post.postUrl));
   const post = created[0];
   assert.equal((await request(`/cms/content/instagram/${post.id}`, 'PUT', { ...post, postUrl: 'https://example.com/bad' })).status, 400);
   const draft = await request(`/cms/content/instagram/${post.id}`, 'PUT', { ...post, status: 'Draft' });
@@ -48,12 +50,13 @@ try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await browserSignIn(context);
     const page = await context.newPage();
-    await page.goto('http://localhost:3000');
     for (const post of created) {
-      const link = page.locator(`#${post.platform} a[href="${post.postUrl}"]`);
+      await page.goto(post.platform === 'instagram' ? 'http://localhost:3000/instagram' : 'http://localhost:3000');
+      const link = page.locator(`a[href="${post.postUrl}"]`);
       assert.equal(await link.getAttribute('target'), '_blank');
       assert((await link.getAttribute('rel')).includes('noopener'));
     }
+    await page.goto('http://localhost:3000');
     await page.locator('#instagram').scrollIntoViewIfNeeded();
     await page.screenshot({ path: '.verify-cms/social-feeds-desktop.png' });
     await page.setViewportSize({ width: 390, height: 844 });

@@ -2,6 +2,7 @@ import type { CmsEntry } from '../cms-content'
 import SocialCard from './SocialCard'
 import Link from 'next/link'
 import { validPostUrl, type SocialPlatform as Platform } from '../social-post-url'
+import InstagramProfile from './InstagramProfile'
 
 function PlatformIcon({ platform }: { platform: Platform }) {
   return <svg viewBox='0 0 24 24' className='h-7 w-7 fill-none stroke-current' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
@@ -16,18 +17,15 @@ export function getSocialPosts(entries: CmsEntry[], platform: Platform) {
   return posts.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
 }
 
-export default function SocialFeed({ platform, entries }: { platform: Platform; entries: CmsEntry[] }) {
-  const name = platform === 'instagram' ? 'Instagram' : 'TikTok'
+export default function SocialFeed({ platform, entries = [] }: { platform: Platform; entries?: CmsEntry[] }) {
+  if (platform === 'instagram') return <InstagramProfile />
+  const name = 'TikTok'
   const allPosts = getSocialPosts(entries, platform)
   const posts = allPosts.slice(0, 4)
-  return <section id={platform} aria-labelledby={`${platform}-heading`} className={`${platform === 'instagram' ? 'bg-[#f7f9fc]' : 'bg-white'} py-8 sm:py-16`}>
+  return <section id={platform} aria-labelledby={`${platform}-heading`} className='bg-white py-8 sm:py-16'>
     <div className='mx-auto max-w-7xl px-5 sm:px-8 lg:px-10'>
       <div className='mx-auto max-w-2xl text-center'>
         <h2 id={`${platform}-heading`} className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Feed <span className='text-sky-600'>{name}</span></h2>
-        {platform === 'instagram' && <a href='https://www.instagram.com/smpitcendekia/' target='_blank' rel='noopener noreferrer' className='mt-4 inline-flex max-w-full items-center justify-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-school-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-school-blue motion-reduce:transform-none'>
-          <svg viewBox='0 0 24 24' className='h-[18px] w-[18px] shrink-0 fill-none stroke-current' strokeWidth='1.7' aria-hidden='true'><rect x='3' y='3' width='18' height='18' rx='5' /><circle cx='12' cy='12' r='4' /><circle cx='17.5' cy='6.5' r='.8' fill='currentColor' stroke='none' /></svg>
-          Follow @smpitcendekia <span aria-hidden='true'>↗</span>
-        </a>}
         <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:text-base sm:leading-7'>Cerita, kegiatan, dan momen seru keluarga Cendekia di {name}.</p>
       </div>
       {posts.length ? <div className={`mx-auto mt-8 grid auto-rows-fr items-stretch gap-5 sm:mt-10 ${posts.length === 1 ? 'max-w-[320px]' : posts.length === 2 ? 'max-w-[660px] sm:grid-cols-2' : posts.length === 3 ? 'max-w-[1000px] sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4'}`}>

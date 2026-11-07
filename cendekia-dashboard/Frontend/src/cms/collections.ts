@@ -1,5 +1,5 @@
 export const collections = [
-  { key: "instagram", name: "Feed Instagram", description: "Kelola postingan Instagram yang tampil di beranda sekolah.", category: "Kategori", title: "Judul postingan", body: "Keterangan", path: "/#instagram" },
+  { key: "instagram", name: "Feed Instagram", description: "Kelola pilihan postingan pada halaman Instagram website. Beranda menampilkan embed profil @smpitcendekia langsung dari Instagram.", category: "Kategori", title: "Judul postingan", body: "Keterangan", path: "/instagram" },
   { key: "tiktok", name: "Feed TikTok", description: "Kelola postingan TikTok yang tampil di beranda sekolah.", category: "Kategori", title: "Judul postingan", body: "Keterangan", path: "/#tiktok" },
   { key: "berita", name: "Berita", description: "Cerita, kabar, dan artikel terbaru dari sekolah.", category: "Kategori berita", title: "Judul berita", body: "Isi berita", path: "/berita" },
   { key: "pengumuman", name: "Pengumuman", description: "Informasi penting untuk siswa dan orang tua.", category: "Kategori", title: "Judul pengumuman", body: "Isi pengumuman", path: "/pengumuman" },
