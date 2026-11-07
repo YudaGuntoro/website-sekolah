@@ -57,6 +57,7 @@ public sealed class ApplicationUnitOfWork(CendekiaDbContext db) : IApplicationUn
 }
 public sealed class SpmbRepository(CendekiaDbContext db) : ISpmbRepository
 {
+    public IEntityRepository<SpmbWaveGroup> Groups { get; } = new EntityRepository<SpmbWaveGroup>(db);
     public async Task EnsureAcademicYearAsync(string year) {
         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Creating years requires a settings transaction.");
         if (!await db.Set<AcademicYear>().AnyAsync(x => x.Code == year)) db.Add(new AcademicYear { Code = year });

@@ -2,9 +2,14 @@
 import SpmbRegistrationLayout from './SpmbRegistrationLayout'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
-export type Wave = { number: number; startDate: string | null; endDate: string | null; enabled: boolean; isOpen: boolean }
+export type Wave = { number: number; startDate: string | null; endDate: string | null; isOpen: boolean }
 export type Schedule = { academicYear: string; today: string; version: number; enabled: boolean; activeWave: number | null; waves: Wave[] }
-export type Receipt = { registrationNumber: string; academicYear: string; waveNumber: number; submittedAt: string }
+export type Receipt = {
+  registrationNumber: string; academicYear: string; waveNumber: number; submittedAt: string; whatsappGroupUrl: string;
+  studentName: string; nisn: string | null; birthPlace: string; birthDate: string; gender: string;
+  previousSchool: string; targetGrade: string; guardianName: string; guardianPhone: string;
+  guardianEmail: string | null; address: string;
+}
 function errorMessage(payload: { message?: string; errors?: Record<string, string[]> }) {
   return payload.message || Object.values(payload.errors || {}).flat()[0] || 'Data belum dapat disimpan. Periksa kembali formulir.'
 }

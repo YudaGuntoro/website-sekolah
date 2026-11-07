@@ -8,25 +8,29 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
 {
     // Purwakarta uses WIB (UTC+07). Submission time is determined by the server.
     private static DateOnly SchoolDate() => DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
-    private static bool Active(SpmbWave wave, DateOnly today) => wave.Enabled && wave.StartDate.HasValue && wave.EndDate.HasValue && today >= wave.StartDate && today <= wave.EndDate;
+    private static bool Active(SpmbWave wave, DateOnly today) => wave.StartDate.HasValue && wave.EndDate.HasValue && today >= wave.StartDate && today <= wave.EndDate;
 
-    private static object Schedule(SpmbSettings settings, List<SpmbWave> waves)
+    private static object Schedule(SpmbSettings settings, List<SpmbWave> waves, List<SpmbWaveGroup>? groups = null)
     {
         var today = SchoolDate();
         return new
         {
             settings.AcademicYear, settings.Enabled, settings.Version, today, timeZone = "Asia/Jakarta",
             activeWave = settings.Enabled ? waves.FirstOrDefault(w => Active(w, today))?.Number : null,
-            waves = waves.OrderBy(w => w.Number).Select(w => new { w.Number, w.StartDate, w.EndDate, w.Enabled, isOpen = settings.Enabled && Active(w, today) })
+            waves = waves.OrderBy(w => w.Number).Select(w => new { w.Number, w.StartDate, w.EndDate, isOpen = settings.Enabled && Active(w, today), whatsappGroupUrl = groups?.SingleOrDefault(g => g.WaveNumber == w.Number)?.WhatsappGroupUrl })
         };
     }
     public async Task<ServiceResult> Settings()
     {
         var settings = await repository.GetSettingsAsync();
-        return ApiOk(Schedule(settings, await repository.GetWavesAsync()));
+        return ApiOk(Schedule(settings, await repository.GetWavesAsync(), await repository.Groups.ListAsync(g => g.AcademicYear == settings.AcademicYear)));
     }
 
-    public async Task<ServiceResult> PublicSchedule() => await Settings();
+    public async Task<ServiceResult> PublicSchedule()
+    {
+        var settings = await repository.GetSettingsAsync();
+        return ApiOk(Schedule(settings, await repository.GetWavesAsync()));
+    }
 
     public async Task<ServiceResult> UpdateSettings(SpmbSettingsRequest request)
     {
@@ -36,15 +40,22 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         if (years[1] != years[0] + 1) return ApiBadRequest("Tahun ajaran harus berurutan, misalnya 2027/2028.");
         foreach (var wave in request.Waves)
         {
-            if (wave.StartDate.HasValue != wave.EndDate.HasValue || (wave.Enabled && !wave.StartDate.HasValue))
-                return ApiBadRequest($"Tanggal mulai dan selesai Gelombang {wave.Number} wajib lengkap sebelum diaktifkan.");
+            wave.WhatsappGroupUrl = wave.WhatsappGroupUrl?.Trim() ?? "";
+            if (wave.WhatsappGroupUrl.Length > 0 &&
+                (!Uri.TryCreate(wave.WhatsappGroupUrl, UriKind.Absolute, out var url) ||
+                 url.Scheme != Uri.UriSchemeHttps || !url.Host.Equals("chat.whatsapp.com", StringComparison.OrdinalIgnoreCase) ||
+                 !url.IsDefaultPort || url.UserInfo.Length > 0 ||
+                 !System.Text.RegularExpressions.Regex.IsMatch(url.AbsolutePath, "^/[A-Za-z0-9]+/?$")))
+                return ApiBadRequest($"Tautan grup WhatsApp Gelombang {wave.Number} harus berupa https://chat.whatsapp.com/kode-undangan.");
+            if (wave.StartDate.HasValue != wave.EndDate.HasValue)
+                return ApiBadRequest($"Tanggal mulai dan selesai Gelombang {wave.Number} harus diisi berpasangan.");
             if (wave.StartDate > wave.EndDate) return ApiBadRequest($"Tanggal selesai Gelombang {wave.Number} tidak boleh sebelum tanggal mulai.");
         }
         var configured = request.Waves.Where(w => w.StartDate.HasValue).OrderBy(w => w.Number).ToList();
         for (var i = 1; i < configured.Count; i++)
             if (configured[i].StartDate <= configured[i - 1].EndDate)
                 return ApiBadRequest("Tanggal gelombang harus berurutan dan tidak boleh bertumpuk, termasuk tanggal batas.");
-        if (request.Enabled && !request.Waves.Any(w => w.Enabled)) return ApiBadRequest("Aktifkan setidaknya satu gelombang sebelum membuka pendaftaran.");
+        if (request.Enabled && configured.Count == 0) return ApiBadRequest("Isi jadwal setidaknya satu gelombang sebelum membuka pendaftaran.");
 
         await using var transaction = await unitOfWork.BeginTransactionAsync();
         var settings = await repository.GetSettingsAsync(forUpdate: true);
@@ -57,14 +68,33 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         foreach (var wave in waves)
         {
             var value = request.Waves.Single(w => w.Number == wave.Number);
-            wave.StartDate = value.StartDate; wave.EndDate = value.EndDate; wave.Enabled = value.Enabled;
+            wave.StartDate = value.StartDate; wave.EndDate = value.EndDate; // Compatibility with the existing database constraint; dates determine availability.
+            wave.Enabled = value.StartDate.HasValue && value.EndDate.HasValue;
+            var group = await repository.Groups.FirstAsync(g => g.AcademicYear == settings.AcademicYear && g.WaveNumber == wave.Number, tracking: true);
+            if (group is null)
+            {
+                group = new SpmbWaveGroup { AcademicYear = settings.AcademicYear, WaveNumber = wave.Number };
+                repository.Groups.Add(group);
+            }
+            group.WhatsappGroupUrl = value.WhatsappGroupUrl!;
         }
         await unitOfWork.SaveChangesAsync();
         await transaction.CommitAsync();
-        return ApiOk(Schedule(settings, waves), "Pengaturan gelombang disimpan.");
+        var groups = await repository.Groups.ListAsync(g => g.AcademicYear == settings.AcademicYear);
+        return ApiOk(Schedule(settings, waves, groups), "Pengaturan gelombang disimpan.");
     }
 
-    private ServiceResult Receipt(SpmbApplication entry) => ApiOk(new { entry.RegistrationNumber, entry.AcademicYear, entry.WaveNumber, entry.SubmittedAt }, "Pendaftaran berhasil disimpan.");
+    private async Task<ServiceResult> Receipt(SpmbApplication entry)
+    {
+        var group = await repository.Groups.FirstAsync(g => g.AcademicYear == entry.AcademicYear && g.WaveNumber == entry.WaveNumber);
+        return ApiOk(new {
+            entry.RegistrationNumber, entry.AcademicYear, entry.WaveNumber, entry.SubmittedAt,
+            entry.StudentName, entry.Nisn, entry.BirthPlace, entry.BirthDate, entry.Gender,
+            entry.PreviousSchool, entry.TargetGrade, entry.GuardianName, entry.GuardianPhone,
+            entry.GuardianEmail, entry.Address,
+            whatsappGroupUrl = group?.WhatsappGroupUrl ?? ""
+        }, "Pendaftaran berhasil disimpan.");
+    }
 
 
     public async Task<ServiceResult> Submit(SpmbSubmissionRequest request)
@@ -83,7 +113,7 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         await using var transaction = await unitOfWork.BeginTransactionAsync();
         var settings = await repository.GetSettingsAsync(forUpdate: true);
         var prior = await repository.Applications.FirstAsync(x => x.SubmissionKey == request.SubmissionKey);
-        if (prior is not null) return Receipt(prior);
+        if (prior is not null) return await Receipt(prior);
         if (request.ScheduleVersion != settings.Version) return Conflict("Jadwal pendaftaran baru diperbarui. Periksa jadwal terbaru lalu kirim kembali.");
         var now = DateTime.UtcNow;
         today = DateOnly.FromDateTime(new DateTimeOffset(now).ToOffset(TimeSpan.FromHours(7)).DateTime);
@@ -107,7 +137,7 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         entry.RegistrationNumber = $"SPMB-{settings.AcademicYear[..4]}-{entry.Id:D6}";
         await unitOfWork.SaveChangesAsync();
         await transaction.CommitAsync();
-        return Receipt(entry);
+        return await Receipt(entry);
     }
     public async Task<ServiceResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10)
     {

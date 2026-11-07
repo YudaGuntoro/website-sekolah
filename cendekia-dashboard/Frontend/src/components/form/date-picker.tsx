@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef } from 'react';
 import flatpickr from 'flatpickr';
 import { Indonesian } from 'flatpickr/dist/l10n/id.js';
@@ -25,6 +26,10 @@ type PropsType = {
   altFormat?: string;
   value?: string;
   onValueChange?: (value: string) => void;
+  minDate?: DateOption;
+  maxDate?: DateOption;
+  disabled?: boolean;
+  ariaLabel?: string;
 };
 
 export default function DatePicker({
@@ -44,6 +49,10 @@ export default function DatePicker({
   altFormat,
   value,
   onValueChange,
+  minDate,
+  maxDate,
+  disabled = false,
+  ariaLabel,
 }: PropsType) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const pickerRef = useRef<flatpickr.Instance | null>(null);
@@ -66,10 +75,11 @@ export default function DatePicker({
       dateFormat: resolvedDateFormat,
       defaultDate: value ?? defaultDate,
       locale: Indonesian,
+      disableMobile: true,
       onReady: (_selectedDates, _dateStr, instance) => {
         if (instance.altInput) {
           instance.altInput.id = `${id}-display`;
-          instance.altInput.setAttribute("aria-label", label || placeholder || "Pilih tanggal");
+          instance.altInput.setAttribute("aria-label", ariaLabel || label || placeholder || "Pilih tanggal");
         }
       },
       onChange: (selectedDates, dateStr, instance) => {
@@ -103,6 +113,28 @@ export default function DatePicker({
     else picker.clear(false);
   }, [value, resolvedDateFormat]);
 
+  useEffect(() => {
+    const picker = pickerRef.current;
+    if (!picker) return;
+    const hadSelection = picker.selectedDates.length > 0;
+    picker.set("minDate", minDate);
+    picker.set("maxDate", maxDate);
+    if (hadSelection && picker.selectedDates.length === 0) {
+      onValueChangeRef.current?.("");
+    }
+  }, [minDate, maxDate]);
+
+  useEffect(() => {
+    const picker = pickerRef.current;
+    if (!picker) return;
+    if (picker.altInput) {
+      picker.altInput.disabled = disabled;
+      picker.altInput.required = !!required;
+      picker.altInput.setAttribute("aria-label", ariaLabel || label || placeholder || "Pilih tanggal");
+    }
+    if (disabled) picker.close();
+  }, [disabled, required, ariaLabel, label, placeholder]);
+
   return (
     <div>
       {label && <Label htmlFor={altInput ? `${id}-display` : id}>{label}</Label>}
@@ -114,6 +146,8 @@ export default function DatePicker({
           ref={inputRef}
           placeholder={placeholder}
           required={required}
+          disabled={disabled}
+          aria-label={ariaLabel || label || placeholder || "Pilih tanggal"}
           className={twMerge(
             "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-[#184F8F] focus:ring-[#184F8F]/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-blue-500",
             className,

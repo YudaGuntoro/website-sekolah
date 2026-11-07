@@ -117,3 +117,11 @@ Jalankan `scripts/init-local-db.ps1 -NormalizeOnly` setelah menghentikan API. Ru
 API tetap mengirim `waveStartDate`, `waveEndDate`, `eventTitle`, `competitionDate`, dan `feeAmount` dengan mengambilnya dari relasi. Tidak ada perubahan kontrak formulir/dashboard. Jadwal aktif tetap memiliki tepat empat gelombang. Riwayat tidak menunjuk ke tanggal pengaturan yang bisa berubah. Transaksi submit mengunci pengaturan sebelum mencari/membuat versi historis, sehingga concurrent retry tidak membuat baris versi atau pendaftaran ganda.
 
 Verifikasi v2 mencakup fingerprint seluruh riwayat sebelum/sesudah, migrasi ulang, bootstrap kosong dan seed dummy berulang pada MySQL terpisah, pemulihan backup pra-v2, migrasi acara bertanggal NULL, penolakan FK/composite key tidak valid, larangan update/penghapusan riwayat yang digunakan, serta integrasi API SPMB/LMP dan CMS. `check-registration-relations.mjs` menggunakan transaksi terpisah dan rollback untuk fixture pengujian constraint.
+
+## Grup WhatsApp SPMB per gelombang
+
+`spmb_wave_groups` menyimpan satu tautan undangan per `(AcademicYear, WaveNumber)` dengan FK ke tahun ajaran dan gelombang. Tautan dapat diperbarui tanpa mengubah periode jadwal historis. Pengaturan staf mengembalikan tautan; jadwal publik tidak mengungkap undangan. Bukti submit (termasuk retry idempoten) mengambil grup berdasarkan tahun dan gelombang pendaftaran, bukan gelombang yang sedang aktif. Tautan kosong menyembunyikan tombol gabung. Hanya undangan HTTPS `chat.whatsapp.com` diterima.
+
+Upgrade lokal: backup dengan `scripts/Backup-LocalDatabase.ps1`, lalu jalankan `scripts/init-local-db.ps1 -NormalizeOnly`; runner menyertakan migrasi idempoten `20261107_spmb_wave_groups.sql`. Tidak ada tautan grup yang diisi otomatis.
+
+SPMB memakai satu sakelar global `spmb_settings.Enabled`. Gelombang otomatis ditentukan oleh rentang tanggal lengkap (inklusif WIB); kedua tanggal kosong berarti belum dijadwalkan. Flag per gelombang tidak diterima/dipakai oleh API dan tidak tampil di admin. Kolom legacy `spmb_waves.Enabled` tetap dipertahankan untuk kompatibilitas constraint database dan diturunkan dari kelengkapan tanggal saat menyimpan.

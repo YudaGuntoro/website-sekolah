@@ -1,4 +1,4 @@
-export type Wave = { number: number; startDate: string | null; endDate: string | null; enabled: boolean; isOpen: boolean };
+export type Wave = { number: number; startDate: string | null; endDate: string | null; isOpen: boolean; whatsappGroupUrl: string | null };
 export type Settings = { academicYear: string; enabled: boolean; version: number; today: string; timeZone: string; activeWave: number | null; waves: Wave[] };
 export type Applicant = { id: number; registrationNumber: string; academicYear: string; waveNumber: number; studentName: string; previousSchool: string; targetGrade: string; status: string; submittedAt: string };
 export type ApplicantDetail = Applicant & { nisn: string | null; birthPlace: string; birthDate: string; gender: string; guardianName: string; guardianPhone: string; guardianEmail: string | null; address: string; waveStartDate: string; waveEndDate: string; version: number };

@@ -1,4 +1,5 @@
 'use client'
+import SpmbRegistrationReceipt from './SpmbRegistrationReceipt'
 import type { FormEvent } from 'react'
 import type { Schedule, Receipt } from './SpmbRegistrationForm'
 import { registrationControlClass, RegistrationDatePicker, RegistrationSelect } from './RegistrationControls'
@@ -17,11 +18,7 @@ const date = (value: string) => new Intl.DateTimeFormat('id-ID', { day: 'numeric
 
 export default function SpmbRegistrationLayout({ schedule, scheduleError, error, submitting, receipt, grade, onGradeChange, onSubmit, onReload, onReset }: Props) {
   const open = !!schedule?.enabled && !!schedule.activeWave
-  if (receipt) return <section role='status' className='mx-auto max-w-3xl rounded-md border border-slate-200 border-t-[3px] border-t-emerald-600 bg-white p-6 sm:p-9'>
-    <p className='text-sm font-semibold text-emerald-700'>Pendaftaran berhasil</p><h2 className='mt-2 text-2xl font-semibold text-school-navy'>Data pendaftaran telah diterima</h2><p className='mt-3 text-sm leading-7 text-slate-600'>Simpan nomor pendaftaran berikut untuk konfirmasi dengan pihak sekolah.</p>
-    <dl className='my-6 divide-y divide-slate-200 border-y border-slate-200'><div className='py-4'><dt className='text-sm text-slate-500'>Nomor pendaftaran</dt><dd className='mt-2 break-all font-mono text-2xl font-semibold text-school-navy'>{receipt.registrationNumber}</dd></div><div className='flex flex-wrap gap-x-10 gap-y-4 py-4'><div><dt className='text-xs text-slate-500'>Tahun ajaran</dt><dd className='mt-1 text-sm font-medium text-school-navy'>{receipt.academicYear}</dd></div><div><dt className='text-xs text-slate-500'>Gelombang</dt><dd className='mt-1 text-sm font-medium text-school-navy'>{receipt.waveNumber}</dd></div></div></dl>
-    <p className='text-sm leading-7 text-slate-600'>Sekolah akan menghubungi orang tua atau wali untuk tahapan berikutnya. Pendaftaran belum merupakan konfirmasi penerimaan siswa.</p><div className='mt-7 flex flex-wrap gap-3'><a href='/spmb' className='rounded-md bg-school-blue px-5 py-3 text-sm font-semibold text-white'>Informasi SPMB</a><button type='button' className='rounded-md border border-slate-300 px-5 py-3 text-sm font-medium text-school-navy hover:bg-slate-50' onClick={onReset}>Daftarkan calon siswa lain</button></div>
-  </section>
+  if (receipt) return <SpmbRegistrationReceipt receipt={receipt} onReset={onReset} />
   return <div className='space-y-7 sm:space-y-9'>
     <section aria-label='Jadwal gelombang pendaftaran' className='overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-[0_1px_3px_rgba(16,45,78,.04)]'>
       <div className='flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-[#fbfcfe] px-5 py-5 sm:px-8'>
@@ -32,7 +29,7 @@ export default function SpmbRegistrationLayout({ schedule, scheduleError, error,
         {scheduleError && <div role='alert' className='rounded-xl bg-rose-50 p-4 text-sm leading-6 text-rose-700'>{scheduleError} <button type='button' className='font-semibold underline' onClick={onReload}>Coba lagi</button></div>}
         {schedule && <><div className='grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-4'>{schedule.waves.map(wave => {
           const active = open && wave.isOpen
-          const state = active ? 'Sedang dibuka' : !wave.startDate || !wave.endDate ? 'Belum dijadwalkan' : schedule.today > wave.endDate ? 'Selesai' : !wave.enabled || !schedule.enabled ? 'Belum dibuka' : schedule.today < wave.startDate ? 'Akan dibuka' : 'Ditutup'
+          const state = active ? 'Sedang dibuka' : !wave.startDate || !wave.endDate ? 'Belum dijadwalkan' : schedule.today > wave.endDate ? 'Selesai' : !schedule.enabled ? 'Belum dibuka' : schedule.today < wave.startDate ? 'Akan dibuka' : 'Ditutup'
           return <div key={wave.number} className={`border-l-2 px-4 py-1.5 ${active ? 'border-school-blue bg-sky-50/60' : 'border-slate-200'}`}><h3 className='text-[15px] font-semibold text-school-navy'>Gelombang {wave.number}</h3><p className='mt-2 min-h-10 text-[13px] leading-6 text-slate-500'>{wave.startDate ? date(wave.startDate) : 'Tanggal belum ditentukan'}{wave.endDate && <><br />s.d. {date(wave.endDate)}</>}</p><p className={`mt-2 text-xs ${active ? 'font-semibold text-school-blue' : 'text-slate-500'}`}>{state}</p></div>
         })}</div><p className='mt-6 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500'><span>Jadwal menggunakan WIB, hingga pukul 23.59 pada tanggal selesai. Gelombang pendaftaran mengikuti jadwal yang sedang dibuka.</span></p></>}
         {schedule && !open && <div className='mt-4 rounded-r-md border-l-2 border-amber-300 bg-[#fffcf3] px-4 py-3 text-[13px] leading-6 text-amber-900'><p>Pendaftaran belum dibuka atau berada di luar jadwal aktif. Anda tetap dapat melihat formulir dan menyiapkan data terlebih dahulu.</p></div>}

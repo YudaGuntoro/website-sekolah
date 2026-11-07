@@ -1,4 +1,5 @@
 "use client";
+import DatePicker from "@/components/form/date-picker";
 import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { apiGet, apiPut } from "@/lib/api";
@@ -6,7 +7,7 @@ import { useToast } from "@/context/ToastContext";
 import { websiteUrl } from "@/cms/collections";
 import type { Config, Information } from "./types";
 
-function Panel({ title, children }: { title: string; children: ReactNode }) { return <section className="cms-panel overflow-hidden"><div className="cms-section-heading bg-[#1b5394] text-white"><h2>{title}</h2></div><div className="cms-form-body">{children}</div></section>; }
+function Panel({ title, children }: { title: string; children: ReactNode }) { return <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>{title}</h2></div><div className="cms-form-body">{children}</div></section>; }
 export default function Settings() {
   const [data, setData] = useState<Information | null>(null); const [error, setError] = useState(""); const [saving, setSaving] = useState(false); const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -16,7 +17,7 @@ export default function Settings() {
   async function save(e: FormEvent) { e.preventDefault(); if (!data || saving) return; setSaving(true); setError(""); try { setData(await apiPut<Information>("/api/lmp/settings", { config: data.config, version: data.version })); toast.success({ message: "Informasi LMP berhasil diperbarui di website." }); } catch (e) { setError(e instanceof Error ? e.message : "Gagal menyimpan."); } finally { setSaving(false); } }
   const c = data?.config;
   const text = (key: keyof Config, name: string, max = 1000, rows = 3) => <label>{name}<textarea aria-label={name} rows={rows} maxLength={max} required={["introduction", "testDetails", "afterSubmit"].includes(key)} value={String(c?.[key] ?? "")} onChange={e => change(key, e.target.value)} /></label>;
-  const date = (key: "registrationStart" | "registrationEnd" | "competitionDate" | "announcementDate", name: string) => <label>{name}<input type="date" value={c?.[key] || ""} required={c?.enabled && (key === "registrationStart" || key === "registrationEnd")} onChange={e => change(key, e.target.value || null)} /></label>;
+  const date = (key: "registrationStart" | "registrationEnd" | "competitionDate" | "announcementDate", name: string) => <DatePicker id={`lmp-${key}`} label={name} placeholder="dd/mm/yyyy" altInput altFormat="d/m/Y" value={c?.[key] || ""} required={c?.enabled && (key === "registrationStart" || key === "registrationEnd")} disabled={saving} minDate={key === "registrationEnd" ? c?.registrationStart || undefined : undefined} onValueChange={value => change(key, value || null)} />;
   return <div className="cms-page spmb-information-editor"><div className="cms-page-heading"><div><p className="cms-eyebrow">LOMBA MATA PELAJARAN</p><h1>Informasi & Pengaturan LMP</h1><p>Atur jadwal, persyaratan berkas, biaya, dan informasi lomba kelas 5–6 SD.</p></div><a className="cms-button-secondary" href={`${websiteUrl}/lmp`} target="_blank" rel="noopener noreferrer">Lihat website ↗</a></div>
     {error && <div role="alert" className="cms-error">{error} <button type="button" disabled={saving} onClick={() => void load()}>Muat ulang</button></div>}
     {loading ? <FormSkeleton label="Memuat pengaturan LMP" /> : c && <form onSubmit={save}><fieldset disabled={saving} className="min-w-0 space-y-6">

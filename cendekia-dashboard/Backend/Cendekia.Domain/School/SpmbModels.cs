@@ -23,6 +23,13 @@ public class AcademicYear
     [MaxLength(9)] public string Code { get; set; } = "";
 }
 
+public class SpmbWaveGroup
+{
+    [MaxLength(9)] public string AcademicYear { get; set; } = "";
+    public int WaveNumber { get; set; }
+    [MaxLength(300)] public string WhatsappGroupUrl { get; set; } = "";
+}
+
 // An immutable historical schedule. Revision is scoped to year and wave.
 public class SpmbWavePeriod
 {
@@ -64,7 +71,7 @@ public class SpmbWaveRequest
     [Range(1, 4)] public int Number { get; set; }
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
-    public bool Enabled { get; set; }
+    [MaxLength(300)] public string? WhatsappGroupUrl { get; set; }
 }
 
 public class SpmbSettingsRequest

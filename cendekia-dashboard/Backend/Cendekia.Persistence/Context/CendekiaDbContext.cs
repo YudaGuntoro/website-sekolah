@@ -117,6 +117,13 @@ public class CendekiaDbContext : DbContext
             entity.HasKey(x => x.Number);
             entity.Property(x => x.Number).ValueGeneratedNever();
         });
+        modelBuilder.Entity<SpmbWaveGroup>(entity =>
+        {
+            entity.ToTable("spmb_wave_groups");
+            entity.HasKey(x => new { x.AcademicYear, x.WaveNumber });
+            entity.HasOne<AcademicYear>().WithMany().HasForeignKey(x => x.AcademicYear).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<SpmbWave>().WithMany().HasForeignKey(x => x.WaveNumber).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<SpmbApplication>(entity =>
         {
             entity.ToTable("spmb_applications");

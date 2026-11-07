@@ -29,7 +29,7 @@ try {
   assert.equal((await api('/lmp/settings', 'GET', undefined, '')).status, 401);
   assert.equal((await api('/lmp/applications', 'GET', undefined, '')).status, 401);
   const today = current.today;
-  const enabled = { ...original.config, enabled: true, registrationStart: today, registrationEnd: today };
+  const enabled = { ...original.config, enabled: true, registrationStart: today, registrationEnd: today, whatsappGroupUrl: 'https://chat.whatsapp.com/LmpTestGroup' };
   for (const fields of [{ enabled: true, registrationStart: null }, { registrationStart: '2027-01-22', registrationEnd: '2027-01-21' }, { feeAmount: -1 }, { whatsappGroupUrl: 'javascript:alert(1)' }, { whatsappGroupUrl: 'https://example.com/group' }])
     assert.equal((await api('/lmp/settings', 'PUT', { config: { ...enabled, ...fields }, version: current.version })).status, 400);
   await save(enabled);
@@ -44,6 +44,21 @@ try {
   const receipts = await Promise.all([1,2].map(() => api('/lmp/applications','POST',form({ submissionKey: key }, pdf), '')));
   receipts.forEach(r => assert.equal(r.status,200,JSON.stringify(r.payload)));
   assert.equal(receipts[0].data.registrationNumber, receipts[1].data.registrationNumber);
+  for (const receipt of receipts) {
+    assert.equal(receipt.data.studentName, tag);
+    assert.equal(receipt.data.previousSchool, 'SD Pengujian');
+    assert.equal(receipt.data.grade, 5);
+    assert.equal(receipt.data.subjects, 'Matematika');
+    assert.equal(receipt.data.contactName, 'Wali Pengujian');
+    assert.equal(receipt.data.contactPhone, '081234567890');
+    assert.equal(receipt.data.hasDocument, true);
+    assert.equal(receipt.data.paymentStatus, 'Belum bayar');
+    assert.ok(receipt.data.submittedAt);
+    assert.equal(receipt.data.whatsappGroupUrl, enabled.whatsappGroupUrl);
+    assert.equal(receipt.data.waveNumber, undefined);
+  }
+  const retried = await api('/lmp/applications','POST',form({submissionKey:key,studentName:tag+'-changed'},pdf),'');
+  assert.equal(retried.data.studentName, tag, 'Receipt must reflect the stored participant, including retries');
   const entries = (await api('/lmp/applications?search=' + tag)).data;
   assert.equal(entries.total, 1);
   const id = entries.items[0].id;
@@ -71,7 +86,8 @@ try {
   if (process.env.LMP_BROWSER_CHECK === '1') {
     await save({ ...enabled, documentRequired:true });
     const {chromium} = createRequire(import.meta.url)('../.verify-cms/node_modules/playwright'); browser = await chromium.launch({channel:'msedge',headless:true});
-    const page = await browser.newPage({viewport:{width:1440,height:1000}});
+    const context = await browser.newContext({viewport:{width:1440,height:1000}});
+    const page = await context.newPage();
     await page.goto('http://localhost:3000/lmp',{waitUntil:'domcontentloaded'}); await page.getByRole('heading',{name:'Lomba Mata Pelajaran.'}).waitFor();
     assert((await page.locator('main').innerText()).includes('35.000'));
     await page.screenshot({path:'.verify-cms/lmp-desktop.png',fullPage:true,animations:'disabled'});
@@ -84,7 +100,18 @@ try {
     await page.locator('[name=document]').setInputFiles({name:'berkas.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=consent]').check();
     await page.screenshot({path:'.verify-cms/lmp-form-mobile.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Kirim pendaftaran LMP',exact:true}).click(); await page.getByRole('heading',{name:'Data peserta telah diterima'}).waitFor();
-    // Get the server-generated test key for narrowly scoped cleanup of the browser record.
+    assert.ok((await page.getByRole('status').innerText()).includes(tag+'-browser'));
+    await page.getByRole('heading',{name:'Ringkasan data peserta',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Jangan lupa screenshot halaman ini',exact:true}).waitFor();
+    assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Bahasa Inggris'));
+    assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('PDF berhasil diunggah'));
+    assert.equal(await page.getByRole('link',{name:'Gabung grup WhatsApp LMP',exact:true}).getAttribute('href'),enabled.whatsappGroupUrl);
+    const receipt = page.locator('section[aria-labelledby="lmp-receipt-title"]');
+    assert.ok(!(await receipt.innerText()).includes('Gelombang'));
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await page.screenshot({path:'.verify-cms/lmp-receipt-mobile.png',fullPage:true,animations:'disabled'});
+    await page.setViewportSize({width:1440,height:1000});
+    await page.screenshot({path:'.verify-cms/lmp-receipt-desktop.png',fullPage:true,animations:'disabled'});
     await browserSignIn(page);
     await page.setViewportSize({width:1600,height:1000});
     await page.goto('http://localhost:3002/lmp/pendaftar',{waitUntil:'domcontentloaded'});

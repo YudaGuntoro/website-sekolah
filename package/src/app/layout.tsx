@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import './globals.css'
 import Header from '@/app/components/Layout/Header'
 import Footer from '@/app/components/Layout/Footer'
@@ -27,7 +28,8 @@ export default function RootLayout({
     <html lang='id' data-scroll-behavior='smooth'>
       <body className={font.className}>
         <Header />
-        {children}
+        {/* Anchor async route hydration separately from the shared layout siblings. */}
+        <Suspense fallback={null}>{children}</Suspense>
         <Footer />
         <ContactBubble />
         <ScrollToTop />

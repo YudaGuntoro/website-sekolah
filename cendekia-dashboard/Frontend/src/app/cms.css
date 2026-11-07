@@ -44,7 +44,7 @@ html.dark { color-scheme: dark; }
 .cms-metric > strong { display: block; font-size: 36px; font-weight: 600; letter-spacing: -.05em; margin: 8px 0 3px; }
 .cms-metric > small { font-size: 13px; color: #8896a7; }
 .cms-dashboard-grid { display: grid; grid-template-columns: 1.65fr 1fr; gap: 22px; align-items: start; }
-.cms-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 23px; border-bottom: 1px solid var(--cms-line); }
+.cms-section-heading { background: #d6e6fb; color: var(--cms-ink); border-radius: 11px 11px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 4px 23px; border-bottom: 1px solid var(--cms-line); }
 .cms-section-heading h2 { font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
 .cms-section-heading p { font-size: 13px; color: var(--cms-muted); margin-top: 5px; }
 .cms-badge { padding: 5px 9px; border-radius: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; display: inline-flex; }
@@ -200,8 +200,10 @@ html.dark { color-scheme: dark; }
 .cms-form-body input, .cms-form-body textarea, .cms-form-body select { font-size: 16px; }
 .cms-toolbar-start, .cms-toolbar-end { flex-wrap: wrap; }
 .cms-toolbar { flex-wrap: wrap; }
-.cms-identity-settings .cms-section-heading { padding: 12px 23px; }
+.cms-identity-settings .cms-section-heading { padding: 4px 23px; }
 .cms-identity-settings .cms-section-heading p { margin-top: 3px; }
-.cms-homepage-images .cms-section-heading { padding: 12px 23px; }
+.cms-homepage-images .cms-section-heading { padding: 4px 23px; }
 .cms-image-compression-note { color: #c53030; font-size: 13px; font-weight: 500; line-height: 1.6; }
 .dark .cms-image-compression-note { color: #fca5a5; }
+
+.dark .cms-section-heading { background: #203b58; color: #d8eaff; border-color: #324d68; }

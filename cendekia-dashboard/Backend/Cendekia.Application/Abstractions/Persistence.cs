@@ -25,6 +25,7 @@ public interface IApplicationUnitOfWork
 }
 public interface ISpmbRepository
 {
+    IEntityRepository<SpmbWaveGroup> Groups { get; }
     Task<SpmbSettings> GetSettingsAsync(bool forUpdate = false);
     Task<List<SpmbWave>> GetWavesAsync(bool tracking = false);
     IEntityRepository<SpmbApplication> Applications { get; }

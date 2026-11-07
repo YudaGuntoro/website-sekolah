@@ -40,7 +40,7 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         await using var transaction = await unitOfWork.BeginTransactionAsync();
         var settings = await repository.GetSettingsAsync(forUpdate: true); var c = settings.Config;
         var prior = await repository.Applications.FirstAsync(x => x.SubmissionKey == request.SubmissionKey);
-        if (prior is not null) return Receipt(prior, c);
+        if (prior is not null) return await Receipt(prior, c);
         if (settings.Version != request.SettingsVersion) return Conflict("Informasi lomba diperbarui. Periksa kembali informasi terbaru lalu kirim ulang.");
         if (!Open(c)) return Conflict("Pendaftaran LMP sedang ditutup. Silakan periksa jadwal atau hubungi panitia.");
         if (c.DocumentRequired && pdf is null) return ApiBadRequest("Berkas PDF pendaftaran wajib diunggah.");
@@ -56,9 +56,18 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         repository.Applications.Add(entry); await unitOfWork.SaveChangesAsync();
         entry.RegistrationNumber = $"LMP-{(entry.Event.CompetitionDate?.Year ?? Today().Year)}-{entry.Id:D6}";
         await unitOfWork.SaveChangesAsync(); await transaction.CommitAsync();
-        return Receipt(entry, c);
+        return await Receipt(entry, c);
     }
-    private static ServiceResult Receipt(LmpApplication entry, LmpConfig config) => ApiOk(new { entry.RegistrationNumber, EventTitle = entry.Event.Title, entry.Event.CompetitionDate, entry.Event.FeeAmount, config.AfterSubmit, config.WhatsappGroupUrl }, "Pendaftaran berhasil diterima.");
+    private async Task<ServiceResult> Receipt(LmpApplication entry, LmpConfig config)
+    {
+        var subject = (await repository.Applications.SelectAsync(x => x.Subject.Name, x => x.Id == entry.Id)).Single();
+        return ApiOk(new {
+            entry.RegistrationNumber, EventTitle = entry.Event.Title, entry.Event.CompetitionDate, entry.Event.FeeAmount,
+            entry.StudentName, entry.PreviousSchool, entry.Grade, subjects = subject, entry.ContactName, entry.ContactPhone,
+            entry.SubmittedAt, entry.PaymentStatus, hasDocument = await repository.HasDocumentAsync(entry.Id),
+            config.AfterSubmit, config.WhatsappGroupUrl
+        }, "Pendaftaran berhasil diterima.");
+    }
     public async Task<ServiceResult> List(string? search, string? subject, int? grade, string? status, string? payment, int page = 1, int limit = 10)
     {
         page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);

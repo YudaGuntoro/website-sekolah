@@ -44,7 +44,7 @@ export default function HomepageImageSettings() {
       {!canEdit && <p className="mb-5 text-sm text-slate-500">Akun ini hanya dapat melihat pengaturan gambar.</p>}
       <fieldset disabled={saving || !canEdit} className="grid min-w-0 gap-5 disabled:opacity-80 xl:grid-cols-3">
         {slots.map(slot => <section key={slot.key} className="cms-panel min-w-0 overflow-hidden">
-          <div className="cms-section-heading bg-[#1b5394] text-white"><h2>{slot.title}</h2></div>
+          <div className="cms-section-heading"><h2>{slot.title}</h2></div>
           <div className="cms-form-body">
             <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
               <img key={form[slot.key]} src={previewSource(form[slot.key], slot.fallback)} alt={`Pratinjau ${slot.title}`} className="h-full w-full object-contain" onError={e => { const fallback = `${websiteUrl}${slot.fallback}`; if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback; }} />
