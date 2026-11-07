@@ -1,4 +1,5 @@
 "use client";
+import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { apiGet, apiPut } from "@/lib/api";
 import { getStoredUser } from "@/lib/auth";
@@ -39,7 +40,7 @@ export default function HomepageImageSettings() {
   return <div className="cms-page cms-homepage-images">
     <div className="cms-page-heading"><div><p className="cms-eyebrow">PENGATURAN WEBSITE</p><h1>Gambar Beranda</h1><p>Ganti ilustrasi beranda melalui URL gambar. Kosongkan untuk memakai gambar bawaan.</p></div><a className="cms-button-secondary" href={websiteUrl} target="_blank" rel="noopener noreferrer">Lihat website &#8599;</a></div>
     {error && <div role="alert" className="cms-error"><p>{error}</p><button type="button" disabled={saving} onClick={() => void load()}>Muat ulang pengaturan</button></div>}
-    {loading ? <p className="cms-empty" role="status">Memuat gambar beranda...</p> : form && <form onSubmit={save}>
+    {loading ? <FormSkeleton panels={3} fields={1} preview label="Memuat gambar beranda" /> : form && <form onSubmit={save}>
       {!canEdit && <p className="mb-5 text-sm text-slate-500">Akun ini hanya dapat melihat pengaturan gambar.</p>}
       <fieldset disabled={saving || !canEdit} className="grid min-w-0 gap-5 disabled:opacity-80 xl:grid-cols-3">
         {slots.map(slot => <section key={slot.key} className="cms-panel min-w-0 overflow-hidden">

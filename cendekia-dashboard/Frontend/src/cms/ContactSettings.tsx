@@ -1,4 +1,5 @@
 "use client";
+import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { apiGet, apiPut } from "@/lib/api";
 import { getStoredUser } from "@/lib/auth";
@@ -33,7 +34,7 @@ export default function ContactSettings() {
   return <div className="cms-page">
     <div className="cms-page-heading"><div><p className="cms-eyebrow">PENGATURAN WEBSITE</p><h1>Kontak & Media Sosial</h1><p>Atur informasi kontak dan tautan akun resmi sekolah.</p></div><a className="cms-button-secondary" href={websiteUrl} target="_blank" rel="noopener noreferrer">Lihat website &#8599;</a></div>
     {error && <div role="alert" className="cms-error"><p>{error}</p><button type="button" onClick={() => void load()} disabled={saving}>Muat ulang pengaturan</button></div>}
-    {loading ? <p className="cms-empty" role="status">Memuat pengaturan...</p> : form && <form onSubmit={save}>
+    {loading ? <FormSkeleton /> : form && <form onSubmit={save}>
       {!canEdit && <p className="mb-5 text-sm text-slate-500">Pengaturan hanya dapat diubah oleh Administrator atau Supervisor.</p>}
       <fieldset disabled={saving || !canEdit} className="grid min-w-0 gap-6 lg:grid-cols-2 disabled:opacity-80">
         <section className="cms-panel overflow-hidden"><div className="cms-section-heading bg-[#1b5394] text-white"><div><h2>Informasi Kontak</h2><p className="!text-blue-100">Nomor WhatsApp, email, dan alamat sekolah.</p></div></div>

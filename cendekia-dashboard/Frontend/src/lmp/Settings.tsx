@@ -1,4 +1,5 @@
 "use client";
+import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { apiGet, apiPut } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
@@ -18,7 +19,7 @@ export default function Settings() {
   const date = (key: "registrationStart" | "registrationEnd" | "competitionDate" | "announcementDate", name: string) => <label>{name}<input type="date" value={c?.[key] || ""} required={c?.enabled && (key === "registrationStart" || key === "registrationEnd")} onChange={e => change(key, e.target.value || null)} /></label>;
   return <div className="cms-page spmb-information-editor"><div className="cms-page-heading"><div><p className="cms-eyebrow">LOMBA MATA PELAJARAN</p><h1>Informasi & Pengaturan LMP</h1><p>Atur jadwal, persyaratan berkas, biaya, dan informasi lomba kelas 5–6 SD.</p></div><a className="cms-button-secondary" href={`${websiteUrl}/lmp`} target="_blank" rel="noopener noreferrer">Lihat website ↗</a></div>
     {error && <div role="alert" className="cms-error">{error} <button type="button" disabled={saving} onClick={() => void load()}>Muat ulang</button></div>}
-    {loading ? <p className="cms-empty">Memuat pengaturan LMP…</p> : c && <form onSubmit={save}><fieldset disabled={saving} className="min-w-0 space-y-6">
+    {loading ? <FormSkeleton label="Memuat pengaturan LMP" /> : c && <form onSubmit={save}><fieldset disabled={saving} className="min-w-0 space-y-6">
       <Panel title="Informasi Lomba"><label>Judul lomba<input value={c.title} maxLength={150} required onChange={e => change("title", e.target.value)} /></label>{text("introduction", "Deskripsi pembuka")}
         <p className="text-sm text-slate-500">Peserta kelas 5 atau 6 SD. Setiap peserta memilih satu mata pelajaran: Matematika, Bahasa Indonesia, atau Bahasa Inggris.</p></Panel>
       <Panel title="Jadwal Pendaftaran"><label className="!flex !items-center !gap-3"><input type="checkbox" className="!h-4 !w-4" checked={c.enabled} onChange={e => change("enabled", e.target.checked)} />Aktifkan pendaftaran LMP</label><div className="grid gap-5 sm:grid-cols-2">{date("registrationStart", "Tanggal mulai pendaftaran")}{date("registrationEnd", "Tanggal selesai pendaftaran")}</div><p className="text-sm text-slate-500">Menggunakan WIB. Pendaftaran otomatis ditutup di luar rentang tanggal, hingga pukul 23.59 pada tanggal selesai. Jadwal ini terpisah dari gelombang SPMB.</p></Panel>

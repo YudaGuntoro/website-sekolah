@@ -1,4 +1,5 @@
 "use client";
+import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiGet, apiPut } from "@/lib/api";
@@ -52,7 +53,7 @@ export default function SpmbInformationEditor() {
   return <div className="cms-page spmb-information-editor">
     <div className="cms-page-heading"><div><p className="cms-eyebrow">PENERIMAAN MURID BARU</p><h1>Informasi SPMB</h1><p>Edit isi halaman SPMB dengan tampilan alur dan persyaratan yang tetap konsisten.</p></div><a className="cms-button-secondary" href={`${websiteUrl}/spmb`} target="_blank" rel="noopener noreferrer">Lihat website &#8599;</a></div>
     {error && <div role="alert" className="cms-error"><p>{error}</p><button type="button" disabled={saving} onClick={() => void load()}>Muat ulang informasi</button></div>}
-    {loading ? <p className="cms-empty" role="status">Memuat informasi SPMB...</p> : config && data && <form onSubmit={save}>
+    {loading ? <FormSkeleton label="Memuat informasi SPMB" /> : config && data && <form onSubmit={save}>
       {!canEdit && <p className="mb-5 text-sm text-slate-500">Akun ini hanya dapat melihat informasi SPMB.</p>}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-[#1b5394] dark:border-slate-700 dark:bg-slate-800 dark:text-blue-100"><p>Tahun ajaran <strong>{year}</strong> otomatis mengikuti Pengaturan Gelombang.</p><Link href="/spmb/gelombang" className="font-semibold underline">Pengaturan gelombang</Link></div>
       <fieldset disabled={saving || !canEdit} className="min-w-0 space-y-6 disabled:opacity-80">

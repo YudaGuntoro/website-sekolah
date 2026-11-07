@@ -1,4 +1,5 @@
 "use client";
+import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { apiGet, apiPut } from "@/lib/api";
 import { getStoredUser } from "@/lib/auth";
@@ -40,7 +41,7 @@ export default function SchoolIdentitySettings() {
   return <div className="cms-page cms-identity-settings">
     <div className="cms-page-heading"><div><p className="cms-eyebrow">PROFIL SEKOLAH</p><h1>Visi, Misi & Motto</h1><p>Kelola arah, tujuan, dan motto sekolah yang tampil di website utama.</p></div><a className="cms-button-secondary" href={`${websiteUrl}/#tentang`} target="_blank" rel="noopener noreferrer">Lihat website &#8599;</a></div>
     {error && <div role="alert" className="cms-error"><p>{error}</p><button type="button" disabled={saving} onClick={() => void load()}>Muat ulang pengaturan</button></div>}
-    {loading ? <p className="cms-empty" role="status">Memuat visi, misi, dan motto...</p> : form && <form onSubmit={save}>
+    {loading ? <FormSkeleton label="Memuat visi, misi, dan motto" /> : form && <form onSubmit={save}>
       {!canEdit && <p className="mb-5 text-sm text-slate-500">Akun ini hanya dapat melihat profil sekolah.</p>}
       <fieldset disabled={saving || !canEdit} className="min-w-0 space-y-6 disabled:opacity-80">
         <div className="grid min-w-0 gap-6 lg:grid-cols-2">
