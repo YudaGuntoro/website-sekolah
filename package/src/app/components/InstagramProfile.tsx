@@ -38,16 +38,23 @@ export default function InstagramProfile() {
 
   return <section id='instagram' aria-labelledby='instagram-heading' className='bg-[#f7f9fc] py-8 sm:py-16'>
     <div className='mx-auto max-w-7xl px-5 sm:px-8 lg:px-10'>
-      <div className='mx-auto max-w-2xl text-center'>
-        <h2 id='instagram-heading' className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Feed <span className='text-sky-600'>Instagram</span></h2>
-        <a href={profileUrl} target='_blank' rel='noopener noreferrer' className='mt-4 inline-flex max-w-full items-center justify-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-school-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-school-blue motion-reduce:transform-none'>
+      <div className='relative isolate grid items-center gap-8 overflow-hidden rounded-[28px] border border-sky-100 bg-gradient-to-br from-white via-[#f0f7ff] to-white p-5 sm:gap-10 sm:rounded-[36px] sm:p-8 lg:grid-cols-[.85fr_1.15fr] lg:gap-12 lg:p-10'>
+      <div aria-hidden='true' className='pointer-events-none absolute -left-36 -top-44 -z-10 h-[30rem] w-[30rem] rounded-full border-[60px] border-sky-100/40' />
+      <div className='mx-auto w-full max-w-[540px] text-center lg:mx-0 lg:max-w-sm lg:py-10 lg:text-left'>
+        <span className='inline-flex items-center gap-2 rounded-full border border-sky-200/70 bg-white/80 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-school-blue'><span className='h-1.5 w-1.5 rounded-full bg-school-blue' />Cerita dari sekolah</span>
+        <h2 id='instagram-heading' className='mt-5 text-3xl font-black leading-[1.05] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Feed <span className='text-school-blue lg:block'>Instagram</span></h2>
+        <a href={profileUrl} target='_blank' rel='noopener noreferrer' className='mt-6 inline-flex max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-school-blue px-4 py-3 text-xs font-bold text-white sm:px-5 sm:text-sm shadow-sm transition hover:-translate-y-0.5 hover:bg-school-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-school-blue motion-reduce:transform-none'>
           <svg viewBox='0 0 24 24' className='h-[18px] w-[18px] shrink-0 fill-none stroke-current' strokeWidth='1.7' aria-hidden='true'><rect x='3' y='3' width='18' height='18' rx='5' /><circle cx='12' cy='12' r='4' /><circle cx='17.5' cy='6.5' r='.8' fill='currentColor' stroke='none' /></svg>
           Follow @smpitcendekia <span aria-hidden='true'>↗</span>
         </a>
-        <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:text-base sm:leading-7'>Cerita, kegiatan, dan momen seru keluarga Cendekia di Instagram.</p>
+        <p className='mt-6 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8'>Prestasi yang membanggakan, keseruan di kelas, dan momen kecil yang berarti. Ikuti keseharian keluarga Cendekia lebih dekat.</p>
+        <div className='mt-7 hidden items-center gap-3 border-t border-sky-200/70 pt-6 lg:flex'>
+          <span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-school-blue shadow-sm'><svg viewBox='0 0 24 24' className='h-5 w-5 fill-none stroke-current' strokeWidth='1.6' aria-hidden='true'><path d='m12 3 9 5-9 5-9-5 9-5ZM5 10v7l7 4 7-4v-7M12 13v8' /></svg></span>
+          <p className='text-xs leading-5 text-slate-500'><span className='block font-bold text-school-navy'>SMPIT Cendekia Purwakarta</span>Tumbuh, belajar, dan berkarya bersama.</p>
+        </div>
       </div>
-      <div className='mx-auto mt-8 max-w-[540px] sm:mt-10'>
-        <div className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${status === 'loading' ? 'min-h-[420px]' : ''}`} aria-busy={status === 'loading'}>
+      <div className='mx-auto w-full min-w-0 max-w-[540px] lg:justify-self-end'>
+        <div className={`relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_50px_-24px_rgba(16,45,78,.3)] ${status === 'loading' ? 'min-h-[420px]' : ''}`} aria-busy={status === 'loading'}>
           <div ref={container} className='[&_iframe]:!m-0 [&_iframe]:!w-full [&_iframe]:!min-w-0 [&_iframe]:!max-w-full [&_iframe]:!border-0 [&_iframe]:!shadow-none'>
             <blockquote className='instagram-media' data-instgrm-permalink={profileUrl} data-instgrm-version='14' style={{ margin: 0, width: '100%', minWidth: 0 }}>
               <a href={profileUrl} target='_blank' rel='noopener noreferrer' className='block px-5 py-12 text-center text-sm font-semibold text-school-blue'>Lihat profil @smpitcendekia di Instagram</a>
@@ -62,7 +69,8 @@ export default function InstagramProfile() {
           </div>}
           {status === 'unavailable' && <p role='status' className='px-5 pb-5 text-center text-sm leading-6 text-slate-500'>Profil belum dapat dimuat. Buka Instagram melalui tombol di bawah.</p>}
         </div>
-        <div className='mt-7 text-center'><a href={profileUrl} target='_blank' rel='noopener noreferrer' className='inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-school-blue transition hover:border-school-blue hover:bg-sky-50'>Lihat lebih banyak <span aria-hidden='true'>↗</span></a></div>
+        <div className='mt-4 text-center'><a href={profileUrl} target='_blank' rel='noopener noreferrer' className='inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-school-blue transition hover:border-school-blue hover:bg-sky-50'>Lihat lebih banyak <span aria-hidden='true'>↗</span></a></div>
+      </div>
       </div>
     </div>
     <Script id='instagram-profile-embed' src='https://www.instagram.com/embed.js' strategy='lazyOnload' onReady={processProfile} onError={() => setStatus('unavailable')} />
