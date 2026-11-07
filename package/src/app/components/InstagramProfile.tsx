@@ -41,17 +41,12 @@ export default function InstagramProfile() {
       <div className='relative isolate grid items-center gap-8 overflow-hidden rounded-[28px] border border-sky-100 bg-gradient-to-br from-white via-[#f0f7ff] to-white p-5 sm:gap-10 sm:rounded-[36px] sm:p-8 lg:grid-cols-[.85fr_1.15fr] lg:gap-12 lg:p-10'>
       <div aria-hidden='true' className='pointer-events-none absolute -left-36 -top-44 -z-10 h-[30rem] w-[30rem] rounded-full border-[60px] border-sky-100/40' />
       <div className='mx-auto w-full max-w-[540px] text-center lg:mx-0 lg:max-w-sm lg:py-10 lg:text-left'>
-        <span className='inline-flex items-center gap-2 rounded-full border border-sky-200/70 bg-white/80 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-school-blue'><span className='h-1.5 w-1.5 rounded-full bg-school-blue' />Cerita dari sekolah</span>
-        <h2 id='instagram-heading' className='mt-5 text-3xl font-black leading-[1.05] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Feed <span className='text-school-blue lg:block'>Instagram</span></h2>
+        <h2 id='instagram-heading' className='text-3xl font-black leading-[1.05] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Feed <span className='text-school-blue lg:block'>Instagram</span></h2>
         <a href={profileUrl} target='_blank' rel='noopener noreferrer' className='mt-6 inline-flex max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-school-blue px-4 py-3 text-xs font-bold text-white sm:px-5 sm:text-sm shadow-sm transition hover:-translate-y-0.5 hover:bg-school-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-school-blue motion-reduce:transform-none'>
           <svg viewBox='0 0 24 24' className='h-[18px] w-[18px] shrink-0 fill-none stroke-current' strokeWidth='1.7' aria-hidden='true'><rect x='3' y='3' width='18' height='18' rx='5' /><circle cx='12' cy='12' r='4' /><circle cx='17.5' cy='6.5' r='.8' fill='currentColor' stroke='none' /></svg>
           Follow @smpitcendekia <span aria-hidden='true'>↗</span>
         </a>
         <p className='mt-6 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8'>Prestasi yang membanggakan, keseruan di kelas, dan momen kecil yang berarti. Ikuti keseharian keluarga Cendekia lebih dekat.</p>
-        <div className='mt-7 hidden items-center gap-3 border-t border-sky-200/70 pt-6 lg:flex'>
-          <span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-school-blue shadow-sm'><svg viewBox='0 0 24 24' className='h-5 w-5 fill-none stroke-current' strokeWidth='1.6' aria-hidden='true'><path d='m12 3 9 5-9 5-9-5 9-5ZM5 10v7l7 4 7-4v-7M12 13v8' /></svg></span>
-          <p className='text-xs leading-5 text-slate-500'><span className='block font-bold text-school-navy'>SMPIT Cendekia Purwakarta</span>Tumbuh, belajar, dan berkarya bersama.</p>
-        </div>
       </div>
       <div className='mx-auto w-full min-w-0 max-w-[540px] lg:justify-self-end'>
         <div className={`relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_50px_-24px_rgba(16,45,78,.3)] ${status === 'loading' ? 'min-h-[420px]' : ''}`} aria-busy={status === 'loading'}>
