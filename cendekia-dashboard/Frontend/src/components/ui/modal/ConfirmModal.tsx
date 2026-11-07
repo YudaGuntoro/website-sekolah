@@ -30,17 +30,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     : "bg-warning-50 text-warning-600 ring-warning-500/15 dark:bg-warning-500/10 dark:text-warning-400 dark:ring-warning-500/25";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className={`cms-confirm-modal ${isDestructive ? "is-destructive" : ""} mx-4 max-w-[460px] overflow-hidden p-0`}>
+    <Modal isOpen={isOpen} onClose={onClose} role="alertdialog" ariaLabel={title} className={`cms-confirm-modal ${isDestructive ? "is-destructive" : ""} mx-4 max-w-[460px] overflow-hidden p-0`}>
       <div className="p-6 sm:p-7">
         <div className="flex items-start gap-4">
           <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ring-8 ${iconClasses}`}>
             <AlertIcon className="h-6 w-6 fill-current" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 pr-8 sm:pr-10">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
               {title}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+            <p className="mt-2 break-words text-sm leading-6 text-gray-500 dark:text-gray-400">
               {message}
             </p>
           </div>

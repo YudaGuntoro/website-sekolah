@@ -9,6 +9,8 @@ interface ModalProps {
   children: React.ReactNode;
   showCloseButton?: boolean; // New prop to control close button visibility
   isFullscreen?: boolean; // Default to false for backwards compatibility
+  role?: "dialog" | "alertdialog";
+  ariaLabel?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,6 +20,8 @@ export const Modal: React.FC<ModalProps> = ({
   className,
   showCloseButton = true, // Default to true for backwards compatibility
   isFullscreen = false,
+  role = "dialog",
+  ariaLabel,
 }) => {
   const toast = useToast();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -100,6 +104,9 @@ export const Modal: React.FC<ModalProps> = ({
       )}
       <div
         ref={modalRef}
+        role={role}
+        aria-modal="true"
+        aria-label={ariaLabel}
         className={`${contentClasses}  ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
