@@ -37,6 +37,7 @@ public class LmpSettingsRequest
 }
 public class LmpApplication
 {
+    public LmpPaymentProof? PaymentProof { get; set; }
     public int Id { get; set; }
     public Guid SubmissionKey { get; set; }
     [MaxLength(40)] public string RegistrationNumber { get; set; } = "";
@@ -75,6 +76,7 @@ public class LmpDocument
 }
 public class LmpSubmissionRequest
 {
+    [Required, MaxLength(150)] public string TransferAccountName { get; set; } = "";
     public Guid SubmissionKey { get; set; }
     public int SettingsVersion { get; set; }
     [Required, MaxLength(150)] public string StudentName { get; set; } = "";

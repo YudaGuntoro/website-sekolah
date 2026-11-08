@@ -1,4 +1,5 @@
 'use client'
+import PaymentProofFields from './PaymentProofFields'
 import SpmbRegistrationReceipt from './SpmbRegistrationReceipt'
 import type { FormEvent } from 'react'
 import type { Schedule, Receipt } from './SpmbRegistrationForm'
@@ -20,19 +21,30 @@ export default function SpmbRegistrationLayout({ schedule, scheduleError, error,
   const open = !!schedule?.enabled && !!schedule.activeWave
   if (receipt) return <SpmbRegistrationReceipt receipt={receipt} onReset={onReset} />
   return <div className='space-y-7 sm:space-y-9'>
-    <section aria-label='Jadwal gelombang pendaftaran' className='overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-[0_1px_3px_rgba(16,45,78,.04)]'>
-      <div className='flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-[#fbfcfe] px-5 py-5 sm:px-8'>
-        <div><p className='text-[13px] font-medium text-school-blue'>Jadwal pendaftaran</p><h2 className='mt-1.5 text-[22px] font-semibold tracking-tight text-school-navy'>{schedule ? `Tahun ajaran ${schedule.academicYear}` : 'SPMB Cendekia'}</h2></div>
-        <span role='status' className={`text-[13px] font-medium ${open ? 'text-emerald-700' : scheduleError ? 'text-rose-700' : 'text-amber-800'}`}>{open ? `Gelombang ${schedule!.activeWave} dibuka` : scheduleError ? 'Jadwal belum tersedia' : schedule ? 'Pendaftaran ditutup' : 'Memuat jadwal...'}</span>
+    <section aria-label='Jadwal gelombang pendaftaran' className='overflow-hidden rounded-md border border-slate-200 border-t-[3px] border-t-school-blue bg-white p-0'>
+      <div className='flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-slate-200 px-5 py-4 sm:px-6'>
+        <div><p className='text-xs text-slate-500'>Jadwal pendaftaran</p><h2 className='mt-1 text-lg font-semibold text-school-navy'>{schedule ? `Tahun ajaran ${schedule.academicYear}` : 'SPMB Cendekia'}</h2></div>
+        <span role='status' className={`text-xs font-medium ${open ? 'text-school-blue' : scheduleError ? 'text-rose-700' : 'text-slate-500'}`}>{open ? `Gelombang ${schedule!.activeWave} dibuka` : scheduleError ? 'Jadwal belum tersedia' : schedule ? 'Pendaftaran ditutup' : 'Memuat jadwal...'}</span>
       </div>
-      <div className='p-5 sm:p-8'>
-        {scheduleError && <div role='alert' className='rounded-xl bg-rose-50 p-4 text-sm leading-6 text-rose-700'>{scheduleError} <button type='button' className='font-semibold underline' onClick={onReload}>Coba lagi</button></div>}
-        {schedule && <><div className='grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-4'>{schedule.waves.map(wave => {
-          const active = open && wave.isOpen
-          const state = active ? 'Sedang dibuka' : !wave.startDate || !wave.endDate ? 'Belum dijadwalkan' : schedule.today > wave.endDate ? 'Selesai' : !schedule.enabled ? 'Belum dibuka' : schedule.today < wave.startDate ? 'Akan dibuka' : 'Ditutup'
-          return <div key={wave.number} className={`border-l-2 px-4 py-1.5 ${active ? 'border-school-blue bg-sky-50/60' : 'border-slate-200'}`}><h3 className='text-[15px] font-semibold text-school-navy'>Gelombang {wave.number}</h3><p className='mt-2 min-h-10 text-[13px] leading-6 text-slate-500'>{wave.startDate ? date(wave.startDate) : 'Tanggal belum ditentukan'}{wave.endDate && <><br />s.d. {date(wave.endDate)}</>}</p><p className={`mt-2 text-xs ${active ? 'font-semibold text-school-blue' : 'text-slate-500'}`}>{state}</p></div>
-        })}</div><p className='mt-6 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500'><span>Jadwal menggunakan WIB, hingga pukul 23.59 pada tanggal selesai. Gelombang pendaftaran mengikuti jadwal yang sedang dibuka.</span></p></>}
-        {schedule && !open && <div className='mt-4 rounded-r-md border-l-2 border-amber-300 bg-[#fffcf3] px-4 py-3 text-[13px] leading-6 text-amber-900'><p>Pendaftaran belum dibuka atau berada di luar jadwal aktif. Anda tetap dapat melihat formulir dan menyiapkan data terlebih dahulu.</p></div>}
+      <div className='p-4 sm:p-6'>
+        {scheduleError && <p role='alert' className='text-sm leading-6 text-rose-700'>{scheduleError} <button type='button' className='font-medium underline' onClick={onReload}>Coba lagi</button></p>}
+        {schedule && <>
+          <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>{schedule.waves.map(wave => {
+            const active = open && wave.isOpen
+            const configured = !!wave.startDate && !!wave.endDate
+            const state = active ? 'Sedang dibuka' : !configured ? 'Belum dijadwalkan' : schedule.today > wave.endDate! ? 'Selesai' : !schedule.enabled ? 'Belum dibuka' : schedule.today < wave.startDate! ? 'Akan dibuka' : 'Ditutup'
+            return <article key={wave.number} aria-current={active ? 'step' : undefined} className={`flex min-w-0 flex-col rounded-md border p-4 ${active ? 'border-school-blue bg-[#f7faff]' : 'border-slate-200 bg-white'}`}>
+              <h3 className='text-sm font-semibold text-school-navy'>Gelombang {wave.number}</h3>
+              {configured ? <dl className='mb-4 mt-4 space-y-2 text-[13px]'>
+                <div className='flex flex-wrap justify-between gap-x-2 gap-y-1'><dt className='text-slate-500'>Mulai</dt><dd className='text-school-navy'><time dateTime={wave.startDate!}>{date(wave.startDate!)}</time></dd></div>
+                <div className='flex flex-wrap justify-between gap-x-2 gap-y-1'><dt className='text-slate-500'>Selesai</dt><dd className='text-school-navy'><time dateTime={wave.endDate!}>{date(wave.endDate!)}</time></dd></div>
+              </dl> : <p className='mb-4 mt-4 text-[13px] leading-6 text-slate-500'>Tanggal akan diumumkan.</p>}
+              <p className={`mt-auto text-xs ${active ? 'font-semibold text-school-blue' : 'text-slate-500'}`}>{state}</p>
+            </article>
+          })}</div>
+          <p className='mt-4 flex items-start gap-2.5 rounded-r-md border-l-2 border-amber-300 bg-[#fffcf3] px-4 py-3 text-xs leading-5 text-amber-900'><svg viewBox='0 0 20 20' className='mt-0.5 h-4 w-4 shrink-0' fill='none' stroke='currentColor' strokeWidth='1.5' aria-hidden='true'><circle cx='10' cy='10' r='7.5' /><path d='M10 5.5V10l3 2' strokeLinecap='round' strokeLinejoin='round' /></svg><span>Tanggal mengikuti WIB. Pendaftaran berakhir pukul 23.59 pada tanggal selesai.</span></p>
+        </>}
+        {schedule && !open && <p className='mt-3 flex items-start gap-2.5 rounded-r-md border-l-2 border-red-300 bg-[#fff7f7] px-4 py-3 text-[13px] leading-6 text-red-800'><svg viewBox='0 0 20 20' className='mt-1 h-4 w-4 shrink-0' fill='none' stroke='currentColor' strokeWidth='1.5' aria-hidden='true'><circle cx='10' cy='10' r='7.5' /><path d='M10 9v5' strokeLinecap='round' /><circle cx='10' cy='6.5' r='.8' fill='currentColor' stroke='none' /></svg><span>Pendaftaran sedang ditutup. Anda tetap dapat melihat formulir dan menyiapkan data terlebih dahulu.</span></p>}
       </div>
     </section>
     <div>
@@ -57,6 +69,7 @@ export default function SpmbRegistrationLayout({ schedule, scheduleError, error,
             <label className={label}>Email orang tua / wali<input className={input} name='guardianEmail' type='email' maxLength={254} autoComplete='email' placeholder='nama@email.com (opsional)' /></label>
             <label className={`${label} sm:col-span-2`}>Alamat lengkap *<textarea className={`${input} min-h-28 resize-y`} name='address' maxLength={1000} required placeholder='Alamat domisili calon siswa' /></label>
           </div></section>
+          <section className='border-t border-slate-100 p-5 sm:p-8'><SectionHeading number='D' title='Konfirmasi pembayaran' /><PaymentProofFields /><a href='/spmb' target='_blank' rel='noopener noreferrer' className='mt-4 inline-block text-sm font-medium text-school-blue underline underline-offset-4'>Lihat informasi biaya dan rekening sekolah</a></section>
           <div className='border-t border-slate-200 p-5 sm:p-8'><label className='flex items-start gap-3 text-sm leading-7 text-slate-600'><input type='checkbox' name='consent' required className='mt-1.5 h-4 w-4 shrink-0 accent-blue-700' /><span>Saya memastikan data yang diisi benar dan bersedia dihubungi sekolah untuk proses pendaftaran.</span></label><div className='mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'><p className='text-xs leading-6 text-slate-500'>Periksa kembali data<br className='hidden sm:block' /> sebelum mengirim pendaftaran.</p><button disabled={submitting || !open} type='submit' className='inline-flex min-h-11 items-center justify-center rounded-md bg-school-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-school-navy disabled:cursor-not-allowed disabled:opacity-50'>{submitting ? 'Mengirim…' : 'Kirim pendaftaran'}</button></div></div>
         </fieldset>
         {error && <p role='alert' className='m-5 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800 sm:m-7'>{error}</p>}

@@ -25,6 +25,8 @@ public interface IApplicationUnitOfWork
 }
 public interface ISpmbRepository
 {
+    Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId);
+    Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId);
     IEntityRepository<SpmbWaveGroup> Groups { get; }
     Task<SpmbSettings> GetSettingsAsync(bool forUpdate = false);
     Task<List<SpmbWave>> GetWavesAsync(bool tracking = false);
@@ -35,6 +37,8 @@ public interface ISpmbRepository
 }
 public interface ILmpRepository
 {
+    Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId);
+    Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId);
     Task<LmpSettings> GetSettingsAsync(bool forUpdate = false);
     IEntityRepository<LmpApplication> Applications { get; }
     Task<LmpSubject?> GetSubjectAsync(string name);

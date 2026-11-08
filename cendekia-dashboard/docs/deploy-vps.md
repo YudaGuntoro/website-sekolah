@@ -78,3 +78,7 @@ node scripts/check-load.mjs
 Suite security/CMS/LMP/SPMB melakukan perubahan fixture lokal/staging dan membersihkannya; jalankan cleanup SQL yang dihasilkan SPMB. `check-load` hanya membaca 100 request dengan concurrency 10; ini smoke test, bukan jaminan kapasitas. Ukur beban realistis sesuai jumlah pendaftar di staging. Uji limiter menggunakan API kedua dengan LoginPerMinute=2 dan RegistrationsPerMinute=2 di port 5245, kemudian `node scripts/check-security-limits.mjs`. Jalankan audit npm pada kedua frontend dan `dotnet list Backend/Cendekia.sln package --vulnerable --include-transitive` pada setiap rilis.
 
 Simpan image rilis sebelumnya untuk rollback aplikasi hanya bila kompatibel dengan skema saat ini. API sebelum migrasi relasi pendaftaran tidak kompatibel; jangan menghidupkannya kembali tanpa prosedur pemulihan database yang sudah diuji. DDL MySQL bukan satu transaksi penuh.
+
+Bukti transfer SPMB/LMP: sebelum backend terbaru dijalankan, backup lalu terapkan `database/migrations/20261108_registration_payment_proofs.sql`. Pastikan reverse proxy menerima request LMP dua berkas dengan `client_max_body_size 4400k`; batas setiap berkas tetap 2 MB. Deploy ulang website dan API bersama karena submit SPMB kini multipart/form-data.
+
+Optimasi bukti transfer JPG/PNG menggunakan SkiaSharp dan native assets Linux yang ikut dipublish backend. Build ulang image API untuk menyertakan dependensi ini; jangan hanya menyalin DLL aplikasi lama. Tidak perlu SQL tambahan untuk kompresi. PDF dan berkas lama tidak diubah.

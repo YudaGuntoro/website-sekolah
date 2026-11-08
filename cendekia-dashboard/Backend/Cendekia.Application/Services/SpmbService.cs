@@ -4,7 +4,7 @@ using Cendekia.Domain.School;
 namespace Cendekia.Application.Services;
 
 
-public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unitOfWork) : ApplicationService
+public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unitOfWork, IRegistrationFileOptimizer fileOptimizer) : ApplicationService
 {
     // Purwakarta uses WIB (UTC+07). Submission time is determined by the server.
     private static DateOnly SchoolDate() => DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
@@ -87,7 +87,9 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
     private async Task<ServiceResult> Receipt(SpmbApplication entry)
     {
         var group = await repository.Groups.FirstAsync(g => g.AcademicYear == entry.AcademicYear && g.WaveNumber == entry.WaveNumber);
+        var proof = await repository.GetPaymentProofInfoAsync(entry.Id);
         return ApiOk(new {
+            transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null,
             entry.RegistrationNumber, entry.AcademicYear, entry.WaveNumber, entry.SubmittedAt,
             entry.StudentName, entry.Nisn, entry.BirthPlace, entry.BirthDate, entry.Gender,
             entry.PreviousSchool, entry.TargetGrade, entry.GuardianName, entry.GuardianPhone,
@@ -97,8 +99,11 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
     }
 
 
-    public async Task<ServiceResult> Submit(SpmbSubmissionRequest request)
+    public async Task<ServiceResult> Submit(SpmbSubmissionRequest request, PaymentProofUpload? paymentProof, CancellationToken cancellationToken = default)
     {
+        var proofType = PaymentProofFiles.ContentType(paymentProof);
+        if (proofType is null) return ApiBadRequest("Bukti transfer wajib berupa JPG, PNG, atau PDF yang valid, maksimal 1 MB.");
+        if (string.IsNullOrWhiteSpace(request.TransferAccountName)) return ApiBadRequest("Nama pemilik rekening pengirim wajib diisi.");
         var today = SchoolDate();
         if (request.SubmissionKey == Guid.Empty) return ApiBadRequest("Identitas pengiriman tidak valid. Muat ulang formulir.");
         var nisn = string.IsNullOrWhiteSpace(request.Nisn) ? null : request.Nisn;
@@ -110,6 +115,8 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         if (digits.Length < 8 || digits.Length > 15) return ApiBadRequest("Nomor WhatsApp harus terdiri dari 8 sampai 15 digit.");
 
         // Serialize submissions with schedule changes so the stored wave is unambiguous.
+        var optimizedProof = await fileOptimizer.OptimizeAsync(new PaymentProofFile(proofType, paymentProof!.Content), cancellationToken);
+        if (optimizedProof is null) return ApiBadRequest("Bukti transfer gambar tidak dapat dibaca atau resolusinya terlalu besar. Unggah JPG/PNG yang valid dengan resolusi lebih kecil.");
         await using var transaction = await unitOfWork.BeginTransactionAsync();
         var settings = await repository.GetSettingsAsync(forUpdate: true);
         var prior = await repository.Applications.FirstAsync(x => x.SubmissionKey == request.SubmissionKey);
@@ -124,6 +131,7 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var period = await repository.GetOrCreatePeriodAsync(settings.AcademicYear, wave);
         var entry = new SpmbApplication
         {
+            PaymentProof = new SpmbPaymentProof { AccountHolderName = request.TransferAccountName.Trim(), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, AcademicYear = settings.AcademicYear, WaveNumber = wave.Number,
             Period = period, WaveRevision = period.Revision,
             StudentName = request.StudentName.Trim(), Nisn = nisn, BirthPlace = request.BirthPlace.Trim(), BirthDate = request.BirthDate,
@@ -139,12 +147,22 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         await transaction.CommitAsync();
         return await Receipt(entry);
     }
+    private static System.Linq.Expressions.Expression<Func<SpmbApplication, bool>> ApplicantFilter(string? year, int? wave, string? status, string? search) => x =>
+            (string.IsNullOrEmpty(year) || x.AcademicYear == year) && (!wave.HasValue || x.WaveNumber == wave) &&
+            (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.RegistrationNumber.Contains(search) || (x.Nisn != null && x.Nisn.Contains(search)));
+    public async Task<ApplicantReport> Export(string? year, int? wave, string? status, string? search, CancellationToken cancellationToken = default)
+    {
+        var items = await repository.Applications.SelectAsync(x => new { x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt }, ApplicantFilter(year, wave, status, search), x => x.Id, descending: true, cancellationToken: cancellationToken);
+        return new ApplicantReport(ApplicantReport.FileNameFor("spmb"), "Pendaftar SPMB",
+            ["Nomor pendaftaran", "Tahun ajaran", "Gelombang", "Nama calon siswa", "NISN", "Tempat lahir", "Tanggal lahir", "Jenis kelamin", "Asal sekolah", "Kelas tujuan", "Orang tua / wali", "WhatsApp", "Email", "Alamat", "Status pendaftaran", "Waktu submit (WIB)"],
+            items.Select(x => new string[] { x.RegistrationNumber, x.AcademicYear, x.WaveNumber.ToString(), x.StudentName, x.Nisn ?? "", x.BirthPlace, x.BirthDate.ToString("dd/MM/yyyy"), x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail ?? "", x.Address, x.Status, ApplicantReport.Wib(x.SubmittedAt) }).ToList(),
+            $"Tahun ajaran: {ApplicantReport.FilterValue(year, "Semua tahun")}   |   Gelombang: {(wave.HasValue ? wave.Value.ToString() : "Semua gelombang")}   |   Status: {ApplicantReport.FilterValue(status, "Semua status")}",
+            $"Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
+    }
     public async Task<ServiceResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10)
     {
         page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);
-        System.Linq.Expressions.Expression<Func<SpmbApplication, bool>> filter = x =>
-            (string.IsNullOrEmpty(year) || x.AcademicYear == year) && (!wave.HasValue || x.WaveNumber == wave) &&
-            (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.RegistrationNumber.Contains(search) || (x.Nisn != null && x.Nisn.Contains(search)));
+        var filter = ApplicantFilter(year, wave, status, search);
         var total = await repository.Applications.CountAsync(filter);
         var years = await repository.GetAcademicYearsAsync();
         var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.PreviousSchool, x.TargetGrade, x.Status, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page - 1) * limit, take: limit);
@@ -152,8 +170,16 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
     }
     public async Task<ServiceResult> Detail(int id)
     {
-        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt, x.UpdatedAt, x.Version }, x => x.Id == id)).SingleOrDefault();
+        var proof = await repository.GetPaymentProofInfoAsync(id);
+        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt, x.UpdatedAt, x.Version, transferAccountName = proof == null ? null : proof.AccountHolderName, hasPaymentProof = proof != null }, x => x.Id == id)).SingleOrDefault();
         return entry is null ? ApiNotFound("Pendaftar tidak ditemukan.") : ApiOk(entry);
+    }
+    public async Task<ServiceResult> PaymentProof(int id)
+    {
+        var entry = await repository.Applications.FirstAsync(x => x.Id == id);
+        if (entry is null) return ApiNotFound();
+        var proof = await repository.GetPaymentProofFileAsync(id);
+        return proof is null ? ApiNotFound("Bukti transfer belum tersedia untuk pendaftar ini.") : ApiOk(new PaymentProofDownload($"{entry.RegistrationNumber}-bukti-transfer{PaymentProofFiles.Extension(proof.ContentType)}", proof.ContentType, proof.Content));
     }
     public async Task<ServiceResult> Status(int id, SpmbStatusRequest request)
     {

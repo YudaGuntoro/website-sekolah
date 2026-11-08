@@ -42,6 +42,7 @@ public class SpmbWavePeriod
 
 public class SpmbApplication
 {
+    public SpmbPaymentProof? PaymentProof { get; set; }
     public int Id { get; set; }
     public Guid SubmissionKey { get; set; }
     [MaxLength(32)] public string RegistrationNumber { get; set; } = "";
@@ -84,6 +85,7 @@ public class SpmbSettingsRequest
 
 public class SpmbSubmissionRequest
 {
+    [Required, MaxLength(150)] public string TransferAccountName { get; set; } = "";
     public Guid SubmissionKey { get; set; }
     public int ScheduleVersion { get; set; }
     [Required, MaxLength(150)] public string StudentName { get; set; } = "";

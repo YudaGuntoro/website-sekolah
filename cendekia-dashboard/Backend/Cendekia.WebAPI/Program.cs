@@ -8,7 +8,7 @@ builder.Host.UseSerilog((context, logger) => logger
     .Enrich.FromLogContext()
     .WriteTo.Console());
 builder.WebHost.ConfigureKestrel(options => {
-    options.Limits.MaxRequestBodySize = 2200000;
+    options.Limits.MaxRequestBodySize = 4400000;
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(15);
 });
 

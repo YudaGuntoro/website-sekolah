@@ -70,6 +70,7 @@ if ($NormalizeOnly -or $hasMigrationTable) {
 $sessionSchema = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/auth_sessions.sql'))
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261107_spmb_wave_groups.sql'))
 if ($SecurityOnly) { $sql = $sessionSchema } else { $sql += "`n" + $sessionSchema }
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261108_registration_payment_proofs.sql'))
 $sqlBytes = [System.Text.Encoding]::UTF8.GetBytes($sql)
 $mysqlProcess.StandardInput.BaseStream.Write($sqlBytes, 0, $sqlBytes.Length)
 $mysqlProcess.StandardInput.Close()

@@ -22,6 +22,8 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
     ['WhatsApp orang tua / wali', receipt.guardianPhone],
     ['Email orang tua / wali', receipt.guardianEmail || 'Tidak diisi'],
     ['Alamat lengkap', receipt.address],
+    ['Nama pemilik rekening pengirim', receipt.transferAccountName || 'Belum tersedia'],
+    ['Bukti transfer', receipt.hasPaymentProof ? 'Berhasil diunggah, menunggu pemeriksaan staf' : 'Belum tersedia'],
   ]
   return <section aria-labelledby='registration-receipt-title' className='mx-auto max-w-3xl scroll-mt-28 rounded-lg border border-slate-200 border-t-4 border-t-emerald-600 bg-white p-5 sm:p-8'>
     <div role='status' className='flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4'>

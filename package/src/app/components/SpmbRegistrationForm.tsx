@@ -1,4 +1,5 @@
 'use client'
+import { paymentProofError } from './PaymentProofFields'
 import SpmbRegistrationLayout from './SpmbRegistrationLayout'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
@@ -6,6 +7,7 @@ export type Wave = { number: number; startDate: string | null; endDate: string |
 export type Schedule = { academicYear: string; today: string; version: number; enabled: boolean; activeWave: number | null; waves: Wave[] }
 export type Receipt = {
   registrationNumber: string; academicYear: string; waveNumber: number; submittedAt: string; whatsappGroupUrl: string;
+  transferAccountName: string | null; hasPaymentProof: boolean;
   studentName: string; nisn: string | null; birthPlace: string; birthDate: string; gender: string;
   previousSchool: string; targetGrade: string; guardianName: string; guardianPhone: string;
   guardianEmail: string | null; address: string;
@@ -36,6 +38,8 @@ export default function SpmbRegistrationForm() {
     event.preventDefault()
     if (submitting || !schedule?.activeWave) return
     const form = new FormData(event.currentTarget)
+    const proofError = paymentProofError(form)
+    if (proofError) { setError(proofError); return }
     const value = (key: string) => String(form.get(key) || '').trim()
     submissionKey.current ||= crypto.randomUUID()
     const payload = {
@@ -44,11 +48,12 @@ export default function SpmbRegistrationForm() {
       birthPlace: value('birthPlace'), birthDate: value('birthDate'), gender: value('gender'),
       previousSchool: value('previousSchool'), targetGrade: grade, guardianName: value('guardianName'),
       guardianPhone: value('guardianPhone'), guardianEmail: value('guardianEmail') || null,
-      address: value('address'), consent: form.get('consent') === 'on',
+      address: value('address'), transferAccountName: value('transferAccountName'), consent: form.get('consent') === 'on',
     }
     setSubmitting(true); setError('')
     try {
-      const response = await fetch('/api/spmb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      for (const [field, value] of Object.entries(payload)) { if (value === null) form.delete(field); else form.set(field, String(value)) }
+      const response = await fetch('/api/spmb', { method: 'POST', body: form })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(errorMessage(result))
       setReceipt(result.data)

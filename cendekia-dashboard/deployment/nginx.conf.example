@@ -15,7 +15,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/admin.sekolah.example/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/admin.sekolah.example/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    client_max_body_size 2200k;
+    client_max_body_size 4400k;
     client_body_timeout 15s;
     limit_conn cendekia_connections 20;
     limit_req_status 429;
@@ -43,7 +43,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/sekolah.example/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/sekolah.example/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
-    client_max_body_size 2200k;
+    client_max_body_size 4400k;
     client_body_timeout 15s;
     limit_conn cendekia_connections 20;
     limit_req_status 429;

@@ -14,10 +14,11 @@ async function api(path, method = 'GET', body, access = token) {
   return { status: response.status, data: payload.data, payload, response };
 }
 async function save(config) { const r = await api('/lmp/settings', 'PUT', { config, version: current.version }); assert.equal(r.status, 200, JSON.stringify(r.payload)); current = r.data; }
-function form(fields = {}, file) {
+function form(fields = {}, file, proof = {name: "transfer.pdf", body: pdf.body}) {
   const key = fields.submissionKey || randomUUID(); keys.push(key);
-  const data = { submissionKey: key, settingsVersion: current.version, studentName: tag, previousSchool: 'SD Pengujian', grade: 5, subjects: 'Matematika', contactName: 'Wali Pengujian', contactPhone: '081234567890', consent: true, ...fields };
+  const data = { submissionKey: key, settingsVersion: current.version, studentName: tag, previousSchool: 'SD Pengujian', grade: 5, subjects: 'Matematika', contactName: 'Wali Pengujian', contactPhone: '081234567890', transferAccountName:'Wali Transfer LMP', consent: true, ...fields };
   const body = new FormData(); for (const [key, value] of Object.entries(data)) for (const v of Array.isArray(value) ? value : [value]) body.append(key, String(v));
+  if (proof) body.append('paymentProof',new Blob([proof.body],{type:'application/pdf'}),proof.name);
   if (file) body.append('document', new Blob([file.body], { type: 'application/pdf' }), file.name);
   return body;
 }
@@ -33,6 +34,9 @@ try {
   for (const fields of [{ enabled: true, registrationStart: null }, { registrationStart: '2027-01-22', registrationEnd: '2027-01-21' }, { feeAmount: -1 }, { whatsappGroupUrl: 'javascript:alert(1)' }, { whatsappGroupUrl: 'https://example.com/group' }])
     assert.equal((await api('/lmp/settings', 'PUT', { config: { ...enabled, ...fields }, version: current.version })).status, 400);
   await save(enabled);
+  assert.equal((await api('/lmp/applications','POST',form({transferAccountName:''}), '')).status,400);
+  for(const proof of [null,{name:'bad.pdf',body:'not pdf'},{name:'bad.exe',body:pdf.body},{name:'large.pdf',body:'%PDF-'+'x'.repeat(2097152)}]) assert.equal((await api('/lmp/applications','POST',form({},undefined,proof), '')).status,400);
+
   for (const fields of [{ grade: 4 }, { grade: 7 }, { subjects: 'IPA' }, { subjects: ['Matematika','Bahasa Inggris'] }, { consent: false }, { studentName: ' ' }, { contactPhone: '123' }])
     assert.equal((await api('/lmp/applications', 'POST', form(fields), '')).status, 400, JSON.stringify(fields));
   assert.equal((await api('/lmp/applications', 'POST', form({}, { name: 'bad.pdf', body: 'not a PDF' }), '')).status, 400);
@@ -45,6 +49,7 @@ try {
   receipts.forEach(r => assert.equal(r.status,200,JSON.stringify(r.payload)));
   assert.equal(receipts[0].data.registrationNumber, receipts[1].data.registrationNumber);
   for (const receipt of receipts) {
+    assert.equal(receipt.data.transferAccountName,'Wali Transfer LMP'); assert.equal(receipt.data.hasPaymentProof,true);
     assert.equal(receipt.data.studentName, tag);
     assert.equal(receipt.data.previousSchool, 'SD Pengujian');
     assert.equal(receipt.data.grade, 5);
@@ -63,6 +68,11 @@ try {
   assert.equal(entries.total, 1);
   const id = entries.items[0].id;
   const detail = (await api('/lmp/applications/' + id)).data;
+  assert.equal(detail.transferAccountName,'Wali Transfer LMP'); assert.equal(detail.hasPaymentProof,true);
+  const proofUrl='http://localhost:5243/api/lmp/applications/'+id+'/payment-proof';
+  assert.equal((await fetch(proofUrl)).status,401);
+  const proofFile=await fetch(proofUrl,{headers:{Authorization:'Bearer '+token}});
+  assert.equal(proofFile.status,200); assert.equal(await proofFile.text(),pdf.body);
   assert.equal(detail.hasDocument, true); assert.equal(detail.document, undefined); assert.equal(detail.paymentStatus,'Belum bayar');
   assert.equal((await api(`/lmp/applications/${id}/document`, 'GET', undefined, '')).status, 401);
   const file = await api(`/lmp/applications/${id}/document`); assert.equal(file.status, 200); assert.equal(file.response.headers.get('content-type'), 'application/pdf'); assert.match(file.response.headers.get('content-disposition'), /attachment/);
@@ -81,7 +91,7 @@ try {
   await save({ ...enabled, enabled:false }); assert.equal((await api('/lmp/applications','POST',form(), '')).status,409);
   const account = await api('/users','POST',{username:tag.toLowerCase(),password:tag,full_name:tag,role:'VIEWER',status:'ACTIVE'}); assert.equal(account.status,201); viewerId=account.data.id;
   const viewer = (await api('/auth/login','POST',{username:tag.toLowerCase(),password:tag},'')).data.access_token;
-  for(const path of ['/lmp/settings','/lmp/applications',`/lmp/applications/${id}`,`/lmp/applications/${id}/document`]) assert.equal((await api(path,'GET',undefined,viewer)).status,403);
+  for(const path of ['/lmp/settings','/lmp/applications',`/lmp/applications/${id}`,`/lmp/applications/${id}/document`,`/lmp/applications/${id}/payment-proof`]) assert.equal((await api(path,'GET',undefined,viewer)).status,403);
   assert.equal((await api('/lmp/settings','PUT',{config:enabled,version:current.version},viewer)).status,403);
   if (process.env.LMP_BROWSER_CHECK === '1') {
     await save({ ...enabled, documentRequired:true });
@@ -97,7 +107,7 @@ try {
     await page.locator('[name=studentName]').fill(tag+'-browser'); await page.locator('[name=previousSchool]').fill('SD Pengujian');
     await page.locator('[name=grade]').selectOption('6'); await page.locator('[name=subjects]').selectOption('Bahasa Inggris');
     await page.locator('[name=contactName]').fill('Pendamping Uji'); await page.locator('[name=contactPhone]').fill('081234567890');
-    await page.locator('[name=document]').setInputFiles({name:'berkas.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=consent]').check();
+    await page.locator('[name=document]').setInputFiles({name:'berkas.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=transferAccountName]').fill('Wali Transfer Browser LMP'); await page.locator('[name=paymentProof]').setInputFiles({name:'transfer.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=consent]').check();
     await page.screenshot({path:'.verify-cms/lmp-form-mobile.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Kirim pendaftaran LMP',exact:true}).click(); await page.getByRole('heading',{name:'Data peserta telah diterima'}).waitFor();
     assert.ok((await page.getByRole('status').innerText()).includes(tag+'-browser'));
@@ -105,6 +115,7 @@ try {
     await page.getByRole('heading',{name:'Jangan lupa screenshot halaman ini',exact:true}).waitFor();
     assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Bahasa Inggris'));
     assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('PDF berhasil diunggah'));
+    assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Wali Transfer Browser LMP'));
     assert.equal(await page.getByRole('link',{name:'Gabung grup WhatsApp LMP',exact:true}).getAttribute('href'),enabled.whatsappGroupUrl);
     const receipt = page.locator('section[aria-labelledby="lmp-receipt-title"]');
     assert.ok(!(await receipt.innerText()).includes('Gelombang'));
@@ -119,6 +130,7 @@ try {
     assert((await page.locator('tbody tr').first().innerText()).includes(tag+'-browser'));
     await page.screenshot({path:'.verify-cms/lmp-admin-list.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Detail '+tag+'-browser',exact:true}).click(); await page.getByRole('heading',{name:'Detail pendaftaran'}).waitFor();
+    assert.ok((await page.locator('dialog').innerText()).includes('Wali Transfer Browser LMP')); const paymentDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Unduh bukti transfer',exact:true}).click(); assert.match((await paymentDownload).suggestedFilename(),/-bukti-transfer\.pdf$/);
     const download = page.waitForEvent('download'); await page.getByRole('button',{name:'Unduh berkas PDF',exact:true}).click(); assert.match((await download).suggestedFilename(),/^LMP-.*\.pdf$/);
     await page.getByRole('combobox',{name:'Status pembayaran',exact:true}).selectOption('Lunas'); await page.getByRole('button',{name:'Simpan status',exact:true}).click(); await page.getByText('Status peserta LMP disimpan.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'Tutup detail',exact:true}).click();

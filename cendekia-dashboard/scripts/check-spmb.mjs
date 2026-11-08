@@ -12,8 +12,16 @@ const keys = [];
 let firstWaveBody;
 let otherYear, originalOtherGroups;
 const recordIds = [];
+const paymentPdf = '%PDF-1.4\nPayment proof test\n%%EOF';
 async function request(path, method = 'GET', body, access = token) {
-  const response = await fetch(base + '/api/spmb' + path, { method, headers: { 'Content-Type': 'application/json', ...(access ? { Authorization: 'Bearer ' + access } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  if (method === 'POST' && path === '/applications' && !(body instanceof FormData)) {
+    const data = new FormData();
+    for (const [key,value] of Object.entries(body)) if (key !== 'paymentProof' && value !== null) data.append(key,String(value));
+    const proof = Object.hasOwn(body,'paymentProof') ? body.paymentProof : {name:'transfer.pdf',body:paymentPdf};
+    if (proof) data.append('paymentProof',new Blob([proof.body]),proof.name);
+    body = data;
+  }
+  const response = await fetch(base + '/api/spmb' + path, { method, headers: { ...(body instanceof FormData ? {} : {'Content-Type':'application/json'}), ...(access ? { Authorization: 'Bearer ' + access } : {}) }, body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body) });
   const text = await response.text();
   return { status: response.status, payload: text ? JSON.parse(text) : null };
 }
@@ -26,7 +34,7 @@ const configFor = target => ({ academicYear: original.academicYear, enabled: tru
 async function configure(value) { const r = await request('/settings', 'PUT', { ...value, version: current.version }); assert.equal(r.status, 200, JSON.stringify(r.payload)); current = r.payload.data; }
 function submission(overrides = {}) {
   const key = randomUUID(); keys.push(key);
-  return { submissionKey: key, scheduleVersion: current.version, studentName: tag, nisn: null, birthPlace: 'Kota Uji', birthDate: '2014-01-15', gender: 'Perempuan', previousSchool: 'Sekolah Uji', targetGrade: 'VII', guardianName: 'Wali Uji', guardianPhone: '08000000000', guardianEmail: 'spmb-test@example.invalid', address: 'Alamat pengujian lokal', consent: true, ...overrides };
+  return { submissionKey: key, scheduleVersion: current.version, studentName: tag, nisn: null, birthPlace: 'Kota Uji', birthDate: '2014-01-15', gender: 'Perempuan', previousSchool: 'Sekolah Uji', targetGrade: 'VII', guardianName: 'Wali Uji', guardianPhone: '08000000000', guardianEmail: 'spmb-test@example.invalid', address: 'Alamat pengujian lokal', transferAccountName: 'Wali Transfer Uji', consent: true, ...overrides };
 }
 try {
   const login = await account('auth/login', 'POST', { username: 'admin', password: process.env.CMS_ADMIN_PASSWORD || 'admin123' }, '');
@@ -62,6 +70,10 @@ try {
   assert.equal(current.waves[0].whatsappGroupUrl, 'https://chat.whatsapp.com/TestWave1?mode=gi_t');
   await configure({ ...configFor(1), enabled: false });
   assert.equal((await request('/applications', 'POST', submission(), '')).status, 409, 'Disabled schedule must reject direct API submissions');
+  await configure(configFor(1));
+  for (const invalid of [{transferAccountName:''},{paymentProof:null},{paymentProof:{name:'bad.pdf',body:'not pdf'}},{paymentProof:{name:'bad.exe',body:paymentPdf}},{paymentProof:{name:'large.pdf',body:'%PDF-'+ 'x'.repeat(2097152)}}]) {
+    assert.equal((await request('/applications','POST',submission(invalid),'')).status,400,'Payment proof and sender name are mandatory and validated');
+  }
   for (const number of [1,2,3,4]) {
     await configure(configFor(number));
     const schedule = await request('/schedule', 'GET', undefined, ''); assert.equal(schedule.payload.data.activeWave, number);
@@ -71,6 +83,8 @@ try {
     assert.equal(first.status, 200, JSON.stringify(first.payload)); assert.equal(repeated.status, 200);
     assert.equal(first.payload.data.waveNumber, number, 'Wave must come from server schedule, not client input');
     assert.equal(first.payload.data.registrationNumber, repeated.payload.data.registrationNumber, 'Concurrent retries must return one receipt');
+    assert.equal(first.payload.data.transferAccountName, body.transferAccountName);
+    assert.equal(first.payload.data.hasPaymentProof, true);
     assert.equal(first.payload.data.studentName, body.studentName);
     assert.equal(first.payload.data.guardianName, body.guardianName);
     assert.equal(first.payload.data.previousSchool, body.previousSchool);
@@ -85,6 +99,13 @@ try {
     assert.equal(list.payload.data.total, number, 'Retries must not create duplicate applicants');
     const row = list.payload.data.items.find(x => x.registrationNumber === first.payload.data.registrationNumber); assert.ok(row); recordIds.push(row.id);
   }
+  const paymentUrl = base + '/api/spmb/applications/' + recordIds[0] + '/payment-proof';
+  assert.equal((await fetch(paymentUrl)).status,401);
+  const paymentFile = await fetch(paymentUrl,{headers:{Authorization:'Bearer '+token}});
+  assert.equal(paymentFile.status,200); assert.equal(paymentFile.headers.get('content-type'),'application/pdf');
+  assert.equal(await paymentFile.text(), paymentPdf);
+  const paymentDetail=(await request('/applications/'+recordIds[0])).payload.data;
+  assert.equal(paymentDetail.transferAccountName,'Wali Transfer Uji'); assert.equal(paymentDetail.hasPaymentProof,true);
   await configure(configFor(2));
   const blank = configFor(2); blank.waves[1].whatsappGroupUrl = ''; await configure(blank);
   assert.equal((await request('/applications', 'POST', submission(), '')).payload.data.whatsappGroupUrl, '', 'An unset link produces no join invitation');
@@ -131,8 +152,10 @@ try {
       await page.locator('select[name=gender]').selectOption('Perempuan'); await page.locator('input[name=previousSchool]').fill('Sekolah Uji');
       await page.locator('select[name=targetGrade]').selectOption('VII'); await page.locator('input[name=guardianName]').fill('Wali Uji');
       await page.locator('input[name=guardianPhone]').fill('08000000000'); await page.locator('textarea[name=address]').fill('Alamat pengujian lokal');
+      await page.locator('[name=transferAccountName]').fill('Wali Transfer Browser');
+      await page.locator('[name=paymentProof]').setInputFiles({name:'transfer.pdf',mimeType:'application/pdf',buffer:Buffer.from(paymentPdf)});
       await page.locator('input[name=consent]').check();
-      page.on('request', r => { if(r.url().endsWith('/api/spmb') && r.method()==='POST') { const data=r.postDataJSON(); if(data.submissionKey) keys.push(data.submissionKey); } });
+      page.on('request', r => { if(r.url().endsWith('/api/spmb') && r.method()==='POST') { const match=(r.postData() || '').match(/name="submissionKey"\r?\n\r?\n([a-f0-9-]{36})/); if(match) keys.push(match[1]); } });
       await page.getByRole('button',{name:'Kirim pendaftaran'}).click();
       await page.getByRole('heading',{name:'Data pendaftaran telah diterima'}).waitFor();
       assert.ok((await page.getByRole('status').innerText()).includes(name));
@@ -140,6 +163,7 @@ try {
       await page.getByRole('heading', {name:'Ringkasan data pendaftar',exact:true}).waitFor();
       await page.getByRole('heading', {name:'Jangan lupa screenshot halaman ini',exact:true}).waitFor();
       assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Sekolah Uji'));
+      assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Wali Transfer Browser'));
       assert.equal(await page.getByRole('link', {name: 'Gabung grup WhatsApp Gelombang 2', exact: true}).getAttribute('href'), 'https://chat.whatsapp.com/TestWave2');
       await page.screenshot({path:'.verify-cms/spmb-receipt.png',fullPage:true});
       await page.setViewportSize({width:390,height:844});
@@ -147,7 +171,7 @@ try {
       await page.screenshot({path:'.verify-cms/spmb-receipt-mobile.png',fullPage:true});
       await page.setViewportSize({width:1440,height:1000});
       await page.goto('http://localhost:3002/signin'); await page.getByLabel('Nama pengguna').fill('admin');await page.locator('input[name=password]').fill(process.env.CMS_ADMIN_PASSWORD || 'admin123');await page.getByRole('button',{name:'Masuk',exact:true}).click();await page.waitForURL('http://localhost:3002/');
-      await page.goto('http://localhost:3002/spmb/pendaftar');await page.getByRole('button',{name:'Detail '+name,exact:true}).waitFor();await page.getByRole('button',{name:'Detail '+name,exact:true}).click();await page.getByRole('heading',{name:'Detail pendaftaran',exact:true}).waitFor();assert.ok((await page.locator('dialog').innerText()).includes('Gelombang 2'));await page.screenshot({path:'.verify-cms/spmb-applicant-detail.png',fullPage:true});await page.getByRole('button',{name:'Tutup detail',exact:true}).click();
+      await page.goto('http://localhost:3002/spmb/pendaftar');await page.getByRole('button',{name:'Detail '+name,exact:true}).waitFor();await page.getByRole('button',{name:'Detail '+name,exact:true}).click();await page.getByRole('heading',{name:'Detail pendaftaran',exact:true}).waitFor();assert.ok((await page.locator('dialog').innerText()).includes('Gelombang 2'));assert.ok((await page.locator('dialog').innerText()).includes('Wali Transfer Browser'));const transferDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Unduh bukti transfer',exact:true}).click();assert.match((await transferDownload).suggestedFilename(),/-bukti-transfer\.pdf$/);await page.screenshot({path:'.verify-cms/spmb-applicant-detail.png',fullPage:true});await page.getByRole('button',{name:'Tutup detail',exact:true}).click();
       await page.goto('http://localhost:3002/spmb/gelombang');await page.getByRole('heading',{name:'Gelombang 4',exact:true}).waitFor();await page.screenshot({path:'.verify-cms/spmb-wave-settings.png',fullPage:true});
       for (const number of [1,2,3,4]) assert.equal(await page.getByRole('textbox', { name: `Tautan grup WhatsApp Gelombang ${number}`, exact: true }).inputValue(), `https://chat.whatsapp.com/TestWave${number}`);
       await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -169,5 +193,6 @@ try {
   }
   mkdirSync('.verify-cms',{recursive:true});
   assert.ok(keys.every(k=>/^[a-f0-9-]{36}$/.test(k)));
-  writeFileSync('.verify-cms/spmb-test-cleanup.sql', 'USE cendekia_cms;\n' + (keys.length ? `DELETE FROM spmb_applications WHERE SubmissionKey IN (${keys.map(k=>"'"+k+"'").join(',')}) AND StudentName LIKE 'SPMB-TEST-%';\n` : '') + 'SELECT COUNT(*) AS remaining_synthetic_applicants FROM spmb_applications WHERE StudentName LIKE \'SPMB-TEST-%\';\n');
+  assert.ok(/^SPMB-TEST-[a-z0-9]+$/.test(tag));
+  writeFileSync('.verify-cms/spmb-test-cleanup.sql', 'USE cendekia_cms;\n' + (keys.length ? `DELETE FROM spmb_applications WHERE SubmissionKey IN (${keys.map(k=>"'"+k+"'").join(',')}) AND StudentName LIKE 'SPMB-TEST-%';\n` : '') + `DELETE FROM spmb_applications WHERE StudentName='${tag}-browser';\n` + 'SELECT COUNT(*) AS remaining_synthetic_applicants FROM spmb_applications WHERE StudentName LIKE \'SPMB-TEST-%\';\n');
 }

@@ -5,7 +5,7 @@ namespace Cendekia.Application.Services;
 
 public record PdfUpload(string FileName, byte[] Content);
 public record FileDownload(string FileName, byte[] Content);
-public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOfWork) : ApplicationService
+public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOfWork, IRegistrationFileOptimizer fileOptimizer) : ApplicationService
 {
     private static readonly string[] Subjects = ["Matematika", "Bahasa Indonesia", "Bahasa Inggris"];
     private static DateOnly Today() => DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
@@ -28,8 +28,11 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         await unitOfWork.SaveChangesAsync(); await transaction.CommitAsync();
         return ApiOk(View(row), "Informasi LMP disimpan.");
     }
-    public async Task<ServiceResult> Submit(LmpSubmissionRequest request, PdfUpload? document)
+    public async Task<ServiceResult> Submit(LmpSubmissionRequest request, PdfUpload? document, PaymentProofUpload? paymentProof, CancellationToken cancellationToken = default)
     {
+        var proofType = PaymentProofFiles.ContentType(paymentProof);
+        if (proofType is null) return ApiBadRequest("Bukti transfer wajib berupa JPG, PNG, atau PDF yang valid, maksimal 1 MB.");
+        if (string.IsNullOrWhiteSpace(request.TransferAccountName)) return ApiBadRequest("Nama pemilik rekening pengirim wajib diisi.");
         if (request.SubmissionKey == Guid.Empty || !request.Consent) return ApiBadRequest("Identitas pengiriman dan persetujuan wajib diisi.");
         if (request.Subjects.Count != 1 || request.Subjects.Any(s => !Subjects.Contains(s))) return ApiBadRequest("Pilih satu mata pelajaran.");
         byte[]? pdf = document?.Content;
@@ -37,6 +40,8 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
             if (pdf!.Length == 0 || pdf.Length > 2 * 1024 * 1024 || !Path.GetExtension(document.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase)) return ApiBadRequest("Berkas harus berupa PDF, maksimal 2 MB.");
             if (pdf.Length < 8 || !pdf.AsSpan(0, 5).SequenceEqual("%PDF-"u8)) return ApiBadRequest("Isi berkas bukan PDF yang valid.");
         }
+        var optimizedProof = await fileOptimizer.OptimizeAsync(new PaymentProofFile(proofType, paymentProof!.Content), cancellationToken);
+        if (optimizedProof is null) return ApiBadRequest("Bukti transfer gambar tidak dapat dibaca atau resolusinya terlalu besar. Unggah JPG/PNG yang valid dengan resolusi lebih kecil.");
         await using var transaction = await unitOfWork.BeginTransactionAsync();
         var settings = await repository.GetSettingsAsync(forUpdate: true); var c = settings.Config;
         var prior = await repository.Applications.FirstAsync(x => x.SubmissionKey == request.SubmissionKey);
@@ -48,6 +53,7 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         if (subject is null) return ApiBadRequest("Mata pelajaran tidak tersedia.");
         var eventVersion = await repository.GetOrCreateEventAsync(c);
         var entry = new LmpApplication {
+            PaymentProof = new LmpPaymentProof { AccountHolderName = request.TransferAccountName.Trim(), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, Event = eventVersion,
             StudentName = request.StudentName.Trim(), PreviousSchool = request.PreviousSchool.Trim(), Grade = request.Grade,
             SubjectId = subject.Id, ContactName = request.ContactName.Trim(), ContactPhone = request.ContactPhone,
@@ -61,28 +67,41 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
     private async Task<ServiceResult> Receipt(LmpApplication entry, LmpConfig config)
     {
         var subject = (await repository.Applications.SelectAsync(x => x.Subject.Name, x => x.Id == entry.Id)).Single();
+        var proof = await repository.GetPaymentProofInfoAsync(entry.Id);
         return ApiOk(new {
+            transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null,
             entry.RegistrationNumber, EventTitle = entry.Event.Title, entry.Event.CompetitionDate, entry.Event.FeeAmount,
             entry.StudentName, entry.PreviousSchool, entry.Grade, subjects = subject, entry.ContactName, entry.ContactPhone,
             entry.SubmittedAt, entry.PaymentStatus, hasDocument = await repository.HasDocumentAsync(entry.Id),
             config.AfterSubmit, config.WhatsappGroupUrl
         }, "Pendaftaran berhasil diterima.");
     }
-    public async Task<ServiceResult> List(string? search, string? subject, int? grade, string? status, string? payment, int page = 1, int limit = 10)
-    {
-        page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);
-        System.Linq.Expressions.Expression<Func<LmpApplication, bool>> filter = x =>
+    private static System.Linq.Expressions.Expression<Func<LmpApplication, bool>> ApplicantFilter(string? search, string? subject, int? grade, string? status, string? payment) => x =>
             (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.PreviousSchool.Contains(search) || x.RegistrationNumber.Contains(search)) &&
             (string.IsNullOrEmpty(subject) || x.Subject.Name == subject) && (!grade.HasValue || x.Grade == grade) &&
             (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrEmpty(payment) || x.PaymentStatus == payment);
+    public async Task<ApplicantReport> Export(string? search, string? subject, int? grade, string? status, string? payment, CancellationToken cancellationToken = default)
+    {
+        var items = await repository.Applications.SelectAsync(x => new { x.RegistrationNumber, EventTitle = x.Event.Title, x.StudentName, x.PreviousSchool, x.Grade, Subject = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, x.Status, x.PaymentStatus, x.SubmittedAt }, ApplicantFilter(search, subject, grade, status, payment), x => x.Id, descending: true, cancellationToken: cancellationToken);
+        return new ApplicantReport(ApplicantReport.FileNameFor("lmp"), "Pendaftar LMP",
+            ["Nomor pendaftaran", "Acara", "Nama peserta", "Asal sekolah", "Kelas", "Mata pelajaran", "Orang tua / pendamping", "WhatsApp", "Biaya (Rp)", "Status pendaftaran", "Status pembayaran", "Waktu submit (WIB)"],
+            items.Select(x => new string[] { x.RegistrationNumber, x.EventTitle, x.StudentName, x.PreviousSchool, x.Grade.ToString(), x.Subject, x.ContactName, x.ContactPhone, x.FeeAmount.ToString(System.Globalization.CultureInfo.InvariantCulture), x.Status, x.PaymentStatus, ApplicantReport.Wib(x.SubmittedAt) }).ToList(),
+            $"Mata pelajaran: {ApplicantReport.FilterValue(subject, "Semua mata pelajaran")}   |   Kelas: {(grade.HasValue ? grade.Value.ToString() : "Semua kelas")}",
+            $"Status: {ApplicantReport.FilterValue(status, "Semua status")}   |   Pembayaran: {ApplicantReport.FilterValue(payment, "Semua pembayaran")}   |   Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
+    }
+    public async Task<ServiceResult> List(string? search, string? subject, int? grade, string? status, string? payment, int page = 1, int limit = 10)
+    {
+        page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);
+        var filter = ApplicantFilter(search, subject, grade, status, payment);
         var total = await repository.Applications.CountAsync(filter);
         var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.Status, x.PaymentStatus, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page-1)*limit, take: limit);
         return ApiOk(new { items, total });
     }
     public async Task<ServiceResult> Detail(int id)
     {
+        var proof = await repository.GetPaymentProofInfoAsync(id);
         var x = await repository.Applications.FirstAsync(x => x.Id == id);
-        return x is null ? ApiNotFound() : ApiOk(new { x.Id, x.RegistrationNumber, EventTitle = x.Event.Title, x.Event.CompetitionDate, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, hasDocument = await repository.HasDocumentAsync(id), x.Status, x.PaymentStatus, x.SubmittedAt, x.Version });
+        return x is null ? ApiNotFound() : ApiOk(new { x.Id, x.RegistrationNumber, transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null, EventTitle = x.Event.Title, x.Event.CompetitionDate, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, hasDocument = await repository.HasDocumentAsync(id), x.Status, x.PaymentStatus, x.SubmittedAt, x.Version });
     }
     public async Task<ServiceResult> Document(int id)
     {
@@ -90,6 +109,13 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         if (entry is null) return ApiNotFound();
         var bytes = await repository.GetDocumentAsync(id);
         return bytes is null ? ApiNotFound() : ApiOk(new FileDownload($"{entry.RegistrationNumber}.pdf", bytes));
+    }
+    public async Task<ServiceResult> PaymentProof(int id)
+    {
+        var entry = await repository.Applications.FirstAsync(x => x.Id == id);
+        if (entry is null) return ApiNotFound();
+        var proof = await repository.GetPaymentProofFileAsync(id);
+        return proof is null ? ApiNotFound("Bukti transfer belum tersedia untuk pendaftar ini.") : ApiOk(new PaymentProofDownload($"{entry.RegistrationNumber}-bukti-transfer{PaymentProofFiles.Extension(proof.ContentType)}", proof.ContentType, proof.Content));
     }
     public async Task<ServiceResult> Status(int id, LmpStatusRequest request)
     {

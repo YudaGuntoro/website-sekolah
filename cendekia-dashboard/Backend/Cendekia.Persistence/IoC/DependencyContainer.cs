@@ -18,6 +18,7 @@ public static class DependencyContainer
         services.AddScoped<IContentRepository, ContentRepository>();
         services.AddScoped<ISpmbRepository, SpmbRepository>();
         services.AddScoped<ILmpRepository, LmpRepository>();
+        services.AddSingleton<IRegistrationFileOptimizer, RegistrationFileOptimizer>();
         services.AddScoped<IPasswordHasher, PasswordHasherAdapter>();
         services.AddScoped<ContentService>(); services.AddScoped<WebsiteSettingsService>();
         services.AddScoped<HomepageImagesService>(); services.AddScoped<SchoolIdentityService>();

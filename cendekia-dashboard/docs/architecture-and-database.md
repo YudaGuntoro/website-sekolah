@@ -101,6 +101,7 @@ node scripts/check-homepage-images.mjs
 node scripts/check-school-identity.mjs
 node scripts/check-spmb-information.mjs
 node scripts/check-lmp.mjs
+node scripts/check-payment-proofs.mjs
 $env:SPMB_ALLOW_TEST_SETUP = '1'
 node scripts/check-spmb.mjs
 node scripts/check-social-feeds.mjs
@@ -125,3 +126,29 @@ Verifikasi v2 mencakup fingerprint seluruh riwayat sebelum/sesudah, migrasi ulan
 Upgrade lokal: backup dengan `scripts/Backup-LocalDatabase.ps1`, lalu jalankan `scripts/init-local-db.ps1 -NormalizeOnly`; runner menyertakan migrasi idempoten `20261107_spmb_wave_groups.sql`. Tidak ada tautan grup yang diisi otomatis.
 
 SPMB memakai satu sakelar global `spmb_settings.Enabled`. Gelombang otomatis ditentukan oleh rentang tanggal lengkap (inklusif WIB); kedua tanggal kosong berarti belum dijadwalkan. Flag per gelombang tidak diterima/dipakai oleh API dan tidak tampil di admin. Kolom legacy `spmb_waves.Enabled` tetap dipertahankan untuk kompatibilitas constraint database dan diturunkan dari kelengkapan tanggal saat menyimpan.
+
+## Bukti transfer pendaftaran SPMB dan LMP
+
+Pendaftaran baru wajib menyertakan `TransferAccountName` (nama pemilik rekening pengirim, maksimal 150 karakter) dan berkas multipart `paymentProof` (JPG/JPEG, PNG, atau PDF; maksimal 1 MB). Pemeriksaan ekstensi dan signature berkas dilakukan pada Application service; nama dan bukti harus lengkap. Pengunggahan tidak otomatis mengubah status pembayaran atau penerimaan. Retry dengan SubmissionKey yang sama tetap mengembalikan data tersimpan.
+
+Tabel `spmb_payment_proofs` dan `lmp_payment_proofs` berelasi satu-ke-satu ke pendaftaran melalui PK/FK `ApplicationId` dengan ON DELETE CASCADE. Nama rekening merupakan metadata bukti transfer, tidak disalin ke baris pendaftar. BLOB tidak di-auto-include; repository memisahkan pembacaan metadata dan konten berkas. Pendaftaran lama tetap valid tanpa baris bukti transfer. Detail staf menampilkan nama rekening dan ketersediaan bukti; konten hanya diunduh melalui endpoint staf `/api/{spmb|lmp}/applications/{id}/payment-proof`, dengan Content-Disposition attachment, no-store dan nosniff. Tidak ada URL berkas publik.
+
+SPMB beralih ke multipart/form-data. LMP tetap memiliki berkas persyaratan PDF terpisah dari bukti transfer; bukti transfer maksimal 1 MB dan PDF persyaratan maksimal 2 MB. Batas total LMP/backend/reverse proxy menjadi sekitar 4,4 MB, SPMB 2,2 MB. Contoh Nginx telah diperbarui; sesuaikan `client_max_body_size 4400k` pada server untuk LMP dua berkas sebelum reload Nginx.
+
+Upgrade: backup database, jalankan migrasi idempoten `database/migrations/20261108_registration_payment_proofs.sql` (juga disertakan runner `scripts/init-local-db.ps1 -NormalizeOnly`), lalu gunakan backend dan kedua frontend terbaru secara bersamaan. Tidak ada data pendaftar lama atau status pembayaran yang diubah migrasi ini.
+
+### Optimasi ukuran bukti transfer gambar
+
+Application memanggil kontrak `IRegistrationFileOptimizer`; implementasi SkiaSharp berada di Persistence. Optimasi dilakukan sebelum transaksi/row lock pendaftaran. JPG/PNG divalidasi melalui decoder, dikoreksi orientasi EXIF, diperkecil maksimal sisi panjang 2400 px, lalu dicoba JPEG kualitas 82 (78 bila masih di atas target 350 KB). Target bukan batas mutlak: kualitas teks tetap diprioritaskan. Hanya hasil yang lebih kecil dari unggahan yang disimpan; MIME dan ekstensi unduhan mengikuti hasil aktual. PNG kecil bisa tetap PNG. PDF bukti transfer dan PDF persyaratan LMP tidak ditulis ulang agar isi/tanda tangan tetap utuh.
+
+Singleton semaphore membatasi satu kompresi gambar per proses API. Header dimensi diperiksa sebelum alokasi piksel, JPEG didekode dengan ukuran tersampel, dan buffer native dibuang setelah selesai. Maksimum piksel decode 12 juta; gambar yang tidak terbaca atau melebihi batas ditolak dengan pesan untuk mengecilkan resolusi. Cancellation request diteruskan saat menunggu giliran. Batas upload bukti transfer 1 MB tetap berlaku. Tidak ada migrasi SQL tambahan atau kompresi ulang otomatis terhadap data lama.
+
+Uji `node scripts/check-file-optimizer.mjs` mencakup pengurangan ukuran JPEG nyata, PNG kecil, orientasi EXIF, PDF tidak berubah, penolakan gambar rusak/dimensi berlebihan, permintaan bersamaan, dan cancellation. Artefak fixture/harness tetap di `.verify-cms`.
+
+### Laporan pendaftar XLSX
+
+Dashboard SPMB/LMP menyediakan **Export XLSX** di bawah tombol pengaturan. Endpoint staf `GET /api/{spmb|lmp}/applications/export` memakai filter yang sama dengan daftar: SPMB `year/wave/status/search`; LMP `subject/grade/status/payment/search`. Ekspor selalu mencakup seluruh hasil filter, tidak dibatasi pagination layar, dan urutan terbaru tetap sama dengan daftar. Filter expression dipakai bersama dalam Application service; repository melakukan proyeksi data tanpa mengambil BLOB bukti transfer/dokumen.
+
+Workbook dibuat di WebAPI melalui ClosedXML 0.105.1 (`Reports/XlsxReportWriter.cs`); Application tetap hanya menyusun data laporan melalui repository. Bagian atas memuat judul berlatar navy, jumlah pendaftar, waktu ekspor WIB, dan ringkasan filter/pencarian tanpa kop atau logo. Tabel mulai baris 6 dengan nomor urut, header biru, warna baris berselang, penekanan nama/nomor pendaftaran, warna status, tinggi baris sesuai isi, freeze hingga header, auto-filter dan lebar kolom. Cetak landscape satu halaman lebar, header tabel diulang di setiap halaman, serta footer nomor halaman tersedia. Identitas/kontak, status, tahun/gelombang SPMB atau acara/mapel/biaya LMP disertakan; waktu ditampilkan dalam WIB. Sel data disimpan sebagai teks sehingga NISN/telepon mempertahankan nol depan dan isian yang diawali `=` tidak menjadi formula. Download dilindungi role staf yang sama dengan daftar, `no-store`, dan `nosniff`; berkas bukti transfer tidak diekspor. Tidak ada perubahan SQL.
+
+Verifikasi `node scripts/check-applicant-exports.mjs` memerlukan Python untuk memeriksa struktur ZIP/XML workbook dan membandingkan semua baris dengan hasil filter API. Kasus tanpa hasil tetap menghasilkan file dengan header.

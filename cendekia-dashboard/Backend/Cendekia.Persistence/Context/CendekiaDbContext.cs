@@ -43,6 +43,16 @@ public class CendekiaDbContext : DbContext
         modelBuilder.Entity<SpmbInformationStepRecord>(e => { e.ToTable("spmb_information_steps"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.Position }).IsUnique(); });
         modelBuilder.Entity<SpmbDocumentRequirement>(e => { e.ToTable("spmb_document_requirements"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.ApplicantType, x.Position }).IsUnique(); });
         modelBuilder.Entity<LmpSubject>(e => { e.ToTable("lmp_subjects"); e.HasKey(x => x.Id); e.HasIndex(x => x.Code).IsUnique(); e.HasIndex(x => x.Name).IsUnique(); });
+        modelBuilder.Entity<SpmbPaymentProof>(e => {
+            e.ToTable("spmb_payment_proofs"); e.HasKey(x => x.ApplicationId);
+            e.Property(x => x.Content).HasColumnType("mediumblob");
+            e.HasOne<SpmbApplication>().WithOne(x => x.PaymentProof).HasForeignKey<SpmbPaymentProof>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<LmpPaymentProof>(e => {
+            e.ToTable("lmp_payment_proofs"); e.HasKey(x => x.ApplicationId);
+            e.Property(x => x.Content).HasColumnType("mediumblob");
+            e.HasOne<LmpApplication>().WithOne(x => x.PaymentProof).HasForeignKey<LmpPaymentProof>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        });
         modelBuilder.Entity<LmpDocument>(e => { e.ToTable("lmp_application_documents"); e.HasKey(x => x.ApplicationId); e.Property(x => x.Content).HasColumnType("mediumblob"); });
 
         modelBuilder.Entity<LmpSettings>(entity => {

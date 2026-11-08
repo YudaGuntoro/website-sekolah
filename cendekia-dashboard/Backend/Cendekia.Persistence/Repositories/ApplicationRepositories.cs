@@ -57,6 +57,8 @@ public sealed class ApplicationUnitOfWork(CendekiaDbContext db) : IApplicationUn
 }
 public sealed class SpmbRepository(CendekiaDbContext db) : ISpmbRepository
 {
+    public Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId) => db.Set<SpmbPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofInfo(x.AccountHolderName)).SingleOrDefaultAsync();
+    public Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId) => db.Set<SpmbPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofFile(x.ContentType, x.Content)).SingleOrDefaultAsync();
     public IEntityRepository<SpmbWaveGroup> Groups { get; } = new EntityRepository<SpmbWaveGroup>(db);
     public async Task EnsureAcademicYearAsync(string year) {
         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Creating years requires a settings transaction.");
@@ -83,6 +85,8 @@ public sealed class SpmbRepository(CendekiaDbContext db) : ISpmbRepository
 }
 public sealed class LmpRepository(CendekiaDbContext db) : ILmpRepository
 {
+    public Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId) => db.Set<LmpPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofInfo(x.AccountHolderName)).SingleOrDefaultAsync();
+    public Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId) => db.Set<LmpPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofFile(x.ContentType, x.Content)).SingleOrDefaultAsync();
     public async Task<LmpEvent> GetOrCreateEventAsync(LmpConfig config) {
         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Creating events requires a settings transaction.");
         var existing = await db.Set<LmpEvent>().SingleOrDefaultAsync(x => x.Title == config.Title && x.CompetitionDate == config.CompetitionDate && x.FeeAmount == config.FeeAmount);
