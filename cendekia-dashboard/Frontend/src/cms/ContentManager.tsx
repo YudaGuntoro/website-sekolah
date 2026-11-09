@@ -1,12 +1,11 @@
 "use client";
 import { Skeleton, TableSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
+import { apiDelete, apiGet, apiPost, apiPut, apiRequest } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 import { getStoredUser } from "@/lib/auth";
 import { CloseIcon } from "@/icons";
 import RowActions from "@/components/common/RowActions";
-import ImageCompressionNotice from "@/components/common/ImageCompressionNotice";
 import { ConfirmModal } from "@/components/ui/modal/ConfirmModal";
 import { collections, CollectionKey, ContentEntry, formatDate, slugify, websiteUrl } from "./collections";
 type EditorForm = Pick<ContentEntry, "title" | "slug" | "category" | "summary" | "body" | "imageUrl" | "postUrl" | "status" | "sortOrder" | "version">;
@@ -27,10 +26,18 @@ export default function ContentManager({ collection }: { collection: CollectionK
   const [editing, setEditing] = useState<ContentEntry | "new" | null>(null);
   const [form, setForm] = useState<EditorForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  useEffect(() => {
+    if (!photo) { setPreview(""); return; }
+    const url = URL.createObjectURL(photo); setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
   const [deleteTarget, setDeleteTarget] = useState<ContentEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [editorError, setEditorError] = useState("");
   const [canEdit, setCanEdit] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -40,7 +47,7 @@ export default function ContentManager({ collection }: { collection: CollectionK
   }, [collection]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { setCanEdit(["ADMIN", "SUPERVISOR", "OPERATOR"].includes(getStoredUser()?.role || "")); }, []);
-  const open = (entry?: ContentEntry) => { if (!canEdit) return; setEditorError(""); setEditing(entry || "new"); setForm(entry ? { ...entry } : emptyForm()); dialog.current?.showModal(); };
+  const open = (entry?: ContentEntry) => { if (!canEdit) return; setEditorError(""); setEditing(entry || "new"); setPhoto(null); setForm(entry ? { ...entry } : emptyForm()); dialog.current?.showModal(); };
   const close = () => { if (!saving) { dialog.current?.close(); setEditing(null); } };
   const change = <K extends keyof EditorForm>(key: K, value: EditorForm[K]) => setForm(prev => ({ ...prev, [key]: value }));
   const save = async (event: FormEvent<HTMLFormElement>) => {
@@ -49,10 +56,17 @@ export default function ContentManager({ collection }: { collection: CollectionK
     const title = form.title || `Postingan ${platform} ${postKey}`;
     const payload = { ...form, ...(isSocial ? { title, slug: form.slug || slugify(`${collection}-${postKey}`), postUrl: form.postUrl.trim(), imageUrl: "" } : {}), publishedAt: editing && editing !== "new" ? editing.publishedAt : null };
     try {
-      if (editing && editing !== "new") await apiPut(`/api/cms/content/${collection}/${editing.id}`, payload);
+      if (photo && !isSocial) {
+        if (photo.size > 2 * 1024 * 1024 || !/\.(jpe?g|png)$/i.test(photo.name)) throw new Error("Foto harus JPG/PNG maksimal 2 MB.");
+        const multipart = new FormData();
+        for (const [key, value] of Object.entries(payload)) if (value !== null && value !== undefined) multipart.set(key, String(value));
+        multipart.set("photo", photo);
+        await apiRequest(`/api/cms/content/${collection}${editing && editing !== "new" ? `/${editing.id}` : ""}`, { method: editing && editing !== "new" ? "PUT" : "POST", body: multipart });
+      }
+      else if (editing && editing !== "new") await apiPut(`/api/cms/content/${collection}/${editing.id}`, payload);
       else await apiPost(`/api/cms/content/${collection}`, payload);
       if (editing === "new") { setPage(1); setSearch(""); setStatus("all"); }
-      dialog.current?.close(); setEditing(null);
+      dialog.current?.close(); setEditing(null); setPhoto(null);
       toast.success({ message: form.status === "Published" ? "Konten diterbitkan ke website." : "Draf berhasil disimpan." }); await load();
     } catch (err) { setEditorError(err instanceof Error ? err.message : "Gagal menyimpan konten."); }
     finally { setSaving(false); }
@@ -86,8 +100,15 @@ export default function ContentManager({ collection }: { collection: CollectionK
         {isSocial && <label>Judul kartu<input maxLength={200} placeholder="Contoh: Momen seru di Cendekia" value={form.title} onChange={e => change("title", e.target.value)} /><small>Opsional. Gunakan judul singkat untuk kartu website.</small></label>}
         {!isGreeting && <label>Ringkasan<textarea rows={3} maxLength={1000} value={form.summary} onChange={e => change("summary", e.target.value)} /><small>Deskripsi singkat pada kartu website.</small></label>}
         {!isSocial && <label>{config.body}<textarea rows={9} maxLength={100000} value={form.body} onChange={e => change("body", e.target.value)} /><small>{isGreeting ? "Pisahkan paragraf dengan baris kosong. Dua paragraf pertama tampil sebagai pembuka, sisanya melalui tombol Baca sambutan lengkap." : "Pisahkan paragraf dengan baris kosong."}</small></label>}
-        {!isSocial && <><label>{isGreeting ? "URL foto kepala sekolah" : "URL gambar / foto"}<input maxLength={500} placeholder="https://… atau /images/…" value={form.imageUrl} onChange={e => change("imageUrl", e.target.value)} /><small>Gunakan gambar yang sudah dihosting atau path gambar website sekolah.</small></label>
-        <ImageCompressionNotice /></>}
+        {!isSocial && <section className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+          <label>{isGreeting ? "Upload foto kepala sekolah" : "Upload gambar / foto"}<input key={editing === "new" ? "new" : editing?.id} ref={photoInput} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={event => {
+            const file = event.target.files?.[0] || null;
+            if (file && (file.size > 2 * 1024 * 1024 || !/\.(jpe?g|png)$/i.test(file.name))) { setEditorError("Foto harus JPG/PNG maksimal 2 MB."); event.target.value = ""; setPhoto(null); return; }
+            setEditorError(""); setPhoto(file);
+          }} /><small>JPG atau PNG maksimal 2 MB. Foto dikompres otomatis sebelum disimpan ke database.</small></label>
+          {(preview || form.imageUrl) && <div><img src={preview || form.imageUrl} alt="Pratinjau foto konten" className="max-h-52 max-w-full rounded-lg object-contain" /><button type="button" className="mt-2 text-sm font-medium text-rose-600" onClick={() => { setPhoto(null); if (photoInput.current) photoInput.current.value = ""; change("imageUrl", ""); }}>Hapus foto</button></div>}
+          <details><summary className="cursor-pointer text-sm font-medium">Gunakan URL gambar yang sudah tersedia</summary><label className="mt-3">{isGreeting ? "URL foto kepala sekolah" : "URL gambar / foto"}<input maxLength={500} placeholder="https://... atau /images/..." value={form.imageUrl} onChange={event => { setPhoto(null); if (photoInput.current) photoInput.current.value = ""; change("imageUrl", event.target.value); }} /><small>{photo ? "Foto unggahan akan digunakan saat konten disimpan." : "Opsional. Isi untuk menggunakan gambar dari URL atau gambar bawaan website."}</small></label></details>
+        </section>}
         <div className="cms-form-grid"><label>Status<select value={form.status} onChange={e => change("status", e.target.value as EditorForm["status"])}><option value="Draft">Draf</option><option value="Published">Terbit</option></select></label></div>
       </div><footer><button className="cms-button-secondary" type="button" onClick={close} disabled={saving}>Batal</button><button className="cms-button" disabled={saving}>{saving ? "Menyimpan…" : form.status === "Published" ? "Simpan & terbitkan" : "Simpan draf"}</button></footer>
     </form></dialog>

@@ -188,3 +188,19 @@ Data profil tambahan disimpan di `spmb_applicant_profiles` (PK/FK ApplicationId,
 Tinggi/berat dibatasi satu angka desimal, disimpan DECIMAL(5,1); binder decimal multipart membaca format invariant HTML (titik desimal) tanpa mengikuti locale server. API menolak angka di luar batas dan enum yang tidak dikenali. Receipt menampilkan ringkasan tambahan, detail admin menampilkan profil, dan XLSX menyertakan kolom tambahan. Laporan dengan lebih dari 24 kolom dicetak dua halaman lebar dengan nomor urut/pendaftaran diulang, agar teks lebih terbaca.
 
 Backup lalu jalankan `database/migrations/20261109_spmb_applicant_profiles.sql` (runner NormalizeOnly juga menyertakannya). Deploy backend/public/admin bersama; data lama dan status pendaftaran tidak ditulis ulang. Upload PDF persyaratan dan bukti transfer tetap masing-masing maksimal 1 MiB sesuai pengaturan sebelumnya. Verifikasi `check-spmb.mjs` mencakup validasi profil/decimal, persistensi, pengiriman web dan detail dashboard; fixture tes ada di `scripts/lib/spmb-profile-fixture.mjs`.
+
+### Embed profil TikTok pada beranda
+
+Bagian TikTok di beranda memakai creator profile embed resmi untuk `https://www.tiktok.com/@smpitcendekiapurwakarta` melalui `TikTokProfile.tsx`, dengan bingkai yang mengikuti bagian Instagram. Script embed baru dimuat saat bagian mendekati viewport; container menyediakan skeleton, judul iframe, dan tombol menuju akun saat embed gagal. Script yang sudah dimuat dapat memproses markup baru ketika navigasi kembali ke beranda. Konten profil/video berasal langsung dari TikTok, bukan thumbnail koleksi CMS.
+
+Koleksi CMS `tiktok` dan halaman `/tiktok` tetap tersedia untuk daftar postingan editorial; beranda tidak lagi meminta koleksi tersebut. Tidak ada perubahan SQL atau dependensi package. Verifikasi browser mencakup iframe creator asli, profil tujuan, layout desktop/390 px dan fallback saat script TikTok diblokir.
+
+### Foto konten disimpan di database
+
+Editor konten non-media-sosial menerima upload JPG/PNG maksimal 2 MiB. Backend memvalidasi signature dan decoding, membatasi resolusi/memori decode, memperbaiki orientasi EXIF, lalu mengecilkan foto hingga sisi 2400 px dengan kualitas 82/78. Target ukuran 350 KiB bersifat upaya optimasi, bukan jaminan; hasil hanya menggantikan berkas asli jika lebih kecil. Foto transparan mempertahankan alpha melalui WebP/PNG. Semaphore optimizer membatasi pemrosesan bitmap bersamaan. URL gambar lama tetap didukung; gambar eksternal tidak otomatis diunduh atau dimigrasikan.
+
+`school_content_images` menyimpan MIME dan BLOB hasil kompresi, direferensikan FK unik nullable `school_content.ImageId`. Daftar/admin/dashboard/publik hanya mengambil metadata dan URL `/api/school/images/{guid}`, tanpa BLOB atau base64. Penggantian/penghapusan foto menghapus BLOB lama dalam transaksi SaveChanges yang sama; konflik slug/version tidak meninggalkan foto yatim. Alur tetap controller → Application → repository/unit of work → Persistence.
+
+Endpoint gambar hanya melayani konten Published yang sudah mencapai tanggal terbit untuk publik; ADMIN/SUPERVISOR/OPERATOR dapat melihat foto draf. Proxy website publik hanya meneruskan endpoint tetap ini tanpa kredensial staf, dengan MIME allowlist dan `nosniff`. Respons gambar memakai no-store agar perubahan status tidak meninggalkan foto draf di cache publik.
+
+Backup database dan jalankan `database/migrations/20261109_school_content_images.sql` sebelum backend baru; runner `scripts/init-local-db.ps1 -NormalizeOnly` juga menyertakannya. Migrasi idempotent tidak mengubah URL atau konten lama. Verifikasi: `node scripts/check-file-optimizer.mjs` dan `node scripts/check-content-images.mjs` (API 5243, website 3000, akun admin lokal); tes membuat dan membersihkan konten sementara.

@@ -128,6 +128,13 @@ public sealed class LmpRepository(CendekiaDbContext db) : ILmpRepository
 }
 public sealed class ContentRepository(CendekiaDbContext db) : EntityRepository<SchoolContent>(db), IContentRepository
 {
+    public IEntityRepository<SchoolContentImage> Images { get; } = new EntityRepository<SchoolContentImage>(db);
+    public Task<ContentImageFile?> GetImageAsync(Guid id, bool includeDraft) {
+        var now = DateTime.UtcNow;
+        return Db.Set<SchoolContentImage>()
+            .Where(image => image.Id == id && Db.SchoolContents.Any(content => content.ImageId == image.Id && (includeDraft || (content.Status == "Published" && content.PublishedAt <= now))))
+            .Select(image => new ContentImageFile(image.ContentType, image.Content)).SingleOrDefaultAsync();
+    }
     public Task<List<ContentCount>> GetCountsAsync() => Db.SchoolContents.AsNoTracking().GroupBy(x => new { x.Collection, x.Status })
         .Select(g => new ContentCount(g.Key.Collection, g.Key.Status, g.Count())).ToListAsync();
 }

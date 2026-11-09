@@ -23,6 +23,17 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         finally { gate.Release(); }
     }
 
+    public async Task<ContentImageFile?> OptimizeContentImageAsync(string contentType, byte[] content, CancellationToken cancellationToken = default)
+    {
+        if (contentType is not ("image/jpeg" or "image/png")) return null;
+        await gate.WaitAsync(cancellationToken);
+        try {
+            var image = OptimizeImage(new PaymentProofFile(contentType, content), preserveTransparency: true);
+            return image is null ? null : new ContentImageFile(image.ContentType, image.Content);
+        }
+        finally { gate.Release(); }
+    }
+
     public async Task<CompressedPdf> CompressPdfAsync(byte[] content, CancellationToken cancellationToken = default)
     {
         if (content.Length is < 1 or > 1048576) throw new ArgumentOutOfRangeException(nameof(content));
@@ -39,7 +50,7 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         finally { gate.Release(); }
     }
 
-    private static PaymentProofFile? OptimizeImage(PaymentProofFile file)
+    private static PaymentProofFile? OptimizeImage(PaymentProofFile file, bool preserveTransparency = false)
     {
         using var data = SKData.CreateCopy(file.Content);
         using var codec = SKCodec.Create(data);
@@ -57,10 +68,11 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         var scale = Math.Min(1f, (float)MaxEdge / Math.Max(orientedWidth, orientedHeight));
         var width = Math.Max(1, (int)Math.Round(orientedWidth * scale));
         var height = Math.Max(1, (int)Math.Round(orientedHeight * scale));
-        using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Opaque));
+        var transparent = preserveTransparency && info.AlphaType != SKAlphaType.Opaque;
+        using var bitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, transparent ? SKAlphaType.Premul : SKAlphaType.Opaque));
         using (var canvas = new SKCanvas(bitmap))
         {
-            canvas.Clear(SKColors.White);
+            canvas.Clear(transparent ? SKColors.Transparent : SKColors.White);
             canvas.Scale((float)width / orientedWidth, (float)height / orientedHeight);
             Orient(canvas, codec.EncodedOrigin, source.Width, source.Height);
             using var image = SKImage.FromBitmap(source);
@@ -70,8 +82,8 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         var best = file;
         foreach (var quality in new[] { 82, 78 })
         {
-            using var encoded = output.Encode(SKEncodedImageFormat.Jpeg, quality);
-            if (encoded is not null && encoded.Size < best.Content.Length) best = new PaymentProofFile("image/jpeg", encoded.ToArray());
+            using var encoded = output.Encode(transparent ? SKEncodedImageFormat.Webp : SKEncodedImageFormat.Jpeg, quality);
+            if (encoded is not null && encoded.Size < best.Content.Length) best = new PaymentProofFile(transparent ? "image/webp" : "image/jpeg", encoded.ToArray());
             if (best.Content.Length <= TargetBytes) break;
         }
         return best;

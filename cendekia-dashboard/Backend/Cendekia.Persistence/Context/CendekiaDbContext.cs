@@ -167,9 +167,14 @@ public class CendekiaDbContext : DbContext
             entity.Property(x => x.UpdatedAt).HasConversion(value => value, value => DateTime.SpecifyKind(value, DateTimeKind.Utc));
         });
 
+        modelBuilder.Entity<SchoolContentImage>(entity => {
+            entity.ToTable("school_content_images"); entity.HasKey(x => x.Id);
+            entity.Property(x => x.Content).HasColumnType("mediumblob");
+        });
         modelBuilder.Entity<SchoolContent>(entity =>
         {
             entity.ToTable("school_content");
+            entity.HasOne(x => x.Image).WithOne().HasForeignKey<SchoolContent>(x => x.ImageId).OnDelete(DeleteBehavior.Restrict);
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => new { x.Collection, x.Slug }).IsUnique();
             entity.HasOne<SchoolContentCollection>().WithMany().HasForeignKey(x => x.Collection).OnDelete(DeleteBehavior.Restrict);

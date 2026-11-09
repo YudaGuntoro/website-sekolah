@@ -51,6 +51,8 @@ public interface ILmpRepository
 }
 public interface IContentRepository : IEntityRepository<SchoolContent>
 {
+    IEntityRepository<SchoolContentImage> Images { get; }
+    Task<ContentImageFile?> GetImageAsync(Guid id, bool includeDraft);
     Task<List<ContentCount>> GetCountsAsync();
 }
 public record ContentCount(string Collection, string Status, int Count);

@@ -49,6 +49,16 @@ uint crc=0xffffffff;for(int i=12;i<29;i++){crc^=huge[i];for(int bit=0;bit<8;bit+
 Check(await optimizer.OptimizeAsync(new PaymentProofFile("image/png",huge)) is null,"Huge dimensions must be rejected without decoding");
 await Task.WhenAll(Enumerable.Range(0,3).Select(_=>Task.Run(async()=>{var result=await optimizer.OptimizeAsync(original);Check(result!.Content.Length==optimized.Content.Length,"Concurrent optimizations must remain deterministic");})));
 using var canceled=new CancellationTokenSource();canceled.Cancel();try{await optimizer.OptimizeAsync(original,canceled.Token);throw new Exception("Canceled optimization ran");}catch(OperationCanceledException){}
+using(var transparent=new SKBitmap(new SKImageInfo(256,256,SKColorType.Rgba8888,SKAlphaType.Premul))) {
+ using(var canvas=new SKCanvas(transparent)){canvas.Clear(SKColors.Transparent);using var ink=new SKPaint{Color=new SKColor(20,100,180,128),IsAntialias=true};canvas.DrawCircle(128,128,80,ink);}
+ var encoded=Encode(transparent,SKEncodedImageFormat.Png,100);
+ File.WriteAllBytes(".verify-cms/file-optimizer/transparent-photo.png",encoded);
+ var result=await optimizer.OptimizeContentImageAsync("image/png",encoded);
+ Check(result is not null && result.Content.Length<=encoded.Length,"CMS PNG should not grow");
+ using var decodedPhoto=SKBitmap.Decode(result!.Content);Check(decodedPhoto.GetPixel(0,0).Alpha==0 && Math.Abs(decodedPhoto.GetPixel(128,128).Alpha-128)<=3,"CMS image transparency must survive compression");
+}
+var cmsJpeg=await optimizer.OptimizeContentImageAsync("image/jpeg",original.Content);Check(cmsJpeg is not null && cmsJpeg.ContentType=="image/jpeg" && cmsJpeg.Content.Length<original.Content.Length,"CMS JPEG should compress");
+Console.WriteLine("PASS: CMS photo compression and transparent PNG preservation.");
 var repeated="%PDF-1.4\n"u8.ToArray().Concat(Enumerable.Repeat((byte)32,100000)).ToArray();
 var packed=await optimizer.CompressPdfAsync(repeated);Check(packed.Compression=="br" && packed.Content.Length<repeated.Length,"PDF storage should compress repetitive bytes");
 using(var input=new MemoryStream(packed.Content))using(var brotli=new BrotliStream(input,CompressionMode.Decompress))using(var restored=new MemoryStream()){brotli.CopyTo(restored);Check(restored.ToArray().SequenceEqual(repeated),"PDF storage must roundtrip byte-for-byte");}

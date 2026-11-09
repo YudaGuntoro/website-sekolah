@@ -75,6 +75,7 @@ $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/m
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_application_documents.sql'))
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_document_notes.sql'))
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_applicant_profiles.sql'))
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_school_content_images.sql'))
 $sqlBytes = [System.Text.Encoding]::UTF8.GetBytes($sql)
 $mysqlProcess.StandardInput.BaseStream.Write($sqlBytes, 0, $sqlBytes.Length)
 $mysqlProcess.StandardInput.Close()
