@@ -186,7 +186,6 @@ export default async function Home() {
   const { announcements, achievements, schoolNews, staff } = await getSchoolContent()
   const cmsPrograms = await getCmsCollection('program')
   const cmsFacilities = await getCmsCollection('fasilitas')
-  const tiktokPosts = await getCmsCollection('tiktok')
   const visiblePrograms = cmsPrograms === null ? programs.map(e => ({ ...e, imageUrl: '' })) : cmsPrograms.map((e, index) => ({ title: e.title, text: [e.summary, e.body !== e.summary ? e.body : ''].filter(Boolean).join('\n\n'), imageUrl: e.imageUrl, image: programs[index % programs.length].image, alt: e.title }))
   const visibleFacilities = cmsFacilities === null ? facilities : cmsFacilities.map((e, index) => ({ title: e.title, detail: [e.summary, e.body !== e.summary ? e.body : ''].filter(Boolean).join('\n\n'), icon: facilities[index % facilities.length].icon, tone: facilities[index % facilities.length].tone }))
   return (
@@ -362,7 +361,7 @@ export default async function Home() {
       </section>
 
       <SocialFeed platform='instagram' />
-      <SocialFeed platform='tiktok' entries={tiktokPosts ?? []} />
+      <SocialFeed platform='tiktok' />
 
       <section id='guru' className='bg-[#f7f9fc] pb-6 pt-8 sm:pb-8 sm:pt-16'>
         <div className='mx-auto max-w-6xl px-5 sm:px-8 lg:px-10'>
