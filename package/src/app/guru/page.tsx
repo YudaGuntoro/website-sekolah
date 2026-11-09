@@ -25,7 +25,7 @@ export default async function GuruPage() {
             </div>
             <div className='border-l-2 border-sky-300 py-1 pl-5 sm:pl-6'>
               <p className='font-bold leading-6 text-school-navy'>SMPIT Cendekia berada di bawah naungan Yayasan YASRI Purwakarta.</p>
-              <p className='mt-3 text-sm leading-7 text-slate-600 sm:text-base'>Kenali pimpinan dan para guru yang mendampingi proses belajar serta pengembangan karakter siswa.</p>
+              <p className='mt-3 text-sm leading-7 text-slate-600 sm:text-base'>Kenali pimpinan dan para guru yang mendampingi proses belajar serta pengembangan karakter murid.</p>
               <Link href='/#guru' className='mt-4 inline-flex items-center gap-2 text-sm font-bold text-school-blue transition hover:text-school-navy'>Kembali ke beranda <span aria-hidden='true'>↗</span></Link>
             </div>
           </div>

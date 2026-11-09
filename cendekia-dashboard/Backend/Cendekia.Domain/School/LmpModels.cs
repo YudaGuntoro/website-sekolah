@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Cendekia.Domain.School;
 
 public class LmpSettings
 {
+    public List<LmpInformationStepRecord> StepRecords { get; set; } = [];
     public int Id { get; set; } = 1;
     public LmpConfig Config { get; set; } = new();
     public int Version { get; set; } = 1;
@@ -11,6 +13,7 @@ public class LmpSettings
 
 public class LmpConfig
 {
+    [NotMapped, Required, MinLength(1), MaxLength(20)] public List<LmpInformationStep> Steps { get; set; } = [];
     [Required, MaxLength(150)] public string Title { get; set; } = "Lomba Mata Pelajaran";
     [Required, MaxLength(1000)] public string Introduction { get; set; } = "Lomba mata pelajaran untuk siswa kelas 5 dan 6 SD di SMPIT Cendekia Purwakarta.";
     public bool Enabled { get; set; }
@@ -92,4 +95,22 @@ public class LmpStatusRequest
     [Required, RegularExpression("^(Baru|Diproses|Terverifikasi|Dibatalkan)$")] public string Status { get; set; } = "Baru";
     [Required, RegularExpression("^(Belum bayar|Lunas)$")] public string PaymentStatus { get; set; } = "Belum bayar";
     public int Version { get; set; }
+}
+
+public class LmpInformationStep
+{
+    [Required, MaxLength(150)] public string Title { get; set; } = "";
+    [MaxLength(3000)] public string Description { get; set; } = "";
+    [Required, RegularExpression("^(register|folder|payment|test|check|book)$")] public string Icon { get; set; } = "register";
+    public bool ShowPayment { get; set; }
+}
+public class LmpInformationStepRecord
+{
+    public int Id { get; set; }
+    public int SettingsId { get; set; }
+    public int Position { get; set; }
+    [MaxLength(150)] public string Title { get; set; } = "";
+    [MaxLength(3000)] public string Description { get; set; } = "";
+    [MaxLength(20)] public string Icon { get; set; } = "register";
+    public bool ShowPayment { get; set; }
 }

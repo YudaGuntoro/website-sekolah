@@ -1,5 +1,5 @@
 {
-  "introduction": "Syarat dan alur pendaftaran siswa baru serta murid pindahan.",
+  "introduction": "Syarat dan alur pendaftaran murid baru serta murid pindahan.",
   "steps": [
     {
       "title": "Daftar online",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Pengumuman & registrasi",
-      "description": "Pengumuman hasil tes; calon siswa yang diterima membayar biaya masuk/registrasi.",
+      "description": "Pengumuman hasil tes; calon murid yang diterima membayar biaya masuk/registrasi.",
       "icon": "check",
       "showPayment": false
     }
@@ -50,5 +50,6 @@
     "Surat kelakuan baik dari sekolah",
     "Kartu NISN"
   ],
-  "brochureUrl": "/brosur-ppdb.pdf"
+  "brochureUrl": "/brosur-ppdb.pdf",
+  "documentNotes": "Berkas persyaratan dibawa pada saat daftar ulang."
 }

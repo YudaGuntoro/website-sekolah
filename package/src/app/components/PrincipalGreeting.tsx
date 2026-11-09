@@ -4,7 +4,7 @@ import { getCmsCollection } from '../cms-content'
 // Standalone preview only; a configured CMS is authoritative, including empty/draft content.
 const preview = {
   title: 'Nama Kepala Sekolah', category: 'Kepala Sekolah SMPIT Cendekia', imageUrl: '/images/mentor/girl1.svg',
-  body: 'Assalamu’alaikum warahmatullahi wabarakatuh.\n\nSelamat datang di website resmi SMPIT Cendekia Purwakarta. Semoga website ini menjadi jendela informasi dan komunikasi bagi siswa, orang tua, alumni, serta seluruh masyarakat.\n\nKami berkomitmen mendampingi setiap anak agar tumbuh dalam ilmu, akhlak, dan kepedulian. Mari berkolaborasi menciptakan pengalaman belajar yang bermakna dan mempersiapkan generasi yang bermanfaat.\n\nKami mengajak seluruh keluarga besar SMPIT Cendekia untuk terus menjaga semangat belajar, menghargai perbedaan, dan mendukung potensi setiap peserta didik. Terima kasih telah menjadi bagian dari perjalanan pendidikan ini.',
+  body: 'Assalamu’alaikum warahmatullahi wabarakatuh.\n\nSelamat datang di website resmi SMPIT Cendekia Purwakarta. Semoga website ini menjadi jendela informasi dan komunikasi bagi murid, orang tua, alumni, serta seluruh masyarakat.\n\nKami berkomitmen mendampingi setiap anak agar tumbuh dalam ilmu, akhlak, dan kepedulian. Mari berkolaborasi menciptakan pengalaman belajar yang bermakna dan mempersiapkan generasi yang bermanfaat.\n\nKami mengajak seluruh keluarga besar SMPIT Cendekia untuk terus menjaga semangat belajar, menghargai perbedaan, dan mendukung potensi setiap peserta didik. Terima kasih telah menjadi bagian dari perjalanan pendidikan ini.',
 }
 
 export default async function PrincipalGreeting() {

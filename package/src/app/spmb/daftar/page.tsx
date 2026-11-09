@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import SpmbRegistrationForm from '@/app/components/SpmbRegistrationForm'
 
-export const metadata: Metadata = { title: 'Formulir Pendaftaran SPMB', description: 'Pendaftaran calon siswa SMPIT Cendekia Purwakarta.' }
+export const metadata: Metadata = { title: 'Formulir Pendaftaran SPMB', description: 'Pendaftaran calon murid SMPIT Cendekia Purwakarta.' }
 
 export default function SpmbRegistrationPage() {
   return <main className='bg-[#f5f7fa] pb-14 sm:pb-20'>
@@ -13,7 +13,7 @@ export default function SpmbRegistrationPage() {
             <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>SPMB · SMPIT Cendekia Purwakarta</p>
             <h1 className='mt-4 max-w-2xl text-4xl font-black leading-[1.06] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Formulir <span className='text-school-blue'>pendaftaran.</span></h1>
           </div>
-          <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Lengkapi data calon siswa dan orang tua / wali sesuai dokumen. Pendaftaran dapat dikirim pada jadwal gelombang yang sedang dibuka.</p>
+          <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Lengkapi data calon murid dan orang tua / wali sesuai dokumen. Pendaftaran dapat dikirim pada jadwal gelombang yang sedang dibuka.</p>
         </div>
       </div>
     </section>

@@ -27,7 +27,7 @@ public static class ServiceRegistration
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddApiSecurity(configuration, environment, jwtSettings);
 
-        services.AddControllers()
+        services.AddControllers(options => options.ModelBinderProviders.Insert(0, new Cendekia.WebAPI.Binding.InvariantDecimalModelBinderProvider()))
             .ConfigureApplicationPartManager(manager => manager.FeatureProviders.Add(new CmsControllerFeatureProvider()))
             .AddJsonOptions(options =>
             {

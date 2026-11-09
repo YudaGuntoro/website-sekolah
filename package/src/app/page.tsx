@@ -42,7 +42,7 @@ const programs = [
 const facilities = [
   { icon: '▤', title: 'Ruang belajar nyaman', tone: 'bg-sky-100 text-sky-800', detail: 'Ruang yang mendukung fokus, diskusi, dan kolaborasi.' },
   { icon: '⌕', title: 'Perpustakaan', tone: 'bg-blue-100 text-blue-800', detail: 'Ruang untuk membaca, mencari tahu, dan menjelajah ide.' },
-  { icon: '✳', title: 'Ruang kreasi', tone: 'bg-indigo-100 text-indigo-800', detail: 'Tempat siswa bereksperimen dan membuat karya.' },
+  { icon: '✳', title: 'Ruang kreasi', tone: 'bg-indigo-100 text-indigo-800', detail: 'Tempat murid bereksperimen dan membuat karya.' },
   { icon: '↗', title: 'Area aktivitas', tone: 'bg-cyan-100 text-cyan-800', detail: 'Ruang untuk bergerak, bermain, dan belajar bersama.' },
 ]
 
@@ -56,7 +56,7 @@ const interests = [
 
 const schoolHighlights = [
   { value: '18+', title: 'Ruang Kelas', category: 'Fasilitas belajar', text: 'Ruang belajar nyaman yang mendukung diskusi dan kolaborasi.', icon: 'classroom' },
-  { value: '30+', title: 'Tenaga Pendidik', category: 'Komunitas akademik', text: 'Guru dan staf yang mendampingi proses belajar siswa.', icon: 'educators' },
+  { value: '30+', title: 'Tenaga Pendidik', category: 'Komunitas akademik', text: 'Guru dan staf yang mendampingi proses belajar murid.', icon: 'educators' },
   { value: '12+', title: 'Ekstrakurikuler', category: 'Eksplorasi minat', text: 'Pilihan kegiatan untuk mengeksplorasi minat dan bakat.', icon: 'activities' },
   { value: '3', title: 'Laboratorium', category: 'Praktik & riset', text: 'Ruang praktik untuk belajar sains, komputer, dan keterampilan.', icon: 'laboratory' },
   { value: '1', title: 'Perpustakaan', category: 'Literasi', text: 'Koleksi bacaan dan ruang tenang untuk mencari inspirasi.', icon: 'library' },
@@ -153,7 +153,7 @@ function SchoolIllustration() {
       <div className='absolute -left-4 top-10 h-24 w-24 rounded-full bg-sky-200/70 blur-2xl sm:-left-8' />
       <div className='absolute -right-3 bottom-12 h-32 w-32 rounded-full bg-blue-200/80 blur-2xl sm:-right-8' />
       <div className='relative overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_30px_80px_-35px_rgba(17,65,112,0.4)] sm:rounded-[2.5rem]'>
-        <Image unoptimized src='/images/school/siswa-ceria.png' alt='Siswa SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='aspect-[3/2] h-full w-full object-cover' />
+        <Image unoptimized src='/images/school/siswa-ceria.png' alt='Murid SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='aspect-[3/2] h-full w-full object-cover' />
         <div className='absolute bottom-5 left-5 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-lg backdrop-blur sm:bottom-8 sm:left-8 sm:px-5'>
           <p className='text-[10px] font-bold uppercase tracking-[0.17em] text-school-blue'>Sekolah Cendekia</p>
           <p className='mt-1 text-sm font-bold text-school-navy sm:text-base'>Ruang tumbuh setiap anak</p>
@@ -197,14 +197,14 @@ export default async function Home() {
           <div className='relative z-10'>
             <p className='inline-flex rounded-full border border-school-gold/40 bg-school-butter px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-school-navy sm:text-xs'>SMPIT Cendekia Purwakarta</p>
             <h1 className='mt-4 max-w-2xl text-[32px] font-black leading-[1.12] tracking-tight text-school-navy sm:text-5xl lg:text-[3.65rem]'>Unggul dalam <span className='text-school-blue'>Bina Iman, Ilmu</span> dan Amal.</h1>
-            <p className='mt-4 max-w-xl text-sm leading-6 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8'>SMPIT Cendekia Purwakarta membina iman, ilmu, dan amal melalui pembelajaran, kegiatan keagamaan, program bilingual, serta pengembangan bakat siswa.</p>
+            <p className='mt-4 max-w-xl text-sm leading-6 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8'>SMPIT Cendekia Purwakarta membina iman, ilmu, dan amal melalui pembelajaran, kegiatan keagamaan, program bilingual, serta pengembangan bakat murid.</p>
             <div className='mt-5 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-row sm:flex-wrap lg:flex-nowrap'>
               <a href='/spmb' className='col-span-2 inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-school-gold px-5 py-3 text-sm font-bold text-school-navy shadow-lg shadow-amber-900/10 transition hover:-translate-y-0.5 hover:bg-[#ffca35]'>Informasi SPMB <span aria-hidden='true'>?</span></a>
               <a href='#tentang' className='inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl border border-sky-200 bg-white px-2 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm font-bold text-school-navy transition hover:border-sky-400 hover:bg-sky-50'>Kenali sekolah kami</a>
               <a href='/brosur-ppdb.pdf' download className='inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-sky-200 bg-white px-2 py-2.5 text-xs sm:px-4 sm:py-3 sm:text-sm font-bold text-school-blue transition hover:border-sky-400 hover:bg-sky-50'><svg viewBox='0 0 24 24' className='h-4 w-4 fill-none stroke-current' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3'/></svg>Unduh brosur</a>
             </div>
           </div>
-          <div className='relative z-10 mx-auto w-full max-w-[220px] sm:max-w-[600px]'><HomepageImage imageUrl={homepageImages.heroUrl} defaultSrc='/images/school/siswa-ceria.png' alt='Siswa SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(16,45,78,.12)]' /></div>
+          <div className='relative z-10 mx-auto w-full max-w-[220px] sm:max-w-[600px]'><HomepageImage imageUrl={homepageImages.heroUrl} defaultSrc='/images/school/siswa-ceria.png' alt='Murid SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(16,45,78,.12)]' /></div>
         </div>
       </section>
 
@@ -212,7 +212,7 @@ export default async function Home() {
         <div className='mx-auto grid max-w-7xl items-start gap-5 px-5 sm:gap-10 sm:px-8 lg:grid-cols-[.82fr_1.18fr] lg:gap-12 lg:px-10'>
           <div className='flex min-w-0 flex-col lg:pr-3'>
             <h2 className='mt-4 whitespace-nowrap text-[clamp(1rem,5vw,1.25rem)] font-black leading-[1.12] tracking-tight text-school-navy sm:whitespace-normal sm:text-4xl xl:text-5xl'>Arah Pendidikan <span className='text-sky-600 sm:block'>Cendekia</span></h2>
-            <p className='mt-3 hidden max-w-md text-sm leading-6 sm:mt-5 sm:block sm:leading-7 text-slate-600 sm:text-base'>Motto, visi, dan misi menjadi arah bagi seluruh warga sekolah dalam mendampingi proses belajar dan pertumbuhan siswa.</p>
+            <p className='mt-3 hidden max-w-md text-sm leading-6 sm:mt-5 sm:block sm:leading-7 text-slate-600 sm:text-base'>Motto, visi, dan misi menjadi arah bagi seluruh warga sekolah dalam mendampingi proses belajar dan pertumbuhan murid.</p>
             <HomepageImage imageUrl={homepageImages.directionUrl} defaultSrc='/images/school/arah-pendidikan.png' alt='Tiga pelajar SMP bersemangat meraih prestasi dan masa depan cemerlang' width={1122} height={1402} sizes='(min-width: 640px) 336px, 90vw' className='mx-auto mt-8 hidden h-auto max-h-[420px] w-auto max-w-full object-contain sm:block lg:mt-10' />
           </div>
           <div className='space-y-4 sm:space-y-6'>
@@ -260,7 +260,7 @@ export default async function Home() {
             <div aria-hidden='true' className='mt-5 h-1 w-12 rounded-full bg-school-gold' />
             <p className='mt-5 text-sm leading-7 text-slate-600 sm:text-base'>Belajar banyak hal dengan cara bermakna untuk menumbuhkan pemahaman, kebiasaan baik, dan keterampilan hidup.</p>
             <div className='mt-6 hidden max-w-sm sm:block'>
-              <HomepageImage imageUrl={homepageImages.programUrl} defaultSrc='/images/school/bimbingan-karier.png' alt='Guru mendampingi dua siswa merancang masa depan melalui bimbingan karier' width={1312} height={1199} sizes='(min-width: 1024px) 340px, (min-width: 640px) 384px, 90vw' className='h-auto w-full object-contain' />
+              <HomepageImage imageUrl={homepageImages.programUrl} defaultSrc='/images/school/bimbingan-karier.png' alt='Guru mendampingi dua murid merancang masa depan melalui bimbingan karier' width={1312} height={1199} sizes='(min-width: 1024px) 340px, (min-width: 640px) 384px, 90vw' className='h-auto w-full object-contain' />
             </div>
           </div>
           <div className='grid gap-3 sm:gap-5'>
@@ -282,8 +282,8 @@ export default async function Home() {
       <section id='prestasi' className='bg-[#f3f8ff] py-8 sm:py-20'>
         <div className='mx-auto max-w-7xl px-5 sm:px-8 lg:px-10'>
           <div className='mx-auto mb-6 max-w-2xl text-center sm:mb-12'>
-            <h2 className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Prestasi <span className='text-sky-600'>Siswa</span></h2>
-            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Prestasi siswa SMPIT Cendekia yang tercantum dalam brosur sekolah.</p>
+            <h2 className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Prestasi <span className='text-sky-600'>Murid</span></h2>
+            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Prestasi murid SMPIT Cendekia yang tercantum dalam brosur sekolah.</p>
           </div>
           <div className='grid gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4'>
             {achievements.slice(0, 4).map((achievement, index) => (
@@ -312,7 +312,7 @@ export default async function Home() {
         <div className='mx-auto max-w-6xl px-5 sm:px-8 lg:px-10'>
           <div className='mx-auto max-w-2xl text-center'>
             <h2 className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Berita <span className='text-sky-600'>Terbaru</span></h2>
-            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Cerita kegiatan, karya, dan keseharian siswa SMPIT Cendekia Purwakarta.</p>
+            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Cerita kegiatan, karya, dan keseharian murid SMPIT Cendekia Purwakarta.</p>
           </div>
           <div className='mt-5 grid gap-3 sm:mt-8 sm:gap-5 md:grid-cols-12'>
             {schoolNews.slice(0, 4).map((news, index) => (
@@ -368,7 +368,7 @@ export default async function Home() {
         <div className='mx-auto max-w-6xl px-5 sm:px-8 lg:px-10'>
           <div className='mx-auto mb-5 max-w-2xl sm:mb-8 text-center'>
             <h2 className='text-2xl font-black tracking-tight text-school-navy sm:text-4xl'>Guru dan Tenaga <span className='text-sky-600'>Kependidikan</span></h2>
-            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Guru dan tenaga kependidikan yang mendampingi proses belajar siswa.</p>
+            <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Guru dan tenaga kependidikan yang mendampingi proses belajar murid.</p>
           </div>
           <div className='grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
             {staff.map((person) => (
@@ -430,7 +430,7 @@ export default async function Home() {
             </div>
           </div>
           <div className='relative mx-auto mt-8 hidden w-full max-w-[420px] items-center justify-center sm:flex lg:mt-0'>
-            <Image src='/images/school/siswa-ppdb-formulir.png' alt={`Dua siswa membawa formulir SPMB SMPIT Cendekia ${spmbAcademicYear}`} width={1024} height={1536} className='h-[360px] w-auto max-w-full rounded-xl object-contain drop-shadow-[0_18px_28px_rgba(16,45,78,.16)] sm:h-[420px]' />
+            <Image src='/images/school/siswa-ppdb-formulir.png' alt={`Dua murid membawa formulir SPMB SMPIT Cendekia ${spmbAcademicYear}`} width={1024} height={1536} className='h-[360px] w-auto max-w-full rounded-xl object-contain drop-shadow-[0_18px_28px_rgba(16,45,78,.16)] sm:h-[420px]' />
           </div>
         </div>
       </section>
@@ -454,7 +454,7 @@ export default async function Home() {
           <article id='hubungi-kami' className='scroll-mt-24 rounded-2xl border border-sky-100 bg-white p-4 shadow-[0_18px_48px_-34px_rgba(16,45,78,.3)] sm:p-9'>
             <p className='text-[10px] font-extrabold uppercase tracking-[0.2em] text-school-blue'>Hubungi kami</p>
             <h2 className='mt-3 text-2xl font-black tracking-tight text-school-navy sm:text-3xl'>Mari berbincang tentang pendidikan anak.</h2>
-            <p className='mt-3 hidden max-w-xl text-sm leading-6 text-slate-600 sm:block sm:text-base'>Tim sekolah siap membantu menjawab pertanyaan seputar program belajar dan penerimaan siswa baru.</p>
+            <p className='mt-3 hidden max-w-xl text-sm leading-6 text-slate-600 sm:block sm:text-base'>Tim sekolah siap membantu menjawab pertanyaan seputar program belajar dan penerimaan murid baru.</p>
             {contact.email && <div className='mt-3 border-t border-sky-100 pt-3 sm:mt-6 sm:pt-5'>
               <div className='flex flex-col gap-2 rounded-xl border border-sky-100 bg-[#f7fbff] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-5'>
                 <div className='flex gap-3'>

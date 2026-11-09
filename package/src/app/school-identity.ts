@@ -8,7 +8,7 @@ const defaults: SchoolIdentity = {
   "missions": [
     {
       "title": "Iman & akhlak",
-      "text": "Membina keimanan dan akhlak mulia melalui kegiatan keagamaan untuk membentuk siswa yang religius dan berakhlak."
+      "text": "Membina keimanan dan akhlak mulia melalui kegiatan keagamaan untuk membentuk murid yang religius dan berakhlak."
     },
     {
       "title": "Ilmu & literasi",
@@ -16,7 +16,7 @@ const defaults: SchoolIdentity = {
     },
     {
       "title": "Jiwa pemimpin",
-      "text": "Menumbuhkan jiwa kepemimpinan siswa."
+      "text": "Menumbuhkan jiwa kepemimpinan murid."
     },
     {
       "title": "Budaya positif",

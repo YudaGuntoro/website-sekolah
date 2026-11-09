@@ -1,6 +1,6 @@
 {
   "title": "Lomba Mata Pelajaran",
-  "introduction": "Lomba mata pelajaran untuk siswa kelas 5 dan 6 SD di SMPIT Cendekia Purwakarta.",
+  "introduction": "Lomba mata pelajaran untuk murid kelas 5 dan 6 SD di SMPIT Cendekia Purwakarta.",
   "enabled": false,
   "registrationStart": null,
   "registrationEnd": null,
@@ -16,5 +16,37 @@
   "testDetails": "Tes tulis berupa pilihan ganda (PG), dilaksanakan langsung di sekolah menggunakan ExamBro. Peserta dengan skor tinggi akan mengikuti tes lanjutan berupa wawancara.",
   "benefits": "Snack; sertifikat bagi juara 1 dan 2; piala untuk juara umum.",
   "afterSubmit": "Simpan nomor pendaftaran. Panitia akan menghubungi melalui WhatsApp untuk konfirmasi berkas, pembayaran, dan petunjuk pelaksanaan lomba.",
-  "whatsappGroupUrl": ""
+  "whatsappGroupUrl": "",
+  "steps": [
+    {
+      "title": "Isi data peserta",
+      "description": "Daftarkan nama lengkap, asal sekolah, dan kelas 5 atau 6 SD melalui formulir online.",
+      "icon": "register",
+      "showPayment": false
+    },
+    {
+      "title": "Unggah berkas PDF",
+      "description": "Persyaratan berkas pendaftaran menyusul.",
+      "icon": "folder",
+      "showPayment": false
+    },
+    {
+      "title": "Bayar biaya pendaftaran",
+      "description": "Informasi rekening pembayaran menyusul. Hubungi panitia sebelum melakukan pembayaran.",
+      "icon": "payment",
+      "showPayment": true
+    },
+    {
+      "title": "Pilih mata pelajaran",
+      "description": "Pilih satu mata pelajaran: Matematika, Bahasa Indonesia, atau Bahasa Inggris.",
+      "icon": "book",
+      "showPayment": false
+    },
+    {
+      "title": "Pengumuman juara & gebyar",
+      "description": "28 Januari 2027. Jam dan tempat gebyar menyusul.",
+      "icon": "check",
+      "showPayment": false
+    }
+  ]
 }

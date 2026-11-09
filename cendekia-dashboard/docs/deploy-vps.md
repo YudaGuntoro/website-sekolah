@@ -82,3 +82,11 @@ Simpan image rilis sebelumnya untuk rollback aplikasi hanya bila kompatibel deng
 Bukti transfer SPMB/LMP: sebelum backend terbaru dijalankan, backup lalu terapkan `database/migrations/20261108_registration_payment_proofs.sql`. Pastikan reverse proxy menerima request LMP dua berkas dengan `client_max_body_size 4400k`; batas setiap berkas tetap 2 MB. Deploy ulang website dan API bersama karena submit SPMB kini multipart/form-data.
 
 Optimasi bukti transfer JPG/PNG menggunakan SkiaSharp dan native assets Linux yang ikut dipublish backend. Build ulang image API untuk menyertakan dependensi ini; jangan hanya menyalin DLL aplikasi lama. Tidak perlu SQL tambahan untuk kompresi. PDF dan berkas lama tidak diubah.
+
+Tahapan LMP: backup database lalu jalankan `database/migrations/20261109_lmp_information_steps.sql` sebelum memakai backend baru. Migrasi menambahkan tabel tahapan relasional dan mengisi alur sebelumnya sekali. Deploy frontend admin/publik yang sesuai agar tahapan dapat diedit dan langsung ditampilkan di `/lmp`.
+
+PDF persyaratan SPMB: backup dan jalankan `database/migrations/20261109_spmb_application_documents.sql` sebelum deploy backend/website/admin baru. PDF wajib maksimal 1 MB disimpan terpisah dengan kompresi Brotli lossless; unduhan staf harus melewati endpoint API untuk mengembalikan PDF asli. Kompresi memakai .NET bawaan tanpa dependency server tambahan.
+
+Catatan persyaratan SPMB: backup lalu terapkan `database/migrations/20261109_spmb_document_notes.sql` sebelum deploy backend/admin/publik terbaru. Kolom catatan terpisah dari item berkas; migrasi memindahkan poin `Catatan:` lama dan mempertahankan edit pada pengulangan.
+
+Formulir SPMB lengkap: backup, jalankan `database/migrations/20261109_spmb_applicant_profiles.sql`, lalu deploy backend/admin/website bersama. Pendaftaran baru mewajibkan email, NISN dan data profil sesuai formulir sekolah; pendaftaran lama tetap terbaca tanpa profil. Tinggi/berat memakai DECIMAL(5,1) dan parsing HTML invariant.

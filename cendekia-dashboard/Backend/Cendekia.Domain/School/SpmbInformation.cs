@@ -46,6 +46,7 @@ public class SpmbInformationConfig
     [MaxLength(150)] public string AccountHolder { get; set; } = "";
     [Required, MaxLength(40)] public List<string> NewStudentDocuments { get; set; } = [];
     [Required, MaxLength(40)] public List<string> TransferDocuments { get; set; } = [];
+    [MaxLength(2000)] public string DocumentNotes { get; set; } = "";
     [MaxLength(1000)] public string BrochureUrl { get; set; } = "";
 }
 public class SpmbInformationRequest

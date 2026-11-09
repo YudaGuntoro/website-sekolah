@@ -58,10 +58,15 @@ export default async function SpmbInformationPage() {
         </section>
         <section className='rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>
           <h2 className='text-xl font-black text-school-navy'>Persyaratan Berkas</h2>
-          <h3 className='mt-5 text-sm font-bold text-school-blue'>Calon siswa baru</h3>
+          <h3 className='mt-5 text-sm font-bold text-school-blue'>Calon murid baru</h3>
           <ul className='mt-2 list-inside list-disc space-y-2 text-sm leading-6 text-slate-600'>{documents.map((item) => <li key={item}>{item}</li>)}</ul>
           <h3 className='mt-5 text-sm font-bold text-school-blue'>Murid pindahan</h3>
           <ul className='mt-2 list-inside list-disc space-y-2 text-sm leading-6 text-slate-600'>{transferDocuments.map((item) => <li key={item}>{item}</li>)}</ul>
+          {config.documentNotes?.trim() && <aside aria-label='Catatan persyaratan' className='mt-6 flex gap-3 rounded-r-lg border-l-2 border-amber-400 bg-[#fffbf2] p-4'>
+            <svg viewBox='0 0 24 24' className='mt-0.5 h-5 w-5 shrink-0 text-amber-700' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' aria-hidden='true'><circle cx='12' cy='12' r='9' /><path d='M12 11v6' /><circle cx='12' cy='7.5' r='.8' fill='currentColor' stroke='none' /></svg>
+            <div><h3 className='text-sm font-bold text-amber-950'>Catatan persyaratan</h3><p className='mt-1 whitespace-pre-line text-sm leading-6 text-amber-900'>{config.documentNotes}</p></div>
+          </aside>}
+
         </section>
       </div>
       <section className='mx-auto mt-8 max-w-6xl rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>

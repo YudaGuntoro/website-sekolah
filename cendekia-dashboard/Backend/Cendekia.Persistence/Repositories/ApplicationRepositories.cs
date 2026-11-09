@@ -1,4 +1,5 @@
 using System.Data;
+using System.IO.Compression;
 using System.Linq.Expressions;
 using Cendekia.Application.Abstractions;
 using Cendekia.Domain.School;
@@ -57,6 +58,25 @@ public sealed class ApplicationUnitOfWork(CendekiaDbContext db) : IApplicationUn
 }
 public sealed class SpmbRepository(CendekiaDbContext db) : ISpmbRepository
 {
+    public Task<SpmbApplicantProfile?> GetProfileAsync(int applicationId) => db.Set<SpmbApplicantProfile>().AsNoTracking().SingleOrDefaultAsync(x => x.ApplicationId == applicationId);
+    public Task<bool> HasDocumentAsync(int applicationId) => db.Set<SpmbDocument>().AnyAsync(x => x.ApplicationId == applicationId);
+    public async Task<byte[]?> GetDocumentAsync(int applicationId)
+    {
+        var document = await db.Set<SpmbDocument>().AsNoTracking().SingleOrDefaultAsync(x => x.ApplicationId == applicationId);
+        if (document is null) return null;
+        if (document.OriginalLength is < 1 or > 1048576) throw new InvalidDataException("Invalid PDF storage length.");
+        if (document.Compression == "raw") {
+            if (document.Content.Length != document.OriginalLength) throw new InvalidDataException("Invalid PDF storage length.");
+            return document.Content;
+        }
+        if (document.Compression != "br") throw new InvalidDataException("Unknown PDF storage compression.");
+        using var input = new MemoryStream(document.Content);
+        using var decompressor = new BrotliStream(input, CompressionMode.Decompress);
+        var bytes = new byte[document.OriginalLength];
+        await decompressor.ReadExactlyAsync(bytes);
+        if (decompressor.ReadByte() != -1) throw new InvalidDataException("Expanded PDF exceeds stored length.");
+        return bytes;
+    }
     public Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId) => db.Set<SpmbPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofInfo(x.AccountHolderName)).SingleOrDefaultAsync();
     public Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId) => db.Set<SpmbPaymentProof>().Where(x => x.ApplicationId == applicationId).Select(x => new PaymentProofFile(x.ContentType, x.Content)).SingleOrDefaultAsync();
     public IEntityRepository<SpmbWaveGroup> Groups { get; } = new EntityRepository<SpmbWaveGroup>(db);

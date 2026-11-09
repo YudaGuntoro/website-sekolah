@@ -6,6 +6,7 @@ const directory='.verify-cms/file-optimizer';mkdirSync(directory,{recursive:true
 writeFileSync(directory+'/Check.csproj',`<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup><ItemGroup><ProjectReference Include="../../Backend/Cendekia.Persistence/Cendekia.Persistence.csproj" /></ItemGroup></Project>`);
 writeFileSync(directory+'/Program.cs',String.raw`
 using System.Buffers.Binary;
+using System.IO.Compression;
 using System.Text.Json;
 using Cendekia.Domain.School;
 using Cendekia.Persistence.Services.Shared;
@@ -48,6 +49,12 @@ uint crc=0xffffffff;for(int i=12;i<29;i++){crc^=huge[i];for(int bit=0;bit<8;bit+
 Check(await optimizer.OptimizeAsync(new PaymentProofFile("image/png",huge)) is null,"Huge dimensions must be rejected without decoding");
 await Task.WhenAll(Enumerable.Range(0,3).Select(_=>Task.Run(async()=>{var result=await optimizer.OptimizeAsync(original);Check(result!.Content.Length==optimized.Content.Length,"Concurrent optimizations must remain deterministic");})));
 using var canceled=new CancellationTokenSource();canceled.Cancel();try{await optimizer.OptimizeAsync(original,canceled.Token);throw new Exception("Canceled optimization ran");}catch(OperationCanceledException){}
+var repeated="%PDF-1.4\n"u8.ToArray().Concat(Enumerable.Repeat((byte)32,100000)).ToArray();
+var packed=await optimizer.CompressPdfAsync(repeated);Check(packed.Compression=="br" && packed.Content.Length<repeated.Length,"PDF storage should compress repetitive bytes");
+using(var input=new MemoryStream(packed.Content))using(var brotli=new BrotliStream(input,CompressionMode.Decompress))using(var restored=new MemoryStream()){brotli.CopyTo(restored);Check(restored.ToArray().SequenceEqual(repeated),"PDF storage must roundtrip byte-for-byte");}
+var randomBytes=new byte[1048576];new Random(42).NextBytes(randomBytes);
+var raw=await optimizer.CompressPdfAsync(randomBytes);Check(raw.Compression=="raw" && raw.Content.SequenceEqual(randomBytes),"Incompressible content must never grow");
+Console.WriteLine("PASS: lossless PDF storage compression and incompressible raw fallback.");
 Console.WriteLine(JsonSerializer.Serialize(new {inputBytes=original.Content.Length,storedBytes=optimized.Content.Length,savedPercent=Math.Round(100.0*(original.Content.Length-optimized.Content.Length)/original.Content.Length,1),width=decoded!.Width,height=decoded.Height}));
 Console.WriteLine("PASS: real JPEG compression, small PNG preservation, EXIF rotation, untouched PDF, invalid and oversized image rejection, concurrency, and cancellation.");
 `);

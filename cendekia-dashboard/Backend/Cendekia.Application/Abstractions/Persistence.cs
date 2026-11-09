@@ -25,6 +25,9 @@ public interface IApplicationUnitOfWork
 }
 public interface ISpmbRepository
 {
+    Task<SpmbApplicantProfile?> GetProfileAsync(int applicationId);
+    Task<bool> HasDocumentAsync(int applicationId);
+    Task<byte[]?> GetDocumentAsync(int applicationId);
     Task<PaymentProofInfo?> GetPaymentProofInfoAsync(int applicationId);
     Task<PaymentProofFile?> GetPaymentProofFileAsync(int applicationId);
     IEntityRepository<SpmbWaveGroup> Groups { get; }

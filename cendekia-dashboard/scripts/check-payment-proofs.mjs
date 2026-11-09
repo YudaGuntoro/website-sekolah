@@ -1,3 +1,4 @@
+import {spmbProfileFields} from './lib/spmb-profile-fixture.mjs';
 // Local integration: validates file types, maximum sizes, privacy, and old registrations.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,9 +15,10 @@ function file(type,large=false){
  return {name:'transfer.pdf',mime:'application/pdf',bytes:Buffer.from('%PDF-1.4\n'+(large?'x'.repeat(1048576-15):'Payment test')+'\n%%EOF')};
 }
 async function submit(mod,settings,proof,document,expectedStatus=200){
- const fields={submissionKey:randomUUID(),studentName:tag,previousSchool:'Sekolah Uji Pembayaran',transferAccountName:'Pemilik Rekening Uji',consent:true,...(mod==='spmb'?{scheduleVersion:settings.version,birthPlace:'Kota Uji',birthDate:'2014-01-01',gender:'Perempuan',targetGrade:'VII',guardianName:'Wali Uji',guardianPhone:'081234567890',address:'Alamat Uji'}:{settingsVersion:settings.version,grade:5,subjects:'Matematika',contactName:'Wali Uji',contactPhone:'081234567890'})};
+ const fields={submissionKey:randomUUID(),studentName:tag,previousSchool:'Sekolah Uji Pembayaran',transferAccountName:'Pemilik Rekening Uji',consent:true,...(mod==='spmb'?{...spmbProfileFields(),scheduleVersion:settings.version,birthPlace:'Kota Uji',birthDate:'2014-01-01',gender:'Perempuan',targetGrade:'VII',guardianName:'Wali Uji',guardianPhone:'081234567890',address:'Alamat Uji'}:{settingsVersion:settings.version,grade:5,subjects:'Matematika',contactName:'Wali Uji',contactPhone:'081234567890'})};
  const form=new FormData();for(const [k,v]of Object.entries(fields))form.set(k,String(v));
  form.set('paymentProof',new Blob([proof.bytes],{type:proof.mime}),proof.name);
+ if(mod==='spmb' && !document)document=file('pdf');
  if(document)form.set('document',new Blob([document.bytes],{type:document.mime}),document.name);
  const response=await fetch(website+'/api/'+mod,{method:'POST',body:form});const result=await response.json();assert.equal(response.status,expectedStatus,JSON.stringify(result));if(expectedStatus!==200)return;
  assert.equal(result.data.transferAccountName,fields.transferAccountName);assert.equal(result.data.hasPaymentProof,true);

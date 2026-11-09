@@ -10,11 +10,17 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
     private static readonly string[] Subjects = ["Matematika", "Bahasa Indonesia", "Bahasa Inggris"];
     private static DateOnly Today() => DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
     private static bool Open(LmpConfig c) => c.Enabled && c.RegistrationStart.HasValue && c.RegistrationEnd.HasValue && Today() >= c.RegistrationStart && Today() <= c.RegistrationEnd;
-    private static object View(LmpSettings row) => new { config = row.Config, row.Version, isOpen = Open(row.Config), today = Today() };
+    private static object View(LmpSettings row)
+    {
+        row.Config.Steps = row.StepRecords.OrderBy(s => s.Position).Select(s => new LmpInformationStep { Title = s.Title, Description = s.Description, Icon = s.Icon, ShowPayment = s.ShowPayment }).ToList();
+        return new { config = row.Config, row.Version, isOpen = Open(row.Config), today = Today() };
+    }
     public async Task<ServiceResult> Settings() => ApiOk(View(await repository.GetSettingsAsync()));
     public async Task<ServiceResult> Save(LmpSettingsRequest request)
     {
         var c = request.Config;
+        if (c.Steps is null || c.Steps.Count is < 1 or > 20 || c.Steps.Any(s => s is null || string.IsNullOrWhiteSpace(s.Title)) || c.Steps.Count(s => s.ShowPayment) > 1)
+            return ApiBadRequest("Isi 1 sampai 20 tahap dengan judul; rincian biaya hanya boleh tampil pada satu tahap.");
         if (c.RegistrationStart.HasValue != c.RegistrationEnd.HasValue || c.RegistrationStart > c.RegistrationEnd || (c.Enabled && !c.RegistrationStart.HasValue)) return ApiBadRequest("Lengkapi tanggal mulai dan selesai pendaftaran secara berurutan sebelum dibuka.");
         if (c.CompetitionDate.HasValue && c.RegistrationEnd > c.CompetitionDate) return ApiBadRequest("Pendaftaran tidak boleh berakhir setelah tanggal lomba.");
         if (c.CompetitionDate.HasValue && c.AnnouncementDate < c.CompetitionDate) return ApiBadRequest("Pengumuman tidak boleh sebelum tanggal lomba.");
@@ -25,6 +31,9 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         var row = await repository.GetSettingsAsync(forUpdate: true);
         if (row.Version != request.Version) return Conflict("Pengaturan berubah. Muat ulang sebelum menyimpan.");
         row.Config = c; row.Version++;
+        row.StepRecords.Sort((a, b) => a.Position.CompareTo(b.Position));
+        OrderedChildren.Replace(row.StepRecords, c.Steps, () => new LmpInformationStepRecord { SettingsId = row.Id },
+            (record, step, position) => { record.Position = position; record.Title = step.Title.Trim(); record.Description = step.Description?.Trim() ?? ""; record.Icon = step.Icon; record.ShowPayment = step.ShowPayment; });
         await unitOfWork.SaveChangesAsync(); await transaction.CommitAsync();
         return ApiOk(View(row), "Informasi LMP disimpan.");
     }

@@ -11,7 +11,7 @@ public class SpmbController(SpmbService service) : ApiControllerBase
     [HttpGet("schedule"), AllowAnonymous] public async Task<IActionResult> PublicSchedule() => FromService(await service.PublicSchedule());
     [HttpPut("settings"), Authorize(Roles = "ADMIN,SUPERVISOR")] public async Task<IActionResult> UpdateSettings(SpmbSettingsRequest request) => FromService(await service.UpdateSettings(request));
     [HttpPost("applications"), EnableRateLimiting("registration"), AllowAnonymous, Consumes("multipart/form-data"), RequestSizeLimit(2200000), RequestFormLimits(MultipartBodyLengthLimit = 2200000)]
-    public async Task<IActionResult> Submit([FromForm] SpmbSubmissionRequest request, IFormFile? paymentProof)
+    public async Task<IActionResult> Submit([FromForm] SpmbSubmissionRequest request, IFormFile? paymentProof, IFormFile? document)
     {
         PaymentProofUpload? upload = null;
         if (paymentProof is not null) {
@@ -19,7 +19,20 @@ public class SpmbController(SpmbService service) : ApiControllerBase
             using var stream = new MemoryStream(); await paymentProof.CopyToAsync(stream);
             upload = new PaymentProofUpload(paymentProof.FileName, stream.ToArray());
         }
-        return FromService(await service.Submit(request, upload, HttpContext.RequestAborted));
+        PdfUpload? pdf = null;
+        if (document is not null) {
+            if (document.Length > 1024 * 1024) return ApiBadRequest("PDF persyaratan maksimal 1 MB.");
+            using var stream = new MemoryStream(); await document.CopyToAsync(stream, HttpContext.RequestAborted);
+            pdf = new PdfUpload(document.FileName, stream.ToArray());
+        }
+        return FromService(await service.Submit(request, upload, pdf, HttpContext.RequestAborted));
+    }
+    [HttpGet("applications/{id:int}/document")]
+    public async Task<IActionResult> Document(int id) {
+        var result = await service.Document(id);
+        if (result.Data is not FileDownload download) return FromService(result);
+        Response.Headers.CacheControl = "no-store"; Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return File(download.Content, "application/pdf", download.FileName);
     }
     [HttpGet("applications/{id:int}/payment-proof")]
     public async Task<IActionResult> PaymentProof(int id) {

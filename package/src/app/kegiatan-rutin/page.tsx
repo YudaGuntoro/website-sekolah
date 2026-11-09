@@ -4,12 +4,12 @@ import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
   title: 'Kegiatan Rutin',
-  description: 'Kegiatan rutin siswa SMPIT Cendekia Purwakarta, dari 7 Poe Atikan hingga Kultum.',
+  description: 'Kegiatan rutin murid SMPIT Cendekia Purwakarta, dari 7 Poe Atikan hingga Kultum.',
 }
 
 const routineDetails: Record<string, { text: string; icon: string }> = {
   '7 Poe Atikan': {
-    text: 'Menumbuhkan karakter dan nilai positif dalam keseharian siswa.',
+    text: 'Menumbuhkan karakter dan nilai positif dalam keseharian murid.',
     icon: 'M12 3 3 8l9 5 9-5-9-5ZM6 10v7c4 3 8 3 12 0v-7M21 8v8',
   },
   'Morning Briefing': {
@@ -55,7 +55,7 @@ export default async function KegiatanRutinPage() {
               <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Kegiatan rutin sekolah</p>
               <h1 className='mt-4 max-w-2xl text-4xl font-black leading-[1.06] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Kebiasaan baik, <span className='text-school-blue'>karakter bertumbuh.</span></h1>
             </div>
-            <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan rutin menjadi bagian dari keseharian siswa SMPIT Cendekia untuk belajar, membangun kedisiplinan, dan membiasakan nilai-nilai kebaikan.</p>
+            <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan rutin menjadi bagian dari keseharian murid SMPIT Cendekia untuk belajar, membangun kedisiplinan, dan membiasakan nilai-nilai kebaikan.</p>
           </div>
           <div className='mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
             {schoolRoutines.map((routine, index) => (
@@ -74,7 +74,7 @@ export default async function KegiatanRutinPage() {
             ))}
           </div>
           <div className='mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-sky-100 bg-white/80 p-5 sm:flex-row sm:items-center sm:px-6'>
-            <p className='max-w-2xl text-sm leading-6 text-slate-600'>Kenali lebih dekat keseharian dan kegiatan belajar siswa di SMPIT Cendekia.</p>
+            <p className='max-w-2xl text-sm leading-6 text-slate-600'>Kenali lebih dekat keseharian dan kegiatan belajar murid di SMPIT Cendekia.</p>
             <Link href='/#kontak' className='inline-flex shrink-0 items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'>Tanya sekolah <span aria-hidden='true'>→</span></Link>
           </div>
         </div>

@@ -1,6 +1,7 @@
 using Cendekia.Application.Abstractions;
 using Cendekia.Domain.School;
 using SkiaSharp;
+using System.IO.Compression;
 
 namespace Cendekia.Persistence.Services.Shared;
 
@@ -19,6 +20,22 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         if (file.ContentType is not ("image/jpeg" or "image/png")) return null;
         await gate.WaitAsync(cancellationToken);
         try { return OptimizeImage(file); }
+        finally { gate.Release(); }
+    }
+
+    public async Task<CompressedPdf> CompressPdfAsync(byte[] content, CancellationToken cancellationToken = default)
+    {
+        if (content.Length is < 1 or > 1048576) throw new ArgumentOutOfRangeException(nameof(content));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            using var output = new MemoryStream();
+            using (var compressor = new BrotliStream(output, CompressionLevel.Optimal, leaveOpen: true))
+                await compressor.WriteAsync(content, cancellationToken);
+            return output.Length < content.Length
+                ? new CompressedPdf(output.ToArray(), "br", content.Length)
+                : new CompressedPdf(content, "raw", content.Length);
+        }
         finally { gate.Release(); }
     }
 

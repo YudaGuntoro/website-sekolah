@@ -42,6 +42,8 @@ public class SpmbWavePeriod
 
 public class SpmbApplication
 {
+    public SpmbApplicantProfile? Profile { get; set; }
+    public SpmbDocument? Document { get; set; }
     public SpmbPaymentProof? PaymentProof { get; set; }
     public int Id { get; set; }
     public Guid SubmissionKey { get; set; }
@@ -85,19 +87,36 @@ public class SpmbSettingsRequest
 
 public class SpmbSubmissionRequest
 {
+    [Required, MaxLength(100)] public string Nickname { get; set; } = "";
+    [Required, RegularExpression("^Islam$")] public string Religion { get; set; } = "";
+    [MaxLength(1000)] public string? MedicalHistory { get; set; } = "";
+    [Range(typeof(decimal), "20", "300")] public decimal HeightCm { get; set; } = 0;
+    [Range(typeof(decimal), "1", "500")] public decimal WeightKg { get; set; } = 0;
+    [Required, RegularExpression("^(A|B|AB|O)$")] public string BloodGroup { get; set; } = "";
+    [Required, RegularExpression("^\\+?[0-9][0-9 ()-]{7,24}$")] public string ParentPhone { get; set; } = "";
+    [Required, MaxLength(150)] public string FatherName { get; set; } = "";
+    [Required, MaxLength(150)] public string MotherName { get; set; } = "";
+    [Required, MaxLength(150)] public string FatherOccupation { get; set; } = "";
+    [Required, MaxLength(150)] public string MotherOccupation { get; set; } = "";
+    [MaxLength(150)] public string? GuardianOccupation { get; set; } = "";
+    [Required, MaxLength(1000)] public string ParentAddress { get; set; } = "";
+    [Required, RegularExpression("^(Baik|Kurang Baik|Sangat Baik|Tidak Stabil)$")] public string EconomicCondition { get; set; } = "";
+    [MaxLength(100)] public string? DailyLanguage { get; set; } = "";
+    [Required, RegularExpression("^(Baru|Pindahan)$")] public string EntryType { get; set; } = "";
+
     [Required, MaxLength(150)] public string TransferAccountName { get; set; } = "";
     public Guid SubmissionKey { get; set; }
     public int ScheduleVersion { get; set; }
     [Required, MaxLength(150)] public string StudentName { get; set; } = "";
-    [RegularExpression("^[0-9]{10}$")] public string? Nisn { get; set; }
+    [Required, RegularExpression("^[0-9]{10}$")] public string? Nisn { get; set; }
     [Required, MaxLength(100)] public string BirthPlace { get; set; } = "";
     public DateOnly BirthDate { get; set; }
     [Required, RegularExpression("^(Laki-laki|Perempuan)$")] public string Gender { get; set; } = "";
     [Required, MaxLength(150)] public string PreviousSchool { get; set; } = "";
     [Required, RegularExpression("^(VII|VIII|IX)$")] public string TargetGrade { get; set; } = "";
-    [Required, MaxLength(150)] public string GuardianName { get; set; } = "";
+    [MaxLength(150)] public string? GuardianName { get; set; } = "";
     [Required, RegularExpression("^\\+?[0-9][0-9 ()-]{7,24}$")] public string GuardianPhone { get; set; } = "";
-    [EmailAddress, MaxLength(254)] public string? GuardianEmail { get; set; }
+    [Required, EmailAddress, MaxLength(254)] public string? GuardianEmail { get; set; }
     [Required, MaxLength(1000)] public string Address { get; set; } = "";
     public bool Consent { get; set; }
 }
@@ -106,4 +125,33 @@ public class SpmbStatusRequest
 {
     [Required, RegularExpression("^(Baru|Diproses|Diterima|Ditolak)$")] public string Status { get; set; } = "Baru";
     public int Version { get; set; }
+}
+
+public class SpmbDocument
+{
+    public int ApplicationId { get; set; }
+    public byte[] Content { get; set; } = [];
+    public string Compression { get; set; } = "raw";
+    public int OriginalLength { get; set; }
+}
+public record CompressedPdf(byte[] Content, string Compression, int OriginalLength);
+
+public class SpmbApplicantProfile
+{
+    public int ApplicationId { get; set; }
+    [Required, MaxLength(100)] public string Nickname { get; set; } = "";
+    [Required, RegularExpression("^Islam$")] public string Religion { get; set; } = "";
+    [MaxLength(1000)] public string MedicalHistory { get; set; } = "";
+    [Range(typeof(decimal), "20", "300")] public decimal HeightCm { get; set; } = 0;
+    [Range(typeof(decimal), "1", "500")] public decimal WeightKg { get; set; } = 0;
+    [Required, RegularExpression("^(A|B|AB|O)$")] public string BloodGroup { get; set; } = "";
+    [Required, RegularExpression("^\\+?[0-9][0-9 ()-]{7,24}$")] public string ParentPhone { get; set; } = "";
+    [Required, MaxLength(150)] public string FatherName { get; set; } = "";
+    [Required, MaxLength(150)] public string MotherName { get; set; } = "";
+    [Required, MaxLength(150)] public string FatherOccupation { get; set; } = "";
+    [Required, MaxLength(150)] public string MotherOccupation { get; set; } = "";
+    [MaxLength(150)] public string GuardianOccupation { get; set; } = "";
+    [Required, MaxLength(1000)] public string ParentAddress { get; set; } = "";
+    [Required, RegularExpression("^(Baik|Kurang Baik|Sangat Baik|Tidak Stabil)$")] public string EconomicCondition { get; set; } = "";
+    [MaxLength(100)] public string DailyLanguage { get; set; } = "";
 }

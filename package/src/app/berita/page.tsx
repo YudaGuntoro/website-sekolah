@@ -53,7 +53,7 @@ export default async function BeritaPage() {
           ))}
         </div>
         <div className='mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-sky-100 bg-white/80 p-5 sm:flex-row sm:items-center sm:px-6'>
-          <p className='max-w-2xl text-sm leading-6 text-slate-600'>Kenali program dan keseharian siswa SMPIT Cendekia lebih dekat.</p>
+          <p className='max-w-2xl text-sm leading-6 text-slate-600'>Kenali program dan keseharian murid SMPIT Cendekia lebih dekat.</p>
           <Link href='/#berita' className='inline-flex shrink-0 items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'>Kembali ke beranda <span aria-hidden='true'>→</span></Link>
         </div>
       </div>

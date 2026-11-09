@@ -9,7 +9,7 @@ const profileNavigation = [
   { label: 'Ekstrakurikuler', href: '/ekstrakurikuler' },
   { label: 'Fasilitas', href: '/fasilitas' },
   { label: 'Pimpinan sekolah dan yayasan', href: '/guru' },
-  { label: 'Prestasi siswa', href: '/prestasi' },
+  { label: 'Prestasi murid', href: '/prestasi' },
   { label: 'Sejarah sekolah', href: '/sejarah' },
   { label: 'Struktur organisasi', href: '/struktur-organisasi' },
   { label: 'Visi dan misi', href: '/#tentang' },

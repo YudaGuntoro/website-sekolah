@@ -89,7 +89,8 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var group = await repository.Groups.FirstAsync(g => g.AcademicYear == entry.AcademicYear && g.WaveNumber == entry.WaveNumber);
         var proof = await repository.GetPaymentProofInfoAsync(entry.Id);
         return ApiOk(new {
-            transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null,
+            profile = await repository.GetProfileAsync(entry.Id),
+            transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null, hasDocument = await repository.HasDocumentAsync(entry.Id),
             entry.RegistrationNumber, entry.AcademicYear, entry.WaveNumber, entry.SubmittedAt,
             entry.StudentName, entry.Nisn, entry.BirthPlace, entry.BirthDate, entry.Gender,
             entry.PreviousSchool, entry.TargetGrade, entry.GuardianName, entry.GuardianPhone,
@@ -99,18 +100,25 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
     }
 
 
-    public async Task<ServiceResult> Submit(SpmbSubmissionRequest request, PaymentProofUpload? paymentProof, CancellationToken cancellationToken = default)
+    public async Task<ServiceResult> Submit(SpmbSubmissionRequest request, PaymentProofUpload? paymentProof, PdfUpload? document = null, CancellationToken cancellationToken = default)
     {
+        if (document is null || document.Content.Length is < 8 or > 1048576 || !Path.GetExtension(document.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase) || !document.Content.AsSpan(0, 5).SequenceEqual("%PDF-"u8))
+            return ApiBadRequest("PDF persyaratan wajib diunggah, maksimal 1 MB.");
+        var compressedDocument = await fileOptimizer.CompressPdfAsync(document.Content, cancellationToken);
         var proofType = PaymentProofFiles.ContentType(paymentProof);
         if (proofType is null) return ApiBadRequest("Bukti transfer wajib berupa JPG, PNG, atau PDF yang valid, maksimal 1 MB.");
         if (string.IsNullOrWhiteSpace(request.TransferAccountName)) return ApiBadRequest("Nama pemilik rekening pengirim wajib diisi.");
+        if (decimal.Round(request.HeightCm, 1) != request.HeightCm || decimal.Round(request.WeightKg, 1) != request.WeightKg) return ApiBadRequest("Tinggi dan berat badan maksimal satu angka desimal.");
         var today = SchoolDate();
         if (request.SubmissionKey == Guid.Empty) return ApiBadRequest("Identitas pengiriman tidak valid. Muat ulang formulir.");
         var nisn = string.IsNullOrWhiteSpace(request.Nisn) ? null : request.Nisn;
         if (!request.Consent) return ApiBadRequest("Konfirmasi kebenaran data dan persetujuan untuk dihubungi sekolah wajib dicentang.");
         if (request.BirthDate == default || request.BirthDate >= today || request.BirthDate < today.AddYears(-30))
             return ApiBadRequest("Tanggal lahir calon siswa tidak valid.");
-        if (request.TargetGrade != "VII" && nisn is null) return ApiBadRequest("NISN wajib diisi untuk murid pindahan.");
+        if (nisn is null) return ApiBadRequest("NISN wajib diisi untuk seluruh calon murid.");
+        if ((request.EntryType == "Baru") != (request.TargetGrade == "VII")) return ApiBadRequest("Pilihan masuk sekolah tidak sesuai dengan kelas tujuan.");
+        var parentDigits = new string(request.ParentPhone.Where(char.IsDigit).ToArray());
+        if (parentDigits.Length is < 8 or > 15) return ApiBadRequest("Nomor HP ayah/ibu harus terdiri dari 8 sampai 15 digit.");
         var digits = new string(request.GuardianPhone.Where(char.IsDigit).ToArray());
         if (digits.Length < 8 || digits.Length > 15) return ApiBadRequest("Nomor WhatsApp harus terdiri dari 8 sampai 15 digit.");
 
@@ -131,12 +139,14 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var period = await repository.GetOrCreatePeriodAsync(settings.AcademicYear, wave);
         var entry = new SpmbApplication
         {
+            Profile = new SpmbApplicantProfile { Nickname = request.Nickname.Trim(), Religion = request.Religion.Trim(), MedicalHistory = (request.MedicalHistory ?? "").Trim(), HeightCm = request.HeightCm, WeightKg = request.WeightKg, BloodGroup = request.BloodGroup.Trim(), ParentPhone = request.ParentPhone.Trim(), FatherName = request.FatherName.Trim(), MotherName = request.MotherName.Trim(), FatherOccupation = request.FatherOccupation.Trim(), MotherOccupation = request.MotherOccupation.Trim(), GuardianOccupation = (request.GuardianOccupation ?? "").Trim(), ParentAddress = request.ParentAddress.Trim(), EconomicCondition = request.EconomicCondition.Trim(), DailyLanguage = (request.DailyLanguage ?? "").Trim() },
+            Document = new SpmbDocument { Content = compressedDocument.Content, Compression = compressedDocument.Compression, OriginalLength = compressedDocument.OriginalLength },
             PaymentProof = new SpmbPaymentProof { AccountHolderName = request.TransferAccountName.Trim(), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, AcademicYear = settings.AcademicYear, WaveNumber = wave.Number,
             Period = period, WaveRevision = period.Revision,
             StudentName = request.StudentName.Trim(), Nisn = nisn, BirthPlace = request.BirthPlace.Trim(), BirthDate = request.BirthDate,
             Gender = request.Gender, PreviousSchool = request.PreviousSchool.Trim(), TargetGrade = request.TargetGrade,
-            GuardianName = request.GuardianName.Trim(), GuardianPhone = (request.GuardianPhone.StartsWith('+') ? "+" : "") + digits,
+            GuardianName = (request.GuardianName ?? "").Trim(), GuardianPhone = (request.GuardianPhone.StartsWith('+') ? "+" : "") + digits,
             GuardianEmail = string.IsNullOrWhiteSpace(request.GuardianEmail) ? null : request.GuardianEmail.Trim(), Address = request.Address.Trim(),
             SubmittedAt = now, UpdatedAt = now
         };
@@ -152,10 +162,10 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
             (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.RegistrationNumber.Contains(search) || (x.Nisn != null && x.Nisn.Contains(search)));
     public async Task<ApplicantReport> Export(string? year, int? wave, string? status, string? search, CancellationToken cancellationToken = default)
     {
-        var items = await repository.Applications.SelectAsync(x => new { x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt }, ApplicantFilter(year, wave, status, search), x => x.Id, descending: true, cancellationToken: cancellationToken);
+        var items = await repository.Applications.SelectAsync(x => new { x.Profile, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt }, ApplicantFilter(year, wave, status, search), x => x.Id, descending: true, cancellationToken: cancellationToken);
         return new ApplicantReport(ApplicantReport.FileNameFor("spmb"), "Pendaftar SPMB",
-            ["Nomor pendaftaran", "Tahun ajaran", "Gelombang", "Nama calon siswa", "NISN", "Tempat lahir", "Tanggal lahir", "Jenis kelamin", "Asal sekolah", "Kelas tujuan", "Orang tua / wali", "WhatsApp", "Email", "Alamat", "Status pendaftaran", "Waktu submit (WIB)"],
-            items.Select(x => new string[] { x.RegistrationNumber, x.AcademicYear, x.WaveNumber.ToString(), x.StudentName, x.Nisn ?? "", x.BirthPlace, x.BirthDate.ToString("dd/MM/yyyy"), x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail ?? "", x.Address, x.Status, ApplicantReport.Wib(x.SubmittedAt) }).ToList(),
+            ["Nomor pendaftaran", "Tahun ajaran", "Gelombang", "Nama calon siswa", "NISN", "Tempat lahir", "Tanggal lahir", "Jenis kelamin", "Asal sekolah", "Kelas tujuan", "Nama wali", "WhatsApp", "Email", "Alamat", "Status pendaftaran", "Waktu submit (WIB)", "Nama panggilan", "Agama", "Riwayat penyakit", "Tinggi badan (cm)", "Berat badan (kg)", "Golongan darah", "No. HP ayah/ibu", "Nama ayah", "Nama ibu", "Pekerjaan ayah", "Pekerjaan ibu", "Pekerjaan wali", "Alamat orang tua/wali", "Keadaan ekonomi", "Bahasa sehari-hari", "Masuk sekolah sebagai"],
+            items.Select(x => new string[] { x.RegistrationNumber, x.AcademicYear, x.WaveNumber.ToString(), x.StudentName, x.Nisn ?? "", x.BirthPlace, x.BirthDate.ToString("dd/MM/yyyy"), x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail ?? "", x.Address, x.Status, ApplicantReport.Wib(x.SubmittedAt), x.Profile?.Nickname ?? "", x.Profile?.Religion ?? "", x.Profile?.MedicalHistory ?? "", x.Profile?.HeightCm.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.WeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.BloodGroup ?? "", x.Profile?.ParentPhone ?? "", x.Profile?.FatherName ?? "", x.Profile?.MotherName ?? "", x.Profile?.FatherOccupation ?? "", x.Profile?.MotherOccupation ?? "", x.Profile?.GuardianOccupation ?? "", x.Profile?.ParentAddress ?? "", x.Profile?.EconomicCondition ?? "", x.Profile?.DailyLanguage ?? "", x.TargetGrade == "VII" ? "Murid baru kelas VII" : "Pindahan" }).ToList(),
             $"Tahun ajaran: {ApplicantReport.FilterValue(year, "Semua tahun")}   |   Gelombang: {(wave.HasValue ? wave.Value.ToString() : "Semua gelombang")}   |   Status: {ApplicantReport.FilterValue(status, "Semua status")}",
             $"Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
     }
@@ -171,8 +181,17 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
     public async Task<ServiceResult> Detail(int id)
     {
         var proof = await repository.GetPaymentProofInfoAsync(id);
-        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt, x.UpdatedAt, x.Version, transferAccountName = proof == null ? null : proof.AccountHolderName, hasPaymentProof = proof != null }, x => x.Id == id)).SingleOrDefault();
+        var hasDocument = await repository.HasDocumentAsync(id);
+        var profile = await repository.GetProfileAsync(id);
+        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt, x.UpdatedAt, x.Version, hasDocument, profile, transferAccountName = proof == null ? null : proof.AccountHolderName, hasPaymentProof = proof != null }, x => x.Id == id)).SingleOrDefault();
         return entry is null ? ApiNotFound("Pendaftar tidak ditemukan.") : ApiOk(entry);
+    }
+    public async Task<ServiceResult> Document(int id)
+    {
+        var entry = await repository.Applications.FirstAsync(x => x.Id == id);
+        if (entry is null) return ApiNotFound();
+        var bytes = await repository.GetDocumentAsync(id);
+        return bytes is null ? ApiNotFound("Berkas persyaratan belum tersedia.") : ApiOk(new FileDownload($"{entry.RegistrationNumber}-persyaratan.pdf", bytes));
     }
     public async Task<ServiceResult> PaymentProof(int id)
     {

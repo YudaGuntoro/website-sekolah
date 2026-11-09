@@ -4,8 +4,8 @@ import AchievementGrid from './AchievementGrid'
 import { getSchoolContent, getCmsCollection } from '../cms-content'
 
 export const metadata: Metadata = {
-  title: 'Prestasi Siswa',
-  description: 'Pencapaian dan prestasi siswa SMPIT Cendekia.',
+  title: 'Prestasi Murid',
+  description: 'Pencapaian dan prestasi murid SMPIT Cendekia.',
 }
 
 
@@ -23,7 +23,7 @@ export default async function PrestasiPage() {
             </div>
             <div className='border-l-2 border-sky-300 py-1 pl-5 sm:pl-6'>
               <p className='font-bold leading-6 text-school-navy'>Daftar prestasi SMPIT Cendekia Purwakarta tahun 2025 dan 2026.</p>
-              <p className='mt-3 text-sm leading-7 text-slate-600 sm:text-base'>Daftar prestasi siswa tahun 2025 dan 2026.</p>
+              <p className='mt-3 text-sm leading-7 text-slate-600 sm:text-base'>Daftar prestasi murid tahun 2025 dan 2026.</p>
               <Link href='/#prestasi' className='mt-4 inline-flex items-center gap-2 text-sm font-bold text-school-blue transition hover:text-school-navy'>Kembali ke beranda <span aria-hidden='true'>↗</span></Link>
             </div>
           </div>

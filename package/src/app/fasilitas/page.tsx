@@ -29,7 +29,7 @@ export default async function FasilitasPage() {
               <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Fasilitas sekolah</p>
               <h1 className='mt-3 max-w-2xl text-3xl font-black leading-[1.1] tracking-tight text-school-navy sm:mt-4 sm:text-5xl lg:text-6xl'>Ruang belajar, <span className='text-school-blue'>ruang bertumbuh.</span></h1>
             </div>
-            <p className='max-w-xl text-sm leading-6 text-slate-600 sm:border-l-2 sm:border-sky-300 sm:py-1 sm:pl-5 sm:text-base sm:leading-7'>Fasilitas SMPIT Cendekia mendukung keseharian siswa dalam belajar, mengeksplorasi minat, berolahraga, dan beribadah.</p>
+            <p className='max-w-xl text-sm leading-6 text-slate-600 sm:border-l-2 sm:border-sky-300 sm:py-1 sm:pl-5 sm:text-base sm:leading-7'>Fasilitas SMPIT Cendekia mendukung keseharian murid dalam belajar, mengeksplorasi minat, berolahraga, dan beribadah.</p>
           </div>
           <div className='mt-6 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3'>
             {visible.map((facility, index) => (

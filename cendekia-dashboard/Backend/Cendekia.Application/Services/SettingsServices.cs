@@ -90,7 +90,7 @@ public class SpmbInformationService(IEntityRepository<SpmbInformation> repositor
         var value = await repository.FirstAsync(x => x.Id == 1, tracking: true);
         if (value is null) return ApiNotFound();
         if (value.Version != request.Version) return Conflict("Informasi SPMB telah berubah. Muat ulang sebelum menyimpan.");
-        c.Introduction = c.Introduction.Trim(); c.BrochureUrl = brochure; value.Config = c; value.Version++;
+        c.Introduction = c.Introduction.Trim(); c.DocumentNotes = c.DocumentNotes?.Trim() ?? ""; c.BrochureUrl = brochure; value.Config = c; value.Version++;
         value.StepRecords.Sort((a,b) => a.Position.CompareTo(b.Position));
         OrderedChildren.Replace(value.StepRecords, c.Steps, () => new SpmbInformationStepRecord { InformationId = value.Id }, (row, item, position) => { row.Position = position; row.Title = item.Title.Trim(); row.Description = item.Description.Trim(); row.Icon = item.Icon; row.ShowPayment = item.ShowPayment; });
         foreach (var type in new[] { "new", "transfer" }) {

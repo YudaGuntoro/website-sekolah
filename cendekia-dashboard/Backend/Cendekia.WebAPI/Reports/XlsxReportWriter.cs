@@ -113,7 +113,8 @@ public static class XlsxReportWriter
         page.SetRowsToRepeatAtTop(HeaderRow, HeaderRow);
         page.PageOrientation = XLPageOrientation.Landscape;
         page.PaperSize = XLPaperSize.A3Paper;
-        page.FitToPages(1, 0);
+        page.FitToPages(lastColumn > 24 ? 2 : 1, 0);
+        if (lastColumn > 24) page.SetColumnsToRepeatAtLeft(1, 2);
         page.CenterHorizontally = true;
         page.Margins.Left = page.Margins.Right = 0.25;
         page.Margins.Top = 0.35;

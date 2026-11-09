@@ -12,15 +12,23 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
     heading.current?.parentElement?.scrollIntoView({ block: 'start', behavior: 'instant' })
   }, [])
   const details = [
-    ['Nama lengkap calon siswa', receipt.studentName],
+    ['Nama lengkap calon murid', receipt.studentName],
+    ...(receipt.profile ? [
+      ['Nama panggilan', receipt.profile.nickname], ['Agama', receipt.profile.religion],
+      ['Riwayat penyakit', receipt.profile.medicalHistory || 'Tidak diisi'], ['Tinggi badan', `${receipt.profile.heightCm} cm`], ['Berat badan', `${receipt.profile.weightKg} kg`], ['Golongan darah', receipt.profile.bloodGroup],
+      ['No. HP ayah/ibu', receipt.profile.parentPhone], ['Nama ayah', receipt.profile.fatherName], ['Nama ibu', receipt.profile.motherName],
+      ['Pekerjaan ayah', receipt.profile.fatherOccupation], ['Pekerjaan ibu', receipt.profile.motherOccupation], ['Pekerjaan wali', receipt.profile.guardianOccupation || 'Tidak diisi'],
+      ['Alamat orang tua/wali', receipt.profile.parentAddress], ['Keadaan ekonomi', receipt.profile.economicCondition], ['Bahasa sehari-hari', receipt.profile.dailyLanguage || 'Tidak diisi'],
+    ] : []),
+    ['Berkas persyaratan', receipt.hasDocument ? 'PDF telah diterima' : 'Belum tersedia'],
     ['NISN', receipt.nisn || 'Tidak diisi'],
     ['Tempat, tanggal lahir', `${receipt.birthPlace}, ${birthDate(receipt.birthDate)}`],
     ['Jenis kelamin', receipt.gender],
     ['Asal sekolah', receipt.previousSchool],
     ['Kelas yang dituju', `Kelas ${receipt.targetGrade}`],
-    ['Nama orang tua / wali', receipt.guardianName],
-    ['WhatsApp orang tua / wali', receipt.guardianPhone],
-    ['Email orang tua / wali', receipt.guardianEmail || 'Tidak diisi'],
+    ['Nama wali', receipt.guardianName || 'Tidak diisi'],
+    ['No. WhatsApp kontak', receipt.guardianPhone],
+    ['Email', receipt.guardianEmail || 'Tidak diisi'],
     ['Alamat lengkap', receipt.address],
     ['Nama pemilik rekening pengirim', receipt.transferAccountName || 'Belum tersedia'],
     ['Bukti transfer', receipt.hasPaymentProof ? 'Berhasil diunggah, menunggu pemeriksaan staf' : 'Belum tersedia'],
@@ -39,14 +47,14 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
     <h3 className='text-lg font-semibold text-school-navy'>Ringkasan data pendaftar</h3>
     <dl className='mt-2 grid gap-x-8 sm:grid-cols-2'>{details.map(([title, value]) => <div key={title} className={`min-w-0 border-b border-slate-100 py-3 ${title === 'Alamat lengkap' ? 'sm:col-span-2' : ''}`}><dt className='text-xs leading-5 text-slate-500'>{title}</dt><dd className='mt-1 whitespace-pre-line break-words text-sm font-medium leading-6 text-school-navy'>{value}</dd></div>)}</dl>
     <aside aria-label='Simpan bukti pendaftaran' className='my-6 rounded-lg border border-amber-200 bg-amber-50 p-4'>
-      <h3 className='font-semibold text-amber-950'>Jangan lupa screenshot halaman ini</h3><p className='mt-2 text-sm leading-6 text-amber-950'>Simpan tangkapan layar yang memuat nomor pendaftaran dan ringkasan data sebagai bukti bahwa Anda sudah mendaftar. Jika ada kendala, tunjukkan bukti ini kepada panitia agar pendaftaran Anda lebih mudah ditelusuri.</p><p className='mt-2 text-xs leading-6 text-amber-900'>Ambil screenshot sebelum menutup halaman atau mendaftarkan calon siswa lain.</p>
+      <h3 className='font-semibold text-amber-950'>Jangan lupa screenshot halaman ini</h3><p className='mt-2 text-sm leading-6 text-amber-950'>Simpan tangkapan layar yang memuat nomor pendaftaran dan ringkasan data sebagai bukti bahwa Anda sudah mendaftar. Jika ada kendala, tunjukkan bukti ini kepada panitia agar pendaftaran Anda lebih mudah ditelusuri.</p><p className='mt-2 text-xs leading-6 text-amber-900'>Ambil screenshot sebelum menutup halaman atau mendaftarkan calon murid lain.</p>
     </aside>
     {receipt.whatsappGroupUrl ? <aside aria-label='Langkah berikutnya' className='mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5'>
       <h3 className='font-semibold text-school-navy'>Selanjutnya, gabung grup WhatsApp Gelombang {receipt.waveNumber}</h3><p className='mt-2 text-sm leading-7 text-slate-600'>Silakan bergabung ke grup Gelombang {receipt.waveNumber} tahun ajaran {receipt.academicYear} untuk mendapatkan informasi tahapan pendaftaran berikutnya dari panitia.</p>
       <a href={receipt.whatsappGroupUrl} target='_blank' rel='noopener noreferrer' className='mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-700 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-800'>Gabung grup WhatsApp Gelombang {receipt.waveNumber}</a>
       <p className='mt-4 text-xs leading-6 text-slate-600'>Tautan grup WhatsApp:<a href={receipt.whatsappGroupUrl} target='_blank' rel='noopener noreferrer' className='mt-1 block break-all text-sm font-medium text-emerald-800 underline underline-offset-4 hover:text-emerald-950'>{receipt.whatsappGroupUrl}</a></p>
     </aside> : <p className='mb-6 rounded-lg border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-school-navy'>Tautan grup WhatsApp Gelombang {receipt.waveNumber} belum tersedia. Hubungi panitia melalui kontak sekolah untuk informasi grup dan tahapan berikutnya.</p>}
-    <p className='text-sm leading-7 text-slate-600'>Sekolah akan menghubungi orang tua atau wali untuk tahapan berikutnya. Pendaftaran belum merupakan konfirmasi penerimaan siswa.</p>
-    <div className='mt-6 flex flex-wrap gap-3'><a href='/spmb' className='rounded-md bg-school-blue px-5 py-3 text-sm font-semibold text-white'>Informasi SPMB</a><button type='button' className='rounded-md border border-slate-300 px-5 py-3 text-sm font-medium text-school-navy hover:bg-slate-50' onClick={onReset}>Daftarkan calon siswa lain</button></div>
+    <p className='text-sm leading-7 text-slate-600'>Sekolah akan menghubungi orang tua atau wali untuk tahapan berikutnya. Pendaftaran belum merupakan konfirmasi penerimaan murid.</p>
+    <div className='mt-6 flex flex-wrap gap-3'><a href='/spmb' className='rounded-md bg-school-blue px-5 py-3 text-sm font-semibold text-white'>Informasi SPMB</a><button type='button' className='rounded-md border border-slate-300 px-5 py-3 text-sm font-medium text-school-navy hover:bg-slate-50' onClick={onReset}>Daftarkan calon murid lain</button></div>
   </section>
 }

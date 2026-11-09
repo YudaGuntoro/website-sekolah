@@ -5,9 +5,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
 export type Wave = { number: number; startDate: string | null; endDate: string | null; isOpen: boolean }
 export type Schedule = { academicYear: string; today: string; version: number; enabled: boolean; activeWave: number | null; waves: Wave[] }
+export type ApplicantProfile = {
+  nickname: string; religion: string; medicalHistory: string; heightCm: number; weightKg: number; bloodGroup: string;
+  parentPhone: string; fatherName: string; motherName: string; fatherOccupation: string; motherOccupation: string; guardianOccupation: string; parentAddress: string; economicCondition: string; dailyLanguage: string;
+}
 export type Receipt = {
+  profile: ApplicantProfile | null;
   registrationNumber: string; academicYear: string; waveNumber: number; submittedAt: string; whatsappGroupUrl: string;
-  transferAccountName: string | null; hasPaymentProof: boolean;
+  transferAccountName: string | null; hasPaymentProof: boolean; hasDocument: boolean;
   studentName: string; nisn: string | null; birthPlace: string; birthDate: string; gender: string;
   previousSchool: string; targetGrade: string; guardianName: string; guardianPhone: string;
   guardianEmail: string | null; address: string;
@@ -38,11 +43,16 @@ export default function SpmbRegistrationForm() {
     event.preventDefault()
     if (submitting || !schedule?.activeWave) return
     const form = new FormData(event.currentTarget)
+    const document = form.get('document')
+    if (!(document instanceof File) || !document.size) { setError('Unggah PDF persyaratan sebelum mengirim pendaftaran.'); return }
+    if (document.size > 1024 * 1024 || !/\.pdf$/i.test(document.name)) { setError('Berkas persyaratan harus berupa PDF maksimal 1 MB.'); return }
     const proofError = paymentProofError(form)
     if (proofError) { setError(proofError); return }
     const value = (key: string) => String(form.get(key) || '').trim()
     submissionKey.current ||= crypto.randomUUID()
     const payload = {
+      nickname: value('nickname'), religion: value('religion'), medicalHistory: value('medicalHistory'), heightCm: Number(value('heightCm')), weightKg: Number(value('weightKg')), bloodGroup: value('bloodGroup'),
+      parentPhone: value('parentPhone'), fatherName: value('fatherName'), motherName: value('motherName'), fatherOccupation: value('fatherOccupation'), motherOccupation: value('motherOccupation'), guardianOccupation: value('guardianOccupation'), parentAddress: value('parentAddress'), economicCondition: value('economicCondition'), dailyLanguage: value('dailyLanguage'), entryType: value('entryType'),
       submissionKey: submissionKey.current, scheduleVersion: schedule.version,
       studentName: value('studentName'), nisn: value('nisn') || null,
       birthPlace: value('birthPlace'), birthDate: value('birthDate'), gender: value('gender'),

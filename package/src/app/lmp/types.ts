@@ -1,4 +1,5 @@
 export type LmpConfig = {
+  steps: { title: string; description: string; icon: string; showPayment: boolean }[];
   title: string; introduction: string; enabled: boolean;
   registrationStart: string | null; registrationEnd: string | null;
   competitionDate: string | null; competitionTime: string; venue: string;

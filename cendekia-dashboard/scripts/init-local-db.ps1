@@ -71,6 +71,10 @@ $sessionSchema = [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261107_spmb_wave_groups.sql'))
 if ($SecurityOnly) { $sql = $sessionSchema } else { $sql += "`n" + $sessionSchema }
 $sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261108_registration_payment_proofs.sql'))
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_lmp_information_steps.sql'))
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_application_documents.sql'))
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_document_notes.sql'))
+$sql += "`n" + [System.IO.File]::ReadAllText((Join-Path $projectRoot 'database/migrations/20261109_spmb_applicant_profiles.sql'))
 $sqlBytes = [System.Text.Encoding]::UTF8.GetBytes($sql)
 $mysqlProcess.StandardInput.BaseStream.Write($sqlBytes, 0, $sqlBytes.Length)
 $mysqlProcess.StandardInput.Close()

@@ -10,11 +10,11 @@ async function forward(request?: Request) {
     if (request) {
       contentType = request.headers.get('content-type') || ''
       if (!contentType.startsWith('multipart/form-data;')) return Response.json({ success: false, message: 'Format formulir tidak valid.' }, { status: 400, headers })
-      if (Number(request.headers.get('content-length')) > maxBytes) return Response.json({ success: false, message: 'Berkas terlalu besar. Maksimal bukti transfer 1 MB.' }, { status: 413, headers })
+      if (Number(request.headers.get('content-length')) > maxBytes) return Response.json({ success: false, message: 'Berkas terlalu besar. PDF persyaratan dan bukti transfer masing-masing maksimal 1 MB.' }, { status: 413, headers })
       const reader = request.body?.getReader()
       if (!reader) throw new Error('Empty body')
       const chunks: Uint8Array[] = []; let length = 0
-      while (true) { const { done, value } = await reader.read(); if (done) break; length += value.length; if (length > maxBytes) { await reader.cancel(); return Response.json({ success: false, message: 'Berkas terlalu besar. Maksimal bukti transfer 1 MB.' }, { status: 413, headers }) } chunks.push(value) }
+      while (true) { const { done, value } = await reader.read(); if (done) break; length += value.length; if (length > maxBytes) { await reader.cancel(); return Response.json({ success: false, message: 'Berkas terlalu besar. PDF persyaratan dan bukti transfer masing-masing maksimal 1 MB.' }, { status: 413, headers }) } chunks.push(value) }
       body = new Uint8Array(length); let offset = 0; for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length }
     }
     const response = await fetch(`${api.replace(/\/$/, '')}/api/spmb/${request ? 'applications' : 'schedule'}`, { method: request ? 'POST' : 'GET', body: body as BodyInit | undefined, headers: { ...schoolApiHeaders(request), 'Content-Type': contentType }, cache: 'no-store', signal: AbortSignal.timeout(20000) })

@@ -16,14 +16,14 @@ const stories = [
     eyebrow: 'Mengapa Cendekia hadir',
     text: 'Cendekia hadir dengan semangat memberi ruang bagi anak untuk belajar, mengenali potensinya, membangun karakter, dan berani berkarya.',
     image: '/images/school/pelajar-ceria.png',
-    alt: 'Siswa SMPIT Cendekia',
+    alt: 'Murid SMPIT Cendekia',
   },
   {
     title: 'Visi ke Depan',
     eyebrow: 'Arah pendidikan',
     text: 'Mewujudkan sekolah yang unggul dalam iman, ilmu, dan amal melalui kepemimpinan yang inklusif, berintegritas, dan berorientasi pada pembinaan karakter, prestasi, serta kepedulian lingkungan. Visi ini menjadi arah bagi seluruh warga sekolah dalam merancang pembelajaran dan kegiatan yang mendukung tujuan tersebut.',
     image: '/images/school/siswa-ceria.png',
-    alt: 'Ilustrasi siswa belajar bersama',
+    alt: 'Ilustrasi murid belajar bersama',
   },
 ]
 

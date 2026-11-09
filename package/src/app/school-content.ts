@@ -1,23 +1,23 @@
 export const announcements = [
-    { title: 'Pengumuman Kegiatan Peringatan Hari Kemerdekaan', date: '12 Agustus 2026', text: 'Kegiatan peringatan Hari Kemerdekaan akan dilaksanakan di lingkungan sekolah. Siswa dapat menghubungi wali kelas untuk informasi jadwal dan perlengkapan.' },
+    { title: 'Pengumuman Kegiatan Peringatan Hari Kemerdekaan', date: '12 Agustus 2026', text: 'Kegiatan peringatan Hari Kemerdekaan akan dilaksanakan di lingkungan sekolah. Murid dapat menghubungi wali kelas untuk informasi jadwal dan perlengkapan.' },
     { title: 'Informasi Libur Nasional dan Cuti Bersama', date: '10 Agustus 2026', text: 'Kegiatan belajar mengajar diliburkan mengikuti kalender pendidikan dan ketentuan hari libur nasional.' },
-    { title: 'Lomba Kreativitas Siswa Tingkat Sekolah', date: '3 Agustus 2026', text: 'Siswa dapat mendaftarkan karya dan ide kreatif melalui wali kelas. Informasi kategori lomba tersedia di sekretariat sekolah.' },
-    { title: 'Jadwal Ujian Akhir Semester Ganjil', date: '27 Juli 2026', text: 'Jadwal ujian dan pembagian ruang akan diinformasikan oleh wali kelas. Siswa diimbau menyiapkan diri dan memeriksa perlengkapan ujian.' },
+    { title: 'Lomba Kreativitas Murid Tingkat Sekolah', date: '3 Agustus 2026', text: 'Murid dapat mendaftarkan karya dan ide kreatif melalui wali kelas. Informasi kategori lomba tersedia di sekretariat sekolah.' },
+    { title: 'Jadwal Ujian Akhir Semester Ganjil', date: '27 Juli 2026', text: 'Jadwal ujian dan pembagian ruang akan diinformasikan oleh wali kelas. Murid diimbau menyiapkan diri dan memeriksa perlengkapan ujian.' },
 ]
 
 export const schoolNews = [
   {
     slug: 'pekan-bahasa-panggung-kreativitas-siswa',
-    category: 'Kegiatan siswa',
-    title: 'Pekan Bahasa Jadi Panggung Kreativitas Siswa',
+    category: 'Kegiatan murid',
+    title: 'Pekan Bahasa Jadi Panggung Kreativitas Murid',
     date: '28 Oktober 2026',
     publishedAt: '2026-10-28',
-    text: 'Dari membaca puisi hingga bercerita dalam bahasa Inggris, siswa tampil percaya diri dalam perayaan Bulan Bahasa.',
+    text: 'Dari membaca puisi hingga bercerita dalam bahasa Inggris, murid tampil percaya diri dalam perayaan Bulan Bahasa.',
     visual: 'literasi',
     body: [
-      'Suasana aula sekolah terasa berbeda saat siswa bergantian membawakan puisi, cerita pendek, dan penampilan bahasa. Setiap kelas menyiapkan karya dengan tema persahabatan dan semangat belajar.',
-      'Persiapan dilakukan bersama guru pendamping. Siswa berlatih menyusun naskah, mengatur intonasi, dan memberi masukan kepada teman satu kelompok. Proses latihan menjadi kesempatan untuk belajar mendengarkan sekaligus menyampaikan pendapat.',
-      'Kegiatan ditutup dengan pameran tulisan dan sesi apresiasi antarkelas. Lewat Pekan Bahasa, siswa diajak melihat bahwa keberanian mencoba sama berharganya dengan hasil penampilan.',
+      'Suasana aula sekolah terasa berbeda saat murid bergantian membawakan puisi, cerita pendek, dan penampilan bahasa. Setiap kelas menyiapkan karya dengan tema persahabatan dan semangat belajar.',
+      'Persiapan dilakukan bersama guru pendamping. Murid berlatih menyusun naskah, mengatur intonasi, dan memberi masukan kepada teman satu kelompok. Proses latihan menjadi kesempatan untuk belajar mendengarkan sekaligus menyampaikan pendapat.',
+      'Kegiatan ditutup dengan pameran tulisan dan sesi apresiasi antarkelas. Lewat Pekan Bahasa, murid diajak melihat bahwa keberanian mencoba sama berharganya dengan hasil penampilan.',
     ],
   },
   {
@@ -26,12 +26,12 @@ export const schoolNews = [
     title: 'Dari Ruang Kelas ke Pameran Sains',
     date: '21 Oktober 2026',
     publishedAt: '2026-10-21',
-    text: 'Siswa memamerkan percobaan sederhana dan menjelaskan ide di balik karya mereka kepada teman serta guru.',
+    text: 'Murid memamerkan percobaan sederhana dan menjelaskan ide di balik karya mereka kepada teman serta guru.',
     visual: 'sains',
     body: [
-      'Meja-meja di ruang kegiatan berubah menjadi tempat pameran hasil eksperimen siswa. Ada penyaring air sederhana, model energi alternatif, dan percobaan yang berangkat dari pertanyaan sehari-hari.',
+      'Meja-meja di ruang kegiatan berubah menjadi tempat pameran hasil eksperimen murid. Ada penyaring air sederhana, model energi alternatif, dan percobaan yang berangkat dari pertanyaan sehari-hari.',
       'Setiap kelompok menjelaskan bahan, tahapan percobaan, serta hal yang mereka pelajari saat hasilnya belum sesuai harapan. Pengunjung dapat bertanya langsung dan mencoba beberapa demonstrasi dengan pendampingan guru.',
-      'Pameran ini memberi ruang bagi siswa untuk menghubungkan pelajaran dengan persoalan di sekitar mereka. Kerja sama dan kemampuan menjelaskan proses menjadi bagian penting dari pengalaman belajar tersebut.',
+      'Pameran ini memberi ruang bagi murid untuk menghubungkan pelajaran dengan persoalan di sekitar mereka. Kerja sama dan kemampuan menjelaskan proses menjadi bagian penting dari pengalaman belajar tersebut.',
     ],
   },
   {
@@ -40,12 +40,12 @@ export const schoolNews = [
     title: 'OSIS Ajak Warga Sekolah Bergerak di Jumat Bersih',
     date: '16 Oktober 2026',
     publishedAt: '2026-10-16',
-    text: 'Lewat aksi bersama, siswa merawat taman, memilah sampah, dan menata kembali sudut belajar di sekolah.',
+    text: 'Lewat aksi bersama, murid merawat taman, memilah sampah, dan menata kembali sudut belajar di sekolah.',
     visual: 'project',
     body: [
-      'Pengurus OSIS mengajak setiap kelas mengambil bagian dalam kegiatan Jumat Bersih. Siswa membagi tugas untuk merapikan ruang kelas, membersihkan halaman, dan merawat tanaman di lingkungan sekolah.',
-      'Selain membersihkan area bersama, siswa berdiskusi tentang kebiasaan kecil yang dapat mengurangi sampah. Beberapa kelompok membuat pengingat untuk membawa botol minum dan menggunakan tempat sampah sesuai jenisnya.',
-      'Guru mendampingi kegiatan dan membantu siswa menyusun pembagian tugas yang adil. Aksi ini menjadi latihan tanggung jawab bersama dalam menjaga ruang belajar yang nyaman.',
+      'Pengurus OSIS mengajak setiap kelas mengambil bagian dalam kegiatan Jumat Bersih. Murid membagi tugas untuk merapikan ruang kelas, membersihkan halaman, dan merawat tanaman di lingkungan sekolah.',
+      'Selain membersihkan area bersama, murid berdiskusi tentang kebiasaan kecil yang dapat mengurangi sampah. Beberapa kelompok membuat pengingat untuk membawa botol minum dan menggunakan tempat sampah sesuai jenisnya.',
+      'Guru mendampingi kegiatan dan membantu murid menyusun pembagian tugas yang adil. Aksi ini menjadi latihan tanggung jawab bersama dalam menjaga ruang belajar yang nyaman.',
     ],
   },
   {
@@ -57,8 +57,8 @@ export const schoolNews = [
     text: 'Pertandingan antarkelas menghadirkan semangat sportivitas, kerja sama tim, dan dukungan meriah dari teman-teman.',
     visual: 'community',
     body: [
-      'Sorak dukungan terdengar dari tepi lapangan saat pertandingan antarkelas dimulai. Siswa mengikuti permainan olahraga dan tantangan kelompok yang menuntut kekompakan, bukan hanya kemampuan individu.',
-      'Panitia siswa membantu mengatur jadwal pertandingan dan memastikan setiap kelas mendapat kesempatan berpartisipasi. Guru pendamping mengingatkan peserta untuk menghargai keputusan wasit serta menjaga keselamatan selama bermain.',
+      'Sorak dukungan terdengar dari tepi lapangan saat pertandingan antarkelas dimulai. Murid mengikuti permainan olahraga dan tantangan kelompok yang menuntut kekompakan, bukan hanya kemampuan individu.',
+      'Panitia murid membantu mengatur jadwal pertandingan dan memastikan setiap kelas mendapat kesempatan berpartisipasi. Guru pendamping mengingatkan peserta untuk menghargai keputusan wasit serta menjaga keselamatan selama bermain.',
       'Di akhir kegiatan, para peserta saling memberi selamat dan berbagi cerita tentang pertandingan. Class meeting menjadi kesempatan untuk mempererat pertemanan di luar kegiatan belajar di kelas.',
     ],
   },

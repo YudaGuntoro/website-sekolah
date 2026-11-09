@@ -53,12 +53,30 @@ public class CendekiaDbContext : DbContext
             e.Property(x => x.Content).HasColumnType("mediumblob");
             e.HasOne<LmpApplication>().WithOne(x => x.PaymentProof).HasForeignKey<LmpPaymentProof>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
         });
+        modelBuilder.Entity<SpmbApplicantProfile>(e => {
+            e.ToTable("spmb_applicant_profiles"); e.HasKey(x => x.ApplicationId);
+            e.Property(x => x.HeightCm).HasPrecision(5, 1); e.Property(x => x.WeightKg).HasPrecision(5, 1);
+            e.HasOne<SpmbApplication>().WithOne(x => x.Profile).HasForeignKey<SpmbApplicantProfile>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<SpmbDocument>(e => {
+            e.ToTable("spmb_application_documents"); e.HasKey(x => x.ApplicationId);
+            e.Property(x => x.Content).HasColumnType("mediumblob");
+            e.Property(x => x.Compression).HasMaxLength(10);
+            e.HasOne<SpmbApplication>().WithOne(x => x.Document).HasForeignKey<SpmbDocument>(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+        });
         modelBuilder.Entity<LmpDocument>(e => { e.ToTable("lmp_application_documents"); e.HasKey(x => x.ApplicationId); e.Property(x => x.Content).HasColumnType("mediumblob"); });
 
+        modelBuilder.Entity<LmpInformationStepRecord>(entity => {
+            entity.ToTable("lmp_information_steps"); entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.SettingsId, x.Position }).IsUnique();
+        });
         modelBuilder.Entity<LmpSettings>(entity => {
+            entity.HasMany(x => x.StepRecords).WithOne().HasForeignKey(x => x.SettingsId).OnDelete(DeleteBehavior.Cascade);
+            entity.Navigation(x => x.StepRecords).AutoInclude();
             entity.ToTable("lmp_settings"); entity.HasKey(x => x.Id);
             entity.OwnsOne(x => x.Config, owned => {
-                foreach (var property in typeof(LmpConfig).GetProperties()) owned.Property(property.Name).HasColumnName(property.Name);
+                owned.Ignore(x => x.Steps);
+                foreach (var property in typeof(LmpConfig).GetProperties().Where(p => p.Name != nameof(LmpConfig.Steps))) owned.Property(property.Name).HasColumnName(property.Name);
             });
             entity.Navigation(x => x.Config).IsRequired();
             entity.Property(x => x.Version).IsConcurrencyToken();

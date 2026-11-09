@@ -21,7 +21,7 @@ export default async function SocialPostsPage({ platform }: { platform: 'instagr
           {posts.map(post => <SocialCard key={post.slug} post={post} platform={platform} />)}
         </div> : <p className='mt-10 rounded-2xl border border-dashed border-sky-200 bg-white px-5 py-12 text-center text-sm text-slate-500'>Postingan {name} sekolah akan tampil di sini.</p>}
         <div className='mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-sky-100 bg-white/80 p-5 sm:flex-row sm:items-center sm:px-6'>
-          <p className='max-w-2xl text-sm leading-6 text-slate-600'>Ikuti cerita keseharian dan pencapaian siswa SMPIT Cendekia.</p>
+          <p className='max-w-2xl text-sm leading-6 text-slate-600'>Ikuti cerita keseharian dan pencapaian murid SMPIT Cendekia.</p>
           <Link href={`/#${platform}`} className='inline-flex shrink-0 items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'>Kembali ke beranda <span aria-hidden='true'>→</span></Link>
         </div>
       </div>

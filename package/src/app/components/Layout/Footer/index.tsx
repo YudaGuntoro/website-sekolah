@@ -20,7 +20,7 @@ const Footer = async () => {
           <li><a className='transition hover:text-white' href='#tentang'>Tentang sekolah</a></li>
           <li><a className='transition hover:text-white' href='#program'>Program belajar</a></li>
           <li><a className='transition hover:text-white' href='/fasilitas'>Fasilitas</a></li>
-          <li><a className='transition hover:text-white' href='#ppdb'>Penerimaan siswa</a></li>
+          <li><a className='transition hover:text-white' href='#ppdb'>Penerimaan murid</a></li>
         </ul>
       </div>
 

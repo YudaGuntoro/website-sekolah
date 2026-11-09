@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Ekstrakurikuler',
-  description: 'Jelajahi ruang minat, kreativitas, dan kebugaran siswa SMPIT Cendekia.',
+  description: 'Jelajahi ruang minat, kreativitas, dan kebugaran murid SMPIT Cendekia.',
 }
 
 const activities = [
@@ -38,10 +38,10 @@ export default async function EkstrakurikulerPage() {
         <div className='mx-auto max-w-7xl px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-10'>
           <div className='grid items-end gap-7 lg:grid-cols-[1.1fr_.9fr] lg:gap-12'>
             <div>
-              <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Ruang eksplorasi siswa</p>
+              <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Ruang eksplorasi murid</p>
               <h1 className='mt-4 max-w-2xl text-4xl font-black leading-[1.06] tracking-tight text-school-navy sm:text-5xl lg:text-6xl'>Minat tumbuh, <span className='text-school-blue'>potensi berkembang.</span></h1>
             </div>
-            <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan di luar kelas memberi ruang bagi siswa untuk mencoba hal baru, mengasah keterampilan, dan belajar bekerja sama.</p>
+            <p className='max-w-xl border-l-2 border-sky-300 py-1 pl-5 text-base leading-7 text-slate-600'>Kegiatan di luar kelas memberi ruang bagi murid untuk mencoba hal baru, mengasah keterampilan, dan belajar bekerja sama.</p>
           </div>
           <div className='mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
             {visible.map((activity) => (
