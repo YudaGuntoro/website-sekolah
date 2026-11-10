@@ -8,8 +8,8 @@ import { CloseIcon } from "@/icons";
 import RowActions from "@/components/common/RowActions";
 import { ConfirmModal } from "@/components/ui/modal/ConfirmModal";
 import { collections, CollectionKey, ContentEntry, formatDate, slugify, websiteUrl } from "./collections";
-type EditorForm = Pick<ContentEntry, "title" | "slug" | "category" | "summary" | "body" | "imageUrl" | "postUrl" | "status" | "sortOrder" | "version">;
-const emptyForm = (): EditorForm => ({ title: "", slug: "", category: "", summary: "", body: "", imageUrl: "", postUrl: "", status: "Draft", sortOrder: 0, version: 0 });
+type EditorForm = Pick<ContentEntry, "title" | "slug" | "category" | "coachName" | "summary" | "body" | "imageUrl" | "postUrl" | "status" | "sortOrder" | "version">;
+const emptyForm = (): EditorForm => ({ title: "", slug: "", category: "", coachName: "", summary: "", body: "", imageUrl: "", postUrl: "", status: "Draft", sortOrder: 0, version: 0 });
 export default function ContentManager({ collection }: { collection: CollectionKey }) {
   const config = collections.find(c => c.key === collection)!;
   const isGreeting = collection === "sambutan";
@@ -98,8 +98,9 @@ export default function ContentManager({ collection }: { collection: CollectionK
         </>}
         {isSocial && <label>URL postingan {platform} *<input autoFocus type="url" required maxLength={1000} placeholder={collection === "instagram" ? "https://www.instagram.com/p/.../" : "https://www.tiktok.com/@akun/video/..."} value={form.postUrl} onChange={e => change("postUrl", e.target.value)} /><small>Foto kartu diambil otomatis dari postingan publik. Cukup tempel tautan, lalu pilih Terbit. Jika foto tidak tersedia, kartu menampilkan ilustrasi.</small></label>}
         {isSocial && <label>Judul kartu<input maxLength={200} placeholder="Contoh: Momen seru di Cendekia" value={form.title} onChange={e => change("title", e.target.value)} /><small>Opsional. Gunakan judul singkat untuk kartu website.</small></label>}
+        {collection === "ekstrakurikuler" && <label>Pelatih / pembina<input maxLength={200} value={form.coachName || ""} onChange={e => change("coachName", e.target.value)} placeholder="Nama pelatih atau pembina kegiatan" /><small>Kosongkan bila belum ditentukan.</small></label>}
         {!isGreeting && <label>Ringkasan<textarea rows={3} maxLength={1000} value={form.summary} onChange={e => change("summary", e.target.value)} /><small>Deskripsi singkat pada kartu website.</small></label>}
-        {!isSocial && <label>{config.body}<textarea rows={9} maxLength={100000} value={form.body} onChange={e => change("body", e.target.value)} /><small>{isGreeting ? "Pisahkan paragraf dengan baris kosong. Dua paragraf pertama tampil sebagai pembuka, sisanya melalui tombol Baca sambutan lengkap." : "Pisahkan paragraf dengan baris kosong."}</small></label>}
+        {!isSocial && <label>{config.body}<textarea rows={9} maxLength={100000} value={form.body} onChange={e => change("body", e.target.value)} /><small>{isGreeting ? "Pisahkan paragraf dengan baris kosong. Dua paragraf pertama tampil sebagai pembuka, sisanya melalui tombol Baca sambutan lengkap." : collection === "ekstrakurikuler" ? "Jelaskan aktivitas, cara latihan, dan jadwal jika sudah tersedia. Pisahkan paragraf dengan baris kosong." : "Pisahkan paragraf dengan baris kosong."}</small></label>}
         {!isSocial && <section className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
           <label>{isGreeting ? "Upload foto kepala sekolah" : "Upload gambar / foto"}<input key={editing === "new" ? "new" : editing?.id} ref={photoInput} type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={event => {
             const file = event.target.files?.[0] || null;

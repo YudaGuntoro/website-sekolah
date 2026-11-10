@@ -83,6 +83,7 @@ public class CendekiaDbContext : DbContext
         });
         modelBuilder.Entity<LmpApplication>(entity => {
             entity.ToTable("lmp_applications"); entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.Nisn).HasDatabaseName("ix_lmp_nisn");
             entity.HasOne(x => x.Event).WithMany().HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.Restrict);
             entity.Navigation(x => x.Event).AutoInclude();
             entity.HasIndex(x => x.SubmissionKey).IsUnique();

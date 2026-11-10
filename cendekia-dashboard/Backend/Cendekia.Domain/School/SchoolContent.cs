@@ -11,6 +11,7 @@ public class SchoolContent
     [MaxLength(200)] public string Title { get; set; } = "";
     [MaxLength(220)] public string Slug { get; set; } = "";
     [MaxLength(200)] public string Category { get; set; } = "";
+    [MaxLength(200)] public string? CoachName { get; set; }
     [MaxLength(1000)] public string Summary { get; set; } = "";
     public string Body { get; set; } = "";
     [MaxLength(500)] public string ImageUrl { get; set; } = "";
@@ -29,6 +30,7 @@ public class ContentRequest
     [Required, MaxLength(220), RegularExpression("^[a-z0-9]+(?:-[a-z0-9]+)*$")]
     public string Slug { get; set; } = "";
     [MaxLength(200)] [DisplayFormat(ConvertEmptyStringToNull = false)] public string Category { get; set; } = "";
+    [MaxLength(200)] [DisplayFormat(ConvertEmptyStringToNull = false)] public string? CoachName { get; set; }
     [MaxLength(1000)] [DisplayFormat(ConvertEmptyStringToNull = false)] public string Summary { get; set; } = "";
     [MaxLength(100000)] [DisplayFormat(ConvertEmptyStringToNull = false)] public string Body { get; set; } = "";
     [MaxLength(500)] [DisplayFormat(ConvertEmptyStringToNull = false)] public string ImageUrl { get; set; } = "";

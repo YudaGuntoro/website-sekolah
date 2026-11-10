@@ -7,7 +7,7 @@ public class ContentService(IContentRepository repository, IApplicationUnitOfWor
     public static readonly string[] Collections = ["berita", "pengumuman", "instagram", "tiktok", "profil", "sambutan", "guru", "prestasi", "fasilitas", "program", "kegiatan", "ekstrakurikuler", "osis", "spmb"];
     public const int MaxImageBytes = 2 * 1024 * 1024;
     private static string ImageUrl(Guid? id, string fallback) => id.HasValue ? $"/api/school/images/{id.Value:D}" : fallback;
-    private static object View(SchoolContent x) => new { x.Id, x.Collection, x.Title, x.Slug, x.Category, x.Summary, x.Body, imageUrl = ImageUrl(x.ImageId, x.ImageUrl), x.PostUrl, x.Status, x.PublishedAt, x.SortOrder, x.Version, x.CreatedAt, x.UpdatedAt };
+    private static object View(SchoolContent x) => new { x.Id, x.Collection, x.Title, x.Slug, x.Category, x.CoachName, x.Summary, x.Body, imageUrl = ImageUrl(x.ImageId, x.ImageUrl), x.PostUrl, x.Status, x.PublishedAt, x.SortOrder, x.Version, x.CreatedAt, x.UpdatedAt };
     public async Task<ServiceResult> Dashboard() => ApiOk(new { counts = await repository.GetCountsAsync(), recent = (await repository.ListAsync(orderBy: x => x.UpdatedAt, descending: true, take: 6)).Select(View) });
     public async Task<ServiceResult> List(string collection) => !Collections.Contains(collection) ? ApiNotFound() : ApiOk((await repository.ListAsync(x => x.Collection == collection, x => x.Id, descending: true)).Select(View));
     private async Task<ContentImageFile?> Optimize(ContentImageUpload? photo, CancellationToken cancellationToken)
@@ -64,8 +64,8 @@ public class ContentService(IContentRepository repository, IApplicationUnitOfWor
     }
     public async Task<ServiceResult> Published() {
         var now = DateTime.UtcNow;
-        var entries = await repository.SelectAsync(x => new { x.Collection, x.Title, x.Slug, x.Category, x.Summary, x.Body, x.ImageId, x.ImageUrl, x.PostUrl, x.PublishedAt, x.SortOrder }, x => x.Status == "Published" && x.PublishedAt <= now, x => x.PublishedAt!, descending: true, thenBy: x => x.Id);
-        return ApiOk(entries.Select(x => new { x.Collection, x.Title, x.Slug, x.Category, x.Summary, x.Body, imageUrl = ImageUrl(x.ImageId, x.ImageUrl), x.PostUrl, x.PublishedAt, x.SortOrder }));
+        var entries = await repository.SelectAsync(x => new { x.Collection, x.Title, x.Slug, x.Category, x.CoachName, x.Summary, x.Body, x.ImageId, x.ImageUrl, x.PostUrl, x.PublishedAt, x.SortOrder }, x => x.Status == "Published" && x.PublishedAt <= now, x => x.PublishedAt!, descending: true, thenBy: x => x.Id);
+        return ApiOk(entries.Select(x => new { x.Collection, x.Title, x.Slug, x.Category, x.CoachName, x.Summary, x.Body, imageUrl = ImageUrl(x.ImageId, x.ImageUrl), x.PostUrl, x.PublishedAt, x.SortOrder }));
     }
     private static bool ValidPostUrl(string collection, string? value)
     {
@@ -92,6 +92,7 @@ public class ContentService(IContentRepository repository, IApplicationUnitOfWor
         entry.Title = request.Title.Trim();
         entry.Slug = request.Slug;
         entry.Category = request.Category.Trim();
+        if (entry.Collection == "ekstrakurikuler" && request.CoachName is not null) entry.CoachName = request.CoachName.Trim();
         entry.Summary = request.Summary.Trim();
         entry.Body = request.Body.Trim();
         entry.ImageUrl = request.ImageUrl.Trim();

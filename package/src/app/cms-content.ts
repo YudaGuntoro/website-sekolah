@@ -3,7 +3,7 @@ import 'server-only'
 import { cache } from 'react'
 import * as defaults from './school-content'
 
-export type CmsEntry = { collection: string; title: string; slug: string; category: string; summary: string; body: string; imageUrl: string; postUrl: string; publishedAt: string; sortOrder: number }
+export type CmsEntry = { collection: string; title: string; slug: string; category: string; coachName?: string | null; summary: string; body: string; imageUrl: string; postUrl: string; publishedAt: string; sortOrder: number }
 
 // Without a configured CMS, the original template remains available for standalone previews.
 // When configured, an empty collection is authoritative: unpublished/deleted items never return.

@@ -68,6 +68,7 @@ for check in json.load(sys.stdin):
   assert [v[1] for v in values[1:]]==check['numbers']
   index=values[0].index('Nama calon siswa' if check['module']=='spmb' else 'Nama peserta')
   if check['module']=='spmb':assert 'Status pembayaran' in values[0]
+  else:assert 'NISN' in values[0]
   assert [v[index] for v in values[1:]]==check['names']
   assert sheet.find('s:sheetViews/s:sheetView/s:pane',ns).get('state') in ('frozen','frozenSplit')
   assert sheet.find('s:autoFilter',ns) is not None

@@ -47,6 +47,7 @@ public class LmpApplication
     public int EventId { get; set; }
     public LmpEvent Event { get; set; } = null!;
     [MaxLength(150)] public string StudentName { get; set; } = "";
+    [MaxLength(10)] public string? Nisn { get; set; }
     [MaxLength(150)] public string PreviousSchool { get; set; } = "";
     public int Grade { get; set; }
     public int SubjectId { get; set; }
@@ -83,6 +84,7 @@ public class LmpSubmissionRequest
     public Guid SubmissionKey { get; set; }
     public int SettingsVersion { get; set; }
     [Required, MaxLength(150)] public string StudentName { get; set; } = "";
+    [Required, RegularExpression("^[0-9]{10}$")] public string Nisn { get; set; } = "";
     [Required, MaxLength(150)] public string PreviousSchool { get; set; } = "";
     [Range(5, 6)] public int Grade { get; set; }
     [Required, MinLength(1), MaxLength(3)] public List<string> Subjects { get; set; } = [];
@@ -92,6 +94,7 @@ public class LmpSubmissionRequest
 }
 public class LmpStatusRequest
 {
+    [MinLength(10), MaxLength(10), RegularExpression("^[0-9]{10}$")] public string? Nisn { get; set; }
     [Required, RegularExpression("^(Baru|Diproses|Terverifikasi|Dibatalkan)$")] public string Status { get; set; } = "Baru";
     [Required, RegularExpression("^(Belum bayar|Lunas)$")] public string PaymentStatus { get; set; } = "Belum bayar";
     public int Version { get; set; }
@@ -100,6 +103,7 @@ public class LmpStatusRequest
 public class LmpLookupRequest
 {
     [Required, MinLength(2), MaxLength(150)] public string StudentName { get; set; } = "";
+    [Required, RegularExpression("^[0-9]{10}$")] public string Nisn { get; set; } = "";
 }
 
 public class LmpInformationStep

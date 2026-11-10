@@ -11,7 +11,7 @@ export type LmpInformation = { config: LmpConfig; version: number; isOpen: boole
 export type LmpReceipt = {
   registrationNumber: string; eventTitle: string; competitionDate: string | null; feeAmount: number; afterSubmit: string; whatsappGroupUrl: string;
   transferAccountName: string | null; hasPaymentProof: boolean;
-  studentName: string; previousSchool: string; grade: number; subjects: string; contactName: string; contactPhone: string;
+  studentName: string; nisn: string | null; previousSchool: string; grade: number; subjects: string; contactName: string; contactPhone: string;
   submittedAt: string; paymentStatus: string; hasDocument: boolean;
 }
 export const subjects = ['Matematika', 'Bahasa Indonesia', 'Bahasa Inggris']

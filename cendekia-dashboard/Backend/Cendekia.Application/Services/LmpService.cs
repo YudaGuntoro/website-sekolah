@@ -64,7 +64,7 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         var entry = new LmpApplication {
             PaymentProof = new LmpPaymentProof { AccountHolderName = RegistrationText.Upper(request.TransferAccountName), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, Event = eventVersion,
-            StudentName = RegistrationText.Upper(request.StudentName), PreviousSchool = RegistrationText.Upper(request.PreviousSchool), Grade = request.Grade,
+            StudentName = RegistrationText.Upper(request.StudentName), Nisn = request.Nisn.Trim(), PreviousSchool = RegistrationText.Upper(request.PreviousSchool), Grade = request.Grade,
             SubjectId = subject.Id, ContactName = RegistrationText.Upper(request.ContactName), ContactPhone = request.ContactPhone,
             Attachment = pdf is null ? null : new LmpDocument { Content = pdf }, SubmittedAt = DateTime.UtcNow
         };
@@ -80,7 +80,7 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         return ApiOk(new {
             transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null,
             entry.RegistrationNumber, EventTitle = entry.Event.Title, entry.Event.CompetitionDate, entry.Event.FeeAmount,
-            entry.StudentName, entry.PreviousSchool, entry.Grade, subjects = subject, entry.ContactName, entry.ContactPhone,
+            entry.StudentName, entry.Nisn, entry.PreviousSchool, entry.Grade, subjects = subject, entry.ContactName, entry.ContactPhone,
             entry.SubmittedAt, entry.PaymentStatus, hasDocument = await repository.HasDocumentAsync(entry.Id),
             config.AfterSubmit, config.WhatsappGroupUrl
         }, "Pendaftaran berhasil diterima.");
@@ -88,15 +88,16 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
     public async Task<ServiceResult> CheckStatus(LmpLookupRequest request, CancellationToken cancellationToken = default)
     {
         var name = request.StudentName.Trim().ToLowerInvariant();
-        if (name.Length < 2 || name.Length > 150) return ApiBadRequest("Masukkan nama lengkap peserta sesuai data pendaftaran.");
+        var nisn = request.Nisn.Trim();
+        if (name.Length < 2 || name.Length > 150 || !System.Text.RegularExpressions.Regex.IsMatch(nisn, "^[0-9]{10}$")) return ApiBadRequest("Masukkan nama lengkap peserta dan NISN 10 digit sesuai data pendaftaran.");
         var matches = await repository.Applications.SelectAsync(
-            x => new { x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name,
+            x => new { x.RegistrationNumber, x.StudentName, x.Nisn, x.PreviousSchool, x.Grade, subjects = x.Subject.Name,
                 EventTitle = x.Event.Title, x.Event.CompetitionDate, x.SubmittedAt, x.Status, x.PaymentStatus },
-            x => x.StudentName.Trim().ToLower() == name, x => x.SubmittedAt, descending: true, take: 20, thenBy: x => x.Id, cancellationToken: cancellationToken);
+            x => x.Nisn == nisn && x.StudentName.Trim().ToLower() == name, x => x.SubmittedAt, descending: true, take: 20, thenBy: x => x.Id, cancellationToken: cancellationToken);
         if (matches.Count == 0) return ApiOk(new { found = false, registrations = Array.Empty<object>() });
         var settings = await repository.GetSettingsAsync();
         return ApiOk(new { found = true, registrations = matches.Select(x => new {
-            x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, x.subjects, x.EventTitle,
+            x.RegistrationNumber, x.StudentName, x.Nisn, x.PreviousSchool, x.Grade, x.subjects, x.EventTitle,
             x.CompetitionDate, x.SubmittedAt, x.Status, x.PaymentStatus, settings.Config.WhatsappGroupUrl
         }) });
     }
@@ -107,10 +108,10 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
             (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrEmpty(payment) || x.PaymentStatus == payment);
     public async Task<ApplicantReport> Export(string? search, string? subject, int? grade, string? status, string? payment, CancellationToken cancellationToken = default)
     {
-        var items = await repository.Applications.SelectAsync(x => new { x.RegistrationNumber, EventTitle = x.Event.Title, x.StudentName, x.PreviousSchool, x.Grade, Subject = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, x.Status, x.PaymentStatus, x.SubmittedAt }, ApplicantFilter(search, subject, grade, status, payment), x => x.Id, descending: true, cancellationToken: cancellationToken);
+        var items = await repository.Applications.SelectAsync(x => new { x.RegistrationNumber, EventTitle = x.Event.Title, x.StudentName, x.Nisn, x.PreviousSchool, x.Grade, Subject = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, x.Status, x.PaymentStatus, x.SubmittedAt }, ApplicantFilter(search, subject, grade, status, payment), x => x.Id, descending: true, cancellationToken: cancellationToken);
         return new ApplicantReport(ApplicantReport.FileNameFor("lmp"), "Pendaftar LMP",
-            ["Nomor pendaftaran", "Acara", "Nama peserta", "Asal sekolah", "Kelas", "Mata pelajaran", "Orang tua / pendamping", "WhatsApp", "Biaya (Rp)", "Status pendaftaran", "Status pembayaran", "Waktu submit (WIB)"],
-            items.Select(x => new string[] { x.RegistrationNumber, x.EventTitle, x.StudentName, x.PreviousSchool, x.Grade.ToString(), x.Subject, x.ContactName, x.ContactPhone, x.FeeAmount.ToString(System.Globalization.CultureInfo.InvariantCulture), x.Status, x.PaymentStatus, ApplicantReport.Wib(x.SubmittedAt) }).ToList(),
+            ["Nomor pendaftaran", "Acara", "Nama peserta", "NISN", "Asal sekolah", "Kelas", "Mata pelajaran", "Orang tua / pendamping", "WhatsApp", "Biaya (Rp)", "Status pendaftaran", "Status pembayaran", "Waktu submit (WIB)"],
+            items.Select(x => new string[] { x.RegistrationNumber, x.EventTitle, x.StudentName, x.Nisn ?? "", x.PreviousSchool, x.Grade.ToString(), x.Subject, x.ContactName, x.ContactPhone, x.FeeAmount.ToString(System.Globalization.CultureInfo.InvariantCulture), x.Status, x.PaymentStatus, ApplicantReport.Wib(x.SubmittedAt) }).ToList(),
             $"Mata pelajaran: {ApplicantReport.FilterValue(subject, "Semua mata pelajaran")}   |   Kelas: {(grade.HasValue ? grade.Value.ToString() : "Semua kelas")}",
             $"Status: {ApplicantReport.FilterValue(status, "Semua status")}   |   Pembayaran: {ApplicantReport.FilterValue(payment, "Semua pembayaran")}   |   Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
     }
@@ -119,14 +120,14 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);
         var filter = ApplicantFilter(search, subject, grade, status, payment);
         var total = await repository.Applications.CountAsync(filter);
-        var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.Status, x.PaymentStatus, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page-1)*limit, take: limit);
+        var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.StudentName, x.Nisn, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.Status, x.PaymentStatus, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page-1)*limit, take: limit);
         return ApiOk(new { items, total });
     }
     public async Task<ServiceResult> Detail(int id)
     {
         var proof = await repository.GetPaymentProofInfoAsync(id);
         var x = await repository.Applications.FirstAsync(x => x.Id == id);
-        return x is null ? ApiNotFound() : ApiOk(new { x.Id, x.RegistrationNumber, transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null, EventTitle = x.Event.Title, x.Event.CompetitionDate, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, hasDocument = await repository.HasDocumentAsync(id), x.Status, x.PaymentStatus, x.SubmittedAt, x.Version });
+        return x is null ? ApiNotFound() : ApiOk(new { x.Id, x.RegistrationNumber, transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null, EventTitle = x.Event.Title, x.Event.CompetitionDate, x.StudentName, x.Nisn, x.PreviousSchool, x.Grade, subjects = x.Subject.Name, x.ContactName, x.ContactPhone, x.Event.FeeAmount, hasDocument = await repository.HasDocumentAsync(id), x.Status, x.PaymentStatus, x.SubmittedAt, x.Version });
     }
     public async Task<ServiceResult> Document(int id)
     {
@@ -147,8 +148,9 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         var row = await repository.Applications.FirstAsync(x => x.Id == id, tracking: true);
         if (row is null) return ApiNotFound();
         if (row.Version != request.Version) return Conflict("Data berubah. Buka ulang detail peserta.");
+        if (request.Nisn is not null) row.Nisn = request.Nisn;
         row.Status = request.Status; row.PaymentStatus = request.PaymentStatus; row.Version++;
         try { await unitOfWork.SaveChangesAsync(); } catch (StorageConcurrencyException) { return Conflict("Data berubah. Buka ulang detail peserta."); }
-        return ApiOk(new { row.Status, row.PaymentStatus, row.Version });
+        return ApiOk(new { row.Status, row.PaymentStatus, row.Nisn, row.Version });
     }
 }

@@ -90,3 +90,8 @@ PDF persyaratan SPMB: backup dan jalankan `database/migrations/20261109_spmb_app
 Catatan persyaratan SPMB: backup lalu terapkan `database/migrations/20261109_spmb_document_notes.sql` sebelum deploy backend/admin/publik terbaru. Kolom catatan terpisah dari item berkas; migrasi memindahkan poin `Catatan:` lama dan mempertahankan edit pada pengulangan.
 
 Formulir SPMB lengkap: backup, jalankan `database/migrations/20261109_spmb_applicant_profiles.sql`, lalu deploy backend/admin/website bersama. Pendaftaran baru mewajibkan email, NISN dan data profil sesuai formulir sekolah; pendaftaran lama tetap terbaca tanpa profil. Tinggi/berat memakai DECIMAL(5,1) dan parsing HTML invariant.
+
+
+NISN LMP: backup dan hentikan API sebelum menjalankan `database/migrations/20261110_lmp_nisn.sql`, lalu deploy backend, portal, dan web utama bersama. Pendaftaran baru dan cek status wajib NISN 10 digit + nama lengkap. Nilai pendaftaran lama tetap NULL; staf dapat melengkapi NISN melalui detail portal. Jangan mengisi nomor fiktif atau mengubah data lama secara massal.
+
+Detail ekstrakurikuler: jalankan `database/migrations/20261110_extracurricular_coach.sql` sebelum backend baru. Editor portal menyediakan pelatih/pembina dan isi kegiatan/latihan; kartu publik memakai foto dan menautkan halaman detail. Foto tetap memakai migrasi/storage BLOB yang sudah ada. Kedua migrasi di atas idempotent dan disertakan runner NormalizeOnly lokal; penerapan lokal tidak berarti migrasi server sudah dijalankan.

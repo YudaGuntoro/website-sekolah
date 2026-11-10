@@ -8,7 +8,7 @@ export type Config = {
   testDetails: string; benefits: string; afterSubmit: string; whatsappGroupUrl: string;
 };
 export type Information = { config: Config; version: number; isOpen: boolean; today: string };
-export type Applicant = { id: number; registrationNumber: string; studentName: string; previousSchool: string; grade: number; subjects: string; status: string; paymentStatus: string; submittedAt: string };
+export type Applicant = { id: number; registrationNumber: string; studentName: string; nisn: string | null; previousSchool: string; grade: number; subjects: string; status: string; paymentStatus: string; submittedAt: string };
 export type Detail = Applicant & { transferAccountName: string | null; hasPaymentProof: boolean; eventTitle: string; competitionDate: string | null; contactName: string; contactPhone: string; feeAmount: number; hasDocument: boolean; version: number };
 export const subjects = ["Matematika", "Bahasa Indonesia", "Bahasa Inggris"];
 export const statuses = ["Baru", "Diproses", "Terverifikasi", "Dibatalkan"];

@@ -10,12 +10,12 @@ export const collections = [
   { key: "fasilitas", name: "Fasilitas", description: "Sarana pendukung pembelajaran.", category: "Kategori fasilitas", title: "Nama fasilitas", body: "Deskripsi lengkap", path: "/fasilitas" },
   { key: "program", name: "Program Belajar", description: "Program unggulan untuk pengembangan siswa.", category: "Kategori program", title: "Nama program", body: "Deskripsi program", path: "/#program" },
   { key: "kegiatan", name: "Kegiatan Rutin", description: "Keseharian dan pembiasaan baik di sekolah.", category: "Kategori kegiatan", title: "Nama kegiatan", body: "Deskripsi kegiatan", path: "/kegiatan-rutin" },
-  { key: "ekstrakurikuler", name: "Ekstrakurikuler", description: "Ruang siswa mengeksplorasi minat dan bakat.", category: "Kategori kegiatan", title: "Nama ekstrakurikuler", body: "Jadwal dan informasi", path: "/ekstrakurikuler" },
+  { key: "ekstrakurikuler", name: "Ekstrakurikuler", description: "Ruang siswa mengeksplorasi minat dan bakat.", category: "Kategori kegiatan", title: "Nama ekstrakurikuler", body: "Kegiatan dan latihan", path: "/ekstrakurikuler" },
   { key: "osis", name: "OSIS", description: "Kepengurusan dan informasi organisasi siswa.", category: "Jabatan / bagian", title: "Nama atau judul", body: "Keterangan", path: "/osis" },
   { key: "spmb", name: "Informasi SPMB", description: "Informasi penerimaan murid baru dan pendaftaran.", category: "Bagian informasi", title: "Judul informasi", body: "Informasi lengkap", path: "/spmb" },
 ] as const;
 export type CollectionKey = (typeof collections)[number]["key"];
-export type ContentEntry = { id: number; collection: CollectionKey; title: string; slug: string; category: string; summary: string; body: string; imageUrl: string; postUrl: string; status: "Draft" | "Published"; publishedAt: string | null; sortOrder: number; version: number; createdAt: string; updatedAt: string };
+export type ContentEntry = { id: number; collection: CollectionKey; title: string; slug: string; category: string; coachName: string | null; summary: string; body: string; imageUrl: string; postUrl: string; status: "Draft" | "Published"; publishedAt: string | null; sortOrder: number; version: number; createdAt: string; updatedAt: string };
 export const websiteUrl = process.env.NEXT_PUBLIC_SCHOOL_URL || "http://localhost:3000";
 export const formatDate = (value: string) => new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeZone: "Asia/Jakarta" }).format(new Date(value.endsWith("Z") ? value : `${value}Z`));
 export const slugify = (value: string) => value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

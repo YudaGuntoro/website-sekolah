@@ -12,7 +12,7 @@ export default function LmpRegistrationReceipt({ receipt, onReset }: { receipt: 
     heading.current?.parentElement?.scrollIntoView({ block: 'start', behavior: 'instant' })
   }, [])
   const details = [
-    ['Nama lengkap peserta', receipt.studentName],
+    ['NISN', receipt.nisn || 'Belum dilengkapi'], ['Nama lengkap peserta', receipt.studentName],
     ['Asal sekolah', receipt.previousSchool],
     ['Kelas', `Kelas ${receipt.grade} SD / MI`],
     ['Mata pelajaran', receipt.subjects],

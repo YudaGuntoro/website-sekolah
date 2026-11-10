@@ -5,7 +5,7 @@ import { formatDate } from '../lmp/types'
 import PrintReceiptButton from './PrintReceiptButton'
 
 export type LmpRegistrationStatus = {
-  registrationNumber: string; studentName: string; previousSchool: string; grade: number; subjects: string;
+  nisn: string | null; registrationNumber: string; studentName: string; previousSchool: string; grade: number; subjects: string;
   eventTitle: string; competitionDate: string | null; submittedAt: string; status: string; paymentStatus: string; whatsappGroupUrl: string;
 }
 
@@ -24,7 +24,7 @@ export default function LmpStatusResult({ registration }: { registration: LmpReg
   }, [registration])
   const date = new Date(/(?:Z|[+-]\d{2}:\d{2})$/.test(registration.submittedAt) ? registration.submittedAt : registration.submittedAt + 'Z')
   const details = [
-    ['Nama lengkap peserta', registration.studentName], ['Asal sekolah', registration.previousSchool],
+    ['NISN', registration.nisn || 'Belum dilengkapi'], ['Nama lengkap peserta', registration.studentName], ['Asal sekolah', registration.previousSchool],
     ['Kelas', `Kelas ${registration.grade} SD / MI`], ['Mata pelajaran', registration.subjects],
     ['Lomba', registration.eventTitle], ['Tanggal pelaksanaan', formatDate(registration.competitionDate)],
     ['Status pembayaran', registration.paymentStatus],

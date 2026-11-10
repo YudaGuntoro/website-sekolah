@@ -16,7 +16,7 @@ async function api(path, method = 'GET', body, access = token) {
 async function save(config) { const r = await api('/lmp/settings', 'PUT', { config, version: current.version }); assert.equal(r.status, 200, JSON.stringify(r.payload)); current = r.data; }
 function form(fields = {}, file, proof = {name: "transfer.pdf", body: pdf.body}) {
   const key = fields.submissionKey || randomUUID(); keys.push(key);
-  const data = { submissionKey: key, settingsVersion: current.version, studentName: tag, previousSchool: 'SD Pengujian', grade: 5, subjects: 'Matematika', contactName: 'Wali Pengujian', contactPhone: '081234567890', transferAccountName:'Wali Transfer LMP', consent: true, ...fields };
+  const data = { submissionKey: key, settingsVersion: current.version, studentName: tag, nisn: '0123456789', previousSchool: 'SD Pengujian', grade: 5, subjects: 'Matematika', contactName: 'Wali Pengujian', contactPhone: '081234567890', transferAccountName:'Wali Transfer LMP', consent: true, ...fields };
   const body = new FormData(); for (const [key, value] of Object.entries(data)) for (const v of Array.isArray(value) ? value : [value]) body.append(key, String(v));
   if (proof) body.append('paymentProof',new Blob([proof.body],{type:'application/pdf'}),proof.name);
   if (file) body.append('document', new Blob([file.body], { type: 'application/pdf' }), file.name);
@@ -37,7 +37,7 @@ try {
   assert.equal((await api('/lmp/applications','POST',form({transferAccountName:''}), '')).status,400);
   for(const proof of [null,{name:'bad.pdf',body:'not pdf'},{name:'bad.exe',body:pdf.body},{name:'large.pdf',body:'%PDF-'+'x'.repeat(2097152)}]) assert.equal((await api('/lmp/applications','POST',form({},undefined,proof), '')).status,400);
 
-  for (const fields of [{ grade: 4 }, { grade: 7 }, { subjects: 'IPA' }, { subjects: ['Matematika','Bahasa Inggris'] }, { consent: false }, { studentName: ' ' }, { contactPhone: '123' }])
+  for (const fields of [{ nisn: '' }, { nisn: '123456789' }, { nisn: '012345678a' }, { nisn: '01234567890' }, { grade: 4 }, { grade: 7 }, { subjects: 'IPA' }, { subjects: ['Matematika','Bahasa Inggris'] }, { consent: false }, { studentName: ' ' }, { contactPhone: '123' }])
     assert.equal((await api('/lmp/applications', 'POST', form(fields), '')).status, 400, JSON.stringify(fields));
   assert.equal((await api('/lmp/applications', 'POST', form({}, { name: 'bad.pdf', body: 'not a PDF' }), '')).status, 400);
   assert.equal((await api('/lmp/applications', 'POST', form({}, { name: 'bad.exe', body: pdf.body }), '')).status, 400);
@@ -51,6 +51,7 @@ try {
   for (const receipt of receipts) {
     assert.equal(receipt.data.transferAccountName,'WALI TRANSFER LMP'); assert.equal(receipt.data.hasPaymentProof,true);
     assert.equal(receipt.data.studentName, tag.toUpperCase());
+    assert.equal(receipt.data.nisn, '0123456789');
     assert.equal(receipt.data.previousSchool, 'SD PENGUJIAN');
     assert.equal(receipt.data.grade, 5);
     assert.equal(receipt.data.subjects, 'Matematika');
@@ -68,6 +69,7 @@ try {
   assert.equal(entries.total, 1);
   const id = entries.items[0].id;
   const detail = (await api('/lmp/applications/' + id)).data;
+  assert.equal(detail.nisn, '0123456789');
   assert.equal(detail.transferAccountName,'WALI TRANSFER LMP'); assert.equal(detail.hasPaymentProof,true);
   const proofUrl='http://localhost:5243/api/lmp/applications/'+id+'/payment-proof';
   assert.equal((await fetch(proofUrl)).status,401);
@@ -100,19 +102,21 @@ try {
     const page = await context.newPage();
     await page.goto('http://localhost:3000/lmp',{waitUntil:'domcontentloaded'}); await page.getByRole('heading',{name:'Lomba Mata Pelajaran.'}).waitFor();
     assert((await page.locator('main').innerText()).includes('35.000'));
-    await page.screenshot({path:'.verify-cms/lmp-desktop.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-desktop.png',fullPage:true,animations:'disabled'});
     await page.setViewportSize({width:390,height:844}); assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    await page.screenshot({path:'.verify-cms/lmp-mobile.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-mobile.png',fullPage:true,animations:'disabled'});
     await page.goto('http://localhost:3000/lmp/daftar',{waitUntil:'domcontentloaded'});
     await page.locator('[name=studentName]').fill(tag+'-browser'); assert.equal(await page.locator('[name=studentName]').inputValue(),(tag+'-browser').toUpperCase()); await page.locator('[name=previousSchool]').fill('SD Pengujian');
+    await page.locator('[name=nisn]').fill('0123456789');
     await page.locator('[name=grade]').selectOption('6'); await page.locator('[name=subjects]').selectOption('Bahasa Inggris');
     await page.locator('[name=contactName]').fill('Pendamping Uji'); await page.locator('[name=contactPhone]').fill('081234567890');
     await page.locator('[name=document]').setInputFiles({name:'berkas.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=transferAccountName]').fill('Wali Transfer Browser LMP'); await page.locator('[name=paymentProof]').setInputFiles({name:'transfer.pdf',mimeType:'application/pdf',buffer:Buffer.from(pdf.body)}); await page.locator('[name=consent]').check();
-    await page.screenshot({path:'.verify-cms/lmp-form-mobile.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-form-mobile.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Kirim pendaftaran LMP',exact:true}).click(); await page.getByRole('heading',{name:'Data peserta telah diterima'}).waitFor();
     assert.ok((await page.getByRole('status').innerText()).includes((tag+'-browser').toUpperCase()));
     await page.getByRole('heading',{name:'Ringkasan data peserta',exact:true}).waitFor();
     await page.getByRole('heading',{name:'Simpan bukti pendaftaran Anda',exact:true}).waitFor();
+    assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('0123456789'));
     assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('Bahasa Inggris'));
     assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('PDF berhasil diunggah'));
     assert.ok((await page.locator('dl').allTextContents()).join(' ').includes('WALI TRANSFER BROWSER LMP'));
@@ -120,28 +124,29 @@ try {
     const receipt = page.locator('section[aria-labelledby="lmp-receipt-title"]');
     assert.ok(!(await receipt.innerText()).includes('Gelombang'));
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    await page.screenshot({path:'.verify-cms/lmp-receipt-mobile.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-receipt-mobile.png',fullPage:true,animations:'disabled'});
     await page.setViewportSize({width:1440,height:1000});
-    await page.screenshot({path:'.verify-cms/lmp-receipt-desktop.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-receipt-desktop.png',fullPage:true,animations:'disabled'});
     await browserSignIn(page);
     await page.setViewportSize({width:1600,height:1000});
     await page.goto('http://localhost:3002/lmp/pendaftar',{waitUntil:'domcontentloaded'});
     await page.getByRole('button',{name:'Detail '+(tag+'-browser').toUpperCase(),exact:true}).waitFor();
     assert((await page.locator('tbody tr').first().innerText()).includes((tag+'-browser').toUpperCase()));
-    await page.screenshot({path:'.verify-cms/lmp-admin-list.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-admin-list.png',fullPage:true,animations:'disabled'});
     await page.getByRole('button',{name:'Detail '+(tag+'-browser').toUpperCase(),exact:true}).click(); await page.getByRole('heading',{name:'Detail pendaftaran'}).waitFor();
+    assert.equal(await page.getByLabel('NISN peserta', {exact:true}).inputValue(), '0123456789');
     assert.ok((await page.locator('dialog').innerText()).includes('WALI TRANSFER BROWSER LMP')); const paymentDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Unduh bukti transfer',exact:true}).click(); assert.match((await paymentDownload).suggestedFilename(),/-bukti-transfer\.pdf$/);
     const download = page.waitForEvent('download'); await page.getByRole('button',{name:'Unduh berkas PDF',exact:true}).click(); assert.match((await download).suggestedFilename(),/^LMP-.*\.pdf$/);
     await page.getByRole('combobox',{name:'Status pembayaran',exact:true}).selectOption('Lunas'); await page.getByRole('button',{name:'Simpan status',exact:true}).click(); await page.getByText('Status peserta LMP disimpan.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'Tutup detail',exact:true}).click();
     await page.goto('http://localhost:3002/lmp/informasi',{waitUntil:'domcontentloaded'}); await page.getByLabel('Judul lomba',{exact:true}).waitFor();
     await page.getByLabel('Deskripsi pembuka',{exact:true}).fill(tag+' deskripsi'); await page.getByRole('button',{name:'Simpan pengaturan LMP',exact:true}).click(); await page.getByText('Informasi LMP berhasil diperbarui di website.',{exact:true}).waitFor();
-    await page.screenshot({path:'.verify-cms/lmp-admin-settings.png',fullPage:true,animations:'disabled'});
+    if (process.env.LMP_SCREENSHOTS !== '0') await page.screenshot({path:'.verify-cms/lmp-admin-settings.png',fullPage:true,animations:'disabled'});
     await page.setViewportSize({width:390,height:844}); assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await page.goto('http://localhost:3000/lmp',{waitUntil:'domcontentloaded'}); await page.getByText(tag+' deskripsi',{exact:true}).waitFor();
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   }
-  console.log('PASS: LMP dates/WIB, validation, single subject, PDF privacy/limits, concurrent idempotency, status concurrency, snapshots, role privacy' + (browser ? ', mobile/desktop, real public submit, admin list/download/payment and live settings.' : '.'));
+  console.log('PASS: LMP required 10-digit NISN/leading zero, dates/WIB, validation, single subject, PDF privacy/limits, concurrent idempotency, status concurrency, snapshots, role privacy' + (browser ? ', mobile/desktop, real public submit, admin list/download/payment and live settings.' : '.'));
 } finally {
   if(browser) await browser.close();
   if(original && token) { current=(await api('/lmp/settings')).data; await save(original.config); }
