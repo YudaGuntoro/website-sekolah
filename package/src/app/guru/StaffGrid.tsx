@@ -41,10 +41,10 @@ export default function StaffGrid({ staff, category, countLabel }: { staff: Staf
                 <Image unoptimized src={person.image} alt={`Foto ${person.name}`} fill sizes='(min-width: 1280px) 285px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover object-top' />
               </div>
               <div className='p-5'>
-                <h3 className='min-h-[3.1rem] text-lg font-bold leading-snug text-school-navy'>{person.name}</h3>
-                <p className='mt-2 min-h-10 text-sm font-semibold leading-5 text-school-blue'>{person.role}</p>
-                {person.bio && <p className='mt-3 whitespace-pre-line text-sm leading-6 text-slate-600'>{person.bio}</p>}
-                <p className='mt-4 text-sm font-semibold text-school-blue group-hover:underline'>Lihat profil <span aria-hidden='true'>↗</span></p>
+                <h3 className='text-lg font-bold leading-snug text-school-navy'>{person.name}</h3>
+                <p className='mt-1 text-sm font-semibold leading-5 text-school-blue'>{person.role}</p>
+                {person.bio && <p className='mt-2 whitespace-pre-line text-sm leading-6 text-slate-600'>{person.bio}</p>}
+                <p className='mt-3 text-sm font-semibold text-school-blue group-hover:underline'>Lihat profil <span aria-hidden='true'>↗</span></p>
               </div>
               <button type='button' onClick={() => setSelected(person)} aria-haspopup='dialog' aria-label={`Lihat profil ${person.name}`} className='absolute inset-0 cursor-pointer rounded-2xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-school-blue' />
             </article>
