@@ -38,7 +38,7 @@ export default function StaffGrid({ staff, category, countLabel }: { staff: Staf
           {filteredStaff.map((person) => (
             <article key={person.name} className='group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_-22px_rgba(15,45,78,.2)] transition-colors hover:border-sky-300'>
               <div className='relative h-60 overflow-hidden border-b border-slate-100 bg-white sm:h-64'>
-                <Image unoptimized src={person.image} alt={`Foto ${person.name}`} fill sizes='(min-width: 1280px) 285px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover object-[center_35%]' />
+                <Image unoptimized src={person.image} alt={`Foto ${person.name}`} fill sizes='(min-width: 1280px) 285px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover object-top' />
               </div>
               <div className='p-5'>
                 <h3 className='min-h-[3.1rem] text-lg font-bold leading-snug text-school-navy'>{person.name}</h3>
