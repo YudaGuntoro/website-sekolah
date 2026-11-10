@@ -30,8 +30,7 @@ export default async function PrincipalGreeting() {
           {opening.map((paragraph, index) => <p key={index} className={`whitespace-pre-line ${index === 0 ? 'border-l-2 border-sky-200 pl-3 font-medium text-school-navy' : ''}`}>{paragraph}</p>)}
         </div>
         {remaining.length > 0 && <GreetingMore paragraphs={remaining} />}
-        <div className='mt-6 flex items-center gap-3 border-t border-slate-100 pt-5'>
-          <span className='flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sky-50 text-school-blue' aria-hidden='true'><svg viewBox='0 0 24 24' className='h-6 w-6' fill='none' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'><path d='M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM5 21v-2a7 7 0 0 1 14 0v2' /></svg></span>
+        <div className='mt-6 border-t border-slate-100 pt-5'>
           <div><p className='text-sm font-bold text-school-navy sm:text-base'>{greeting.title}</p><p className='mt-1 text-xs leading-5 text-slate-500 sm:text-sm'>{greeting.category}</p></div>
         </div>
       </div>

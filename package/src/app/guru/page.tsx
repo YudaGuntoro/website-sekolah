@@ -1,18 +1,21 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import StaffGrid from './StaffGrid'
-import { getSchoolContent, getCmsCollection } from '../cms-content'
+import { getSchoolContent } from '../cms-content'
 
 export const metadata: Metadata = {
-  title: 'Pimpinan Sekolah, Yayasan, dan Tenaga Pendidik',
+  title: 'Pimpinan dan Tenaga Pendidik',
   description: 'Kenali pimpinan sekolah, Yayasan YASRI Purwakarta, dan tenaga pendidik SMPIT Cendekia.',
 }
 
 
 export default async function GuruPage() {
   const { staff } = await getSchoolContent()
-  const educators = staff.filter(person => person.role.startsWith('Guru '))
-  const leadership = staff.filter(person => !person.role.startsWith('Guru '))
+  const isLeadership = (role: string) => /\b(kepala sekolah|wakil kepala|waka|yayasan|ketua|direktur)\b/i.test(role)
+  const isEducator = (role: string) => /\b(guru|pendidik|wali kelas)\b/i.test(role)
+  const leadership = staff.filter(person => isLeadership(person.role))
+  const educators = staff.filter(person => !isLeadership(person.role) && isEducator(person.role))
+  const supportStaff = staff.filter(person => !isLeadership(person.role) && !isEducator(person.role))
   return (
     <main className='min-h-[70vh] bg-[#f6f9fc]'>
       <section className='relative isolate overflow-hidden border-b border-slate-200/70 bg-[#f7faff]'>
@@ -21,7 +24,7 @@ export default async function GuruPage() {
           <div className='grid items-center gap-8 lg:grid-cols-[1.15fr_.85fr] lg:gap-16'>
             <div>
               <p className='text-xs font-extrabold uppercase tracking-[.18em] text-school-blue'>Sekolah Cendekia · Purwakarta</p>
-              <h1 className='mt-5 max-w-2xl text-4xl font-black leading-[1.08] tracking-tight text-school-navy sm:text-5xl lg:text-[3.5rem]'>Pimpinan sekolah,<br /><span className='text-school-blue'>yayasan, dan tenaga pendidik.</span></h1>
+              <h1 className='mt-5 max-w-2xl text-4xl font-black leading-[1.08] tracking-tight text-school-navy sm:text-5xl lg:text-[3.5rem]'>Pimpinan dan<br /><span className='text-school-blue'>Tenaga Pendidik</span></h1>
             </div>
             <div className='border-l-2 border-sky-300 py-1 pl-5 sm:pl-6'>
               <p className='font-bold leading-6 text-school-navy'>SMPIT Cendekia berada di bawah naungan Yayasan YASRI Purwakarta.</p>
@@ -29,14 +32,19 @@ export default async function GuruPage() {
               <Link href='/#guru' className='mt-4 inline-flex items-center gap-2 text-sm font-bold text-school-blue transition hover:text-school-navy'>Kembali ke beranda <span aria-hidden='true'>↗</span></Link>
             </div>
           </div>
-          <div className='mt-10 sm:mt-12' aria-labelledby='pimpinan-heading'>
+          {leadership.length > 0 && <div className='mt-10 sm:mt-12' aria-labelledby='pimpinan-heading'>
             <h2 id='pimpinan-heading' className='mb-5 text-2xl font-black text-school-navy'>Pimpinan sekolah dan yayasan</h2>
             <StaffGrid staff={leadership} category='Pimpinan' countLabel='pimpinan sekolah' />
-          </div>
-          <div className='mt-12 border-t border-sky-100 pt-10 sm:mt-16 sm:pt-12' aria-labelledby='pendidik-heading'>
+          </div>}
+          {educators.length > 0 && <div className='mt-12 border-t border-sky-100 pt-10 sm:mt-16 sm:pt-12' aria-labelledby='pendidik-heading'>
             <h2 id='pendidik-heading' className='mb-5 text-2xl font-black text-school-navy'>Tenaga <span className='text-school-blue'>pendidik</span></h2>
             <StaffGrid staff={educators} category='Tenaga pendidik' countLabel='tenaga pendidik' />
-          </div>
+          </div>}
+          {supportStaff.length > 0 && <div className='mt-12 border-t border-sky-100 pt-10 sm:mt-16 sm:pt-12' aria-labelledby='kependidikan-heading'>
+            <h2 id='kependidikan-heading' className='mb-5 text-2xl font-black text-school-navy'>Tenaga <span className='text-school-blue'>kependidikan</span></h2>
+            <StaffGrid staff={supportStaff} category='Tenaga kependidikan' countLabel='tenaga kependidikan' />
+          </div>}
+          {staff.length === 0 && <p className='mt-10 text-sm text-slate-500'>Data pimpinan dan tenaga pendidik belum tersedia.</p>}
         </div>
       </section>
     </main>
