@@ -76,6 +76,10 @@ public static class SecurityConfiguration
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions {
                     PermitLimit = config.GetValue("RateLimits:RegistrationsPerMinute", development ? 200 : 10), Window = TimeSpan.FromMinutes(1), QueueLimit = 0
                 }));
+            options.AddPolicy("registration-lookup", context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions {
+                    PermitLimit = config.GetValue("RateLimits:RegistrationLookupsPerMinute", development ? 200 : 10), Window = TimeSpan.FromMinutes(1), QueueLimit = 0
+                }));
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ => RateLimitPartition.GetConcurrencyLimiter("api", _ => new ConcurrencyLimiterOptions { PermitLimit = 100, QueueLimit = 0 }));
         });
     }

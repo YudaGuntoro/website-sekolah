@@ -10,7 +10,7 @@ export type ApplicantProfile = {
   parentPhone: string; fatherName: string; motherName: string; fatherOccupation: string; motherOccupation: string; guardianOccupation: string; parentAddress: string; economicCondition: string; dailyLanguage: string;
 }
 export type Receipt = {
-  profile: ApplicantProfile | null;
+  profile: ApplicantProfile | null; paymentStatus: string;
   registrationNumber: string; academicYear: string; waveNumber: number; submittedAt: string; whatsappGroupUrl: string;
   transferAccountName: string | null; hasPaymentProof: boolean; hasDocument: boolean;
   studentName: string; nisn: string | null; birthPlace: string; birthDate: string; gender: string;

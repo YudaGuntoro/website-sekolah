@@ -64,6 +64,7 @@ public class SpmbApplication
     [MaxLength(254)] public string? GuardianEmail { get; set; }
     [MaxLength(1000)] public string Address { get; set; } = "";
     [MaxLength(20)] public string Status { get; set; } = "Baru";
+    [MaxLength(20)] public string PaymentStatus { get; set; } = "Belum bayar";
     public DateTime SubmittedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public int Version { get; set; } = 1;
@@ -124,7 +125,14 @@ public class SpmbSubmissionRequest
 public class SpmbStatusRequest
 {
     [Required, RegularExpression("^(Baru|Diproses|Diterima|Ditolak)$")] public string Status { get; set; } = "Baru";
+    [RegularExpression("^(Belum bayar|Lunas)$")] public string? PaymentStatus { get; set; }
     public int Version { get; set; }
+}
+
+public class SpmbLookupRequest
+{
+    [Required, MinLength(2), MaxLength(150)] public string StudentName { get; set; } = "";
+    [Required, RegularExpression("^[0-9]{10}$")] public string Nisn { get; set; } = "";
 }
 
 public class SpmbDocument

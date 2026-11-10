@@ -204,3 +204,29 @@ Editor konten non-media-sosial menerima upload JPG/PNG maksimal 2 MiB. Backend m
 Endpoint gambar hanya melayani konten Published yang sudah mencapai tanggal terbit untuk publik; ADMIN/SUPERVISOR/OPERATOR dapat melihat foto draf. Proxy website publik hanya meneruskan endpoint tetap ini tanpa kredensial staf, dengan MIME allowlist dan `nosniff`. Respons gambar memakai no-store agar perubahan status tidak meninggalkan foto draf di cache publik.
 
 Backup database dan jalankan `database/migrations/20261109_school_content_images.sql` sebelum backend baru; runner `scripts/init-local-db.ps1 -NormalizeOnly` juga menyertakannya. Migrasi idempotent tidak mengubah URL atau konten lama. Verifikasi: `node scripts/check-file-optimizer.mjs` dan `node scripts/check-content-images.mjs` (API 5243, website 3000, akun admin lokal); tes membuat dan membersihkan konten sementara.
+
+### Cek status SPMB dan cetak bukti
+
+Website `/spmb/cek-status` diakses dari tombol pada halaman `/spmb`. Pengguna mengirim nama lengkap dan NISN 10 digit melalui POST same-origin `/api/spmb/check-status`, diteruskan ke endpoint backend dengan path yang sama. Nama dicocokkan penuh tanpa membedakan kapital, dengan trim spasi tepi; tidak ada pencarian sebagian nama atau daftar hasil publik. Bila ada beberapa tahun pendaftaran yang cocok, hasil mengambil SubmittedAt terbaru (tie-break Id). Ketiadaan pasangan nama/NISN menghasilkan `found:false`, bukan membocorkan apakah salah satu field ada dalam database.
+
+Application memakai proyeksi repository ke nomor/nama/NISN, sekolah asal, kelas, tahun/gelombang, waktu submit, status pendaftaran/pembayaran dan grup WhatsApp tahun/gelombang terkait. Data keluarga, alamat, kesehatan, rekening, SubmissionKey, Id internal, dan file tidak disertakan. Tidak ada penulisan saat lookup. POST dibatasi 2 KiB; endpoint memakai policy `registration-lookup` (default Production 10/IP/menit, override `RateLimits:RegistrationLookupsPerMinute`), no-store dan noindex. Nama/NISN tidak disimpan dalam URL/localStorage. Contoh nginx juga memasukkan rute lookup ke limiter edge; KnownProxies/TRUST_PROXY_HEADERS tetap harus benar.
+
+Receipt SPMB/LMP dan hasil cek status menyediakan `PrintReceiptButton` yang memanggil dialog cetak browser, termasuk pilihan simpan PDF. `receipt-print.css` hanya mengisolasi `.registration-receipt` saat print: header/footer/form, tombol dan pengingat screenshot disembunyikan; nomor, detail, status, serta tautan grup tetap dicetak. Identitas sekolah dan judul bukti ditambahkan hanya pada cetakan. Status Baru/Diproses dibedakan dari penerimaan dan pembayaran.
+
+Verifikasi lokal: `SPMB_ALLOW_TEST_SETUP=1 CMS_BROWSER_CHECK=1 node scripts/check-spmb-lookup.mjs` (API 5243, website 3000, dashboard 3002, Playwright pada `.verify-cms`). Tes membuat lalu membersihkan aplikasi sintetis, memeriksa kecocokan/penolakan input, status terbaru, batas field publik, proxy, UI, tampilan HP dan PDF. Deploy API, website dan dashboard bersama; status pembayaran memerlukan migrasi di bawah.
+
+### Status pembayaran SPMB
+
+`spmb_applications.PaymentStatus` menyimpan fakta verifikasi staf yang independen dari `Status` penerimaan. Nilai mengikuti LMP: `Belum bayar` dan `Lunas`, dengan CHECK database dan validasi request. Upload bukti tidak mengubahnya menjadi Lunas; tidak ada auto-konfirmasi dari status Diterima. Data lama dimulai dari Belum bayar dan harus diperiksa staf bila sebelumnya sudah melunasi.
+
+Portal menampilkan kolom/filter Pembayaran dan dropdown pada detail. Update status pendaftaran/pembayaran memakai Version yang sama, menolak perubahan basi dengan 409. Request lama tanpa PaymentStatus mempertahankan nilai saat ini. Daftar serta XLSX memakai predicate pembayaran yang sama; receipt dan cek status publik menampilkan status saja tanpa rekening atau dokumen privat.
+
+Backup, hentikan API lama lalu terapkan `database/migrations/20261110_spmb_payment_status.sql` sebelum backend terbaru. Runner NormalizeOnly menyertakannya; migrasi idempotent tidak menulis ulang Status, Version atau data pendaftaran lainnya. Pemeriksaan mencakup constraint database, update staf/konkurensi/otorisasi, UI kolom/filter, export dan lookup publik melalui `check-spmb-lookup.mjs` serta `check-applicant-exports.mjs`.
+
+### Cek status LMP berdasarkan nama lengkap
+
+Sesuai keputusan pengguna, LMP menggunakan nama lengkap peserta saja; tidak menambah NISN ke formulir/database dan tidak meminta WhatsApp guru atau nomor pendaftaran sebagai syarat pencarian. Tombol di `/lmp` membuka `/lmp/cek-status`. POST same-origin `/api/lmp/check-status` meneruskan nama ke backend, menggunakan validasi panjang 2–150 karakter, pencocokan penuh/trim/case-insensitive, body max 2 KiB, policy `registration-lookup`, serta no-store/noindex. Tidak ada pencarian potongan nama atau autocomplete daftar peserta.
+
+Service memproyeksikan maksimal 20 pendaftaran yang cocok, terbaru lebih dahulu, tanpa mengambil BLOB/kontak guru/rekening/file/SubmissionKey/Id internal. Jika satu hasil, detail langsung tampil; jika beberapa nama sama, pengguna memilih berdasarkan nomor pendaftaran, sekolah, kelas, mata pelajaran, dan acara/tanggal lomba. Hanya detail pilihan yang dicetak. Hasil mencakup status peserta/pembayaran terkini, informasi acara historis melalui Event/Subject, serta grup WhatsApp LMP dari pengaturan. Petunjuk tetap muncul jika grup belum diatur.
+
+Fitur LMP ini tidak memerlukan migrasi SQL dan tetap berfungsi saat pendaftaran ditutup. Verifikasi lokal `LMP_ALLOW_TEST_SETUP=1 CMS_BROWSER_CHECK=1 node scripts/check-lmp-lookup.mjs` membuat/membersihkan dua peserta sintetis bernama sama, memeriksa field publik, pencocokan, status, pilihan ganda/tunggal, proxy, cetak/PDF dan mobile. Deploy API dan website bersama. Migrasi status pembayaran SPMB di atas tetap diperlukan untuk perubahan SPMB yang disertakan dalam versi kerja yang sama.

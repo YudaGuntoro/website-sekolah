@@ -97,6 +97,11 @@ public class LmpStatusRequest
     public int Version { get; set; }
 }
 
+public class LmpLookupRequest
+{
+    [Required, MinLength(2), MaxLength(150)] public string StudentName { get; set; } = "";
+}
+
 public class LmpInformationStep
 {
     [Required, MaxLength(150)] public string Title { get; set; } = "";

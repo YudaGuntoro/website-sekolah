@@ -253,7 +253,7 @@ export default async function Home() {
       <section id='program' className='border-y border-sky-100/70 bg-[#f7faff] py-8 sm:py-20'>
         <div className='mx-auto grid max-w-7xl gap-5 px-5 sm:gap-8 sm:px-8 lg:grid-cols-[.75fr_1.65fr] lg:items-center lg:gap-12 lg:px-10'>
           <div className='max-w-lg'>
-            <h2 className='mt-4 whitespace-nowrap text-[clamp(1.5rem,7vw,2.25rem)] font-black leading-[1.1] tracking-tight text-school-navy lg:text-[clamp(1.5rem,2.6vw,2.25rem)]'>Program <span className='text-sky-600'>Belajar</span></h2>
+            <h2 className='mt-4 whitespace-nowrap text-[clamp(1.5rem,7vw,2.25rem)] font-black leading-[1.1] tracking-tight text-school-navy lg:text-[clamp(1.5rem,2.6vw,2.25rem)]'>Program <span className='text-sky-600'>Unggulan</span></h2>
             <div aria-hidden='true' className='mt-5 h-1 w-12 rounded-full bg-school-gold' />
             <p className='mt-5 text-sm leading-7 text-slate-600 sm:text-base'>Belajar banyak hal dengan cara bermakna untuk menumbuhkan pemahaman, kebiasaan baik, dan keterampilan hidup.</p>
             <div className='mt-6 hidden max-w-sm sm:block'>

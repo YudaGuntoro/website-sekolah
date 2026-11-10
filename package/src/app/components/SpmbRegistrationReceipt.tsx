@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import PrintReceiptButton from './PrintReceiptButton'
 import type { Receipt } from './SpmbRegistrationForm'
 
 const birthDate = (value: string) => new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'Asia/Jakarta' }).format(new Date(`${value}T00:00:00+07:00`))
@@ -31,9 +32,11 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
     ['Email', receipt.guardianEmail || 'Tidak diisi'],
     ['Alamat lengkap', receipt.address],
     ['Nama pemilik rekening pengirim', receipt.transferAccountName || 'Belum tersedia'],
+    ['Status pembayaran', receipt.paymentStatus || 'Belum bayar'],
     ['Bukti transfer', receipt.hasPaymentProof ? 'Berhasil diunggah, menunggu pemeriksaan staf' : 'Belum tersedia'],
   ]
-  return <section aria-labelledby='registration-receipt-title' className='mx-auto max-w-3xl scroll-mt-28 rounded-lg border border-slate-200 border-t-4 border-t-emerald-600 bg-white p-5 sm:p-8'>
+  return <section aria-labelledby='registration-receipt-title' className='registration-receipt mx-auto max-w-3xl scroll-mt-28 rounded-lg border border-slate-200 border-t-4 border-t-emerald-600 bg-white p-5 sm:p-8'>
+    <p className='receipt-print-heading hidden'>SMPIT Cendekia Purwakarta — Bukti Pendaftaran SPMB</p>
     <div role='status' className='flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4'>
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' aria-hidden='true' className='mt-0.5 h-6 w-6 shrink-0 text-emerald-700'><circle cx='12' cy='12' r='9' /><path d='m8 12 3 3 5-6' strokeLinecap='round' strokeLinejoin='round' /></svg>
       <div><p className='font-semibold text-emerald-800'>Pendaftaran berhasil!</p><p className='mt-1 text-sm leading-6 text-emerald-900'><strong>{receipt.studentName}</strong> berhasil didaftarkan pada Gelombang {receipt.waveNumber} tahun ajaran {receipt.academicYear}.</p></div>
@@ -46,8 +49,8 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
     </div>
     <h3 className='text-lg font-semibold text-school-navy'>Ringkasan data pendaftar</h3>
     <dl className='mt-2 grid gap-x-8 sm:grid-cols-2'>{details.map(([title, value]) => <div key={title} className={`min-w-0 border-b border-slate-100 py-3 ${title === 'Alamat lengkap' ? 'sm:col-span-2' : ''}`}><dt className='text-xs leading-5 text-slate-500'>{title}</dt><dd className='mt-1 whitespace-pre-line break-words text-sm font-medium leading-6 text-school-navy'>{value}</dd></div>)}</dl>
-    <aside aria-label='Simpan bukti pendaftaran' className='my-6 rounded-lg border border-amber-200 bg-amber-50 p-4'>
-      <h3 className='font-semibold text-amber-950'>Jangan lupa screenshot halaman ini</h3><p className='mt-2 text-sm leading-6 text-amber-950'>Simpan tangkapan layar yang memuat nomor pendaftaran dan ringkasan data sebagai bukti bahwa Anda sudah mendaftar. Jika ada kendala, tunjukkan bukti ini kepada panitia agar pendaftaran Anda lebih mudah ditelusuri.</p><p className='mt-2 text-xs leading-6 text-amber-900'>Ambil screenshot sebelum menutup halaman atau mendaftarkan calon murid lain.</p>
+    <aside aria-label='Simpan bukti pendaftaran' className='receipt-no-print my-6 rounded-lg border border-amber-200 bg-amber-50 p-4'>
+      <h3 className='font-semibold text-amber-950'>Simpan bukti pendaftaran Anda</h3><p className='mt-2 text-sm leading-6 text-amber-950'>Cetak, simpan sebagai PDF, atau ambil screenshot halaman yang memuat nomor pendaftaran dan ringkasan data sebagai bukti bahwa Anda sudah mendaftar. Jika ada kendala, tunjukkan bukti ini kepada panitia agar pendaftaran Anda lebih mudah ditelusuri.</p><p className='mt-2 text-xs leading-6 text-amber-900'>Gunakan tombol Cetak / Simpan PDF atau ambil screenshot sebelum menutup halaman atau mendaftarkan calon murid lain.</p>
     </aside>
     {receipt.whatsappGroupUrl ? <aside aria-label='Langkah berikutnya' className='mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5'>
       <h3 className='font-semibold text-school-navy'>Selanjutnya, gabung grup WhatsApp Gelombang {receipt.waveNumber}</h3><p className='mt-2 text-sm leading-7 text-slate-600'>Silakan bergabung ke grup Gelombang {receipt.waveNumber} tahun ajaran {receipt.academicYear} untuk mendapatkan informasi tahapan pendaftaran berikutnya dari panitia.</p>
@@ -55,6 +58,6 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
       <p className='mt-4 text-xs leading-6 text-slate-600'>Tautan grup WhatsApp:<a href={receipt.whatsappGroupUrl} target='_blank' rel='noopener noreferrer' className='mt-1 block break-all text-sm font-medium text-emerald-800 underline underline-offset-4 hover:text-emerald-950'>{receipt.whatsappGroupUrl}</a></p>
     </aside> : <p className='mb-6 rounded-lg border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-school-navy'>Tautan grup WhatsApp Gelombang {receipt.waveNumber} belum tersedia. Hubungi panitia melalui kontak sekolah untuk informasi grup dan tahapan berikutnya.</p>}
     <p className='text-sm leading-7 text-slate-600'>Sekolah akan menghubungi orang tua atau wali untuk tahapan berikutnya. Pendaftaran belum merupakan konfirmasi penerimaan murid.</p>
-    <div className='mt-6 flex flex-wrap gap-3'><a href='/spmb' className='rounded-md bg-school-blue px-5 py-3 text-sm font-semibold text-white'>Informasi SPMB</a><button type='button' className='rounded-md border border-slate-300 px-5 py-3 text-sm font-medium text-school-navy hover:bg-slate-50' onClick={onReset}>Daftarkan calon murid lain</button></div>
+    <div className='receipt-no-print mt-6 flex flex-wrap gap-3'><PrintReceiptButton /><a href='/spmb' className='rounded-md bg-school-blue px-5 py-3 text-sm font-semibold text-white'>Informasi SPMB</a><button type='button' className='rounded-md border border-slate-300 px-5 py-3 text-sm font-medium text-school-navy hover:bg-slate-50' onClick={onReset}>Daftarkan calon murid lain</button></div>
   </section>
 }

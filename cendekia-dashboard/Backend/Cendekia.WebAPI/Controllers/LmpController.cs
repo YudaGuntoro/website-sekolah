@@ -9,6 +9,12 @@ public class LmpController(LmpService service) : ApiControllerBase
 {
     [HttpGet("settings")] public async Task<IActionResult> Settings() => FromService(await service.Settings());
     [HttpGet("information"), AllowAnonymous] public async Task<IActionResult> Public() => FromService(await service.Settings());
+    [HttpPost("check-status"), AllowAnonymous, EnableRateLimiting("registration-lookup"), Consumes("application/json"), RequestSizeLimit(2048)]
+    public async Task<IActionResult> CheckStatus(LmpLookupRequest request) {
+        Response.Headers.CacheControl = "no-store";
+        Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        return FromService(await service.CheckStatus(request, HttpContext.RequestAborted));
+    }
     [HttpPut("settings")] public async Task<IActionResult> Save(LmpSettingsRequest request) => FromService(await service.Save(request));
     [HttpPost("applications"), EnableRateLimiting("registration"), AllowAnonymous, RequestSizeLimit(4400000), RequestFormLimits(MultipartBodyLengthLimit = 4400000)]
     public async Task<IActionResult> Submit([FromForm] LmpSubmissionRequest request, IFormFile? document, IFormFile? paymentProof) {

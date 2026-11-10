@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google'
 import { Suspense } from 'react'
 import './globals.css'
+import './receipt-print.css'
 import Header from '@/app/components/Layout/Header'
 import Footer from '@/app/components/Layout/Footer'
 import ScrollToTop from '@/app/components/ScrollToTop'

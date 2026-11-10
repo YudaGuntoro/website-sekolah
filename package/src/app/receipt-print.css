@@ -1,0 +1,64 @@
+@media print {
+  body:has(.registration-receipt) {
+    background: white !important;
+    color: #102d4e;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep only the receipt and its ancestors in the document flow. */
+  body:has(.registration-receipt) *:not(:has(.registration-receipt)):not(.registration-receipt):not(.registration-receipt *) {
+    display: none !important;
+  }
+
+  body:has(.registration-receipt) *:has(.registration-receipt) {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    border: 0 !important;
+    overflow: visible !important;
+  }
+
+  .registration-receipt {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    font-size: 10pt;
+  }
+
+  .registration-receipt .receipt-print-heading {
+    display: block !important;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #1e65a8;
+    padding-bottom: 12px;
+    font-weight: 700;
+    font-size: 14pt;
+  }
+
+  .registration-receipt .receipt-no-print,
+  .registration-receipt button,
+  .registration-receipt a:not([class*='break-all']) {
+    display: none !important;
+  }
+
+  .registration-receipt dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .registration-receipt dl > div,
+  .registration-receipt aside {
+    break-inside: avoid;
+  }
+
+  .registration-receipt h2,
+  .registration-receipt h3 {
+    break-after: avoid;
+  }
+}

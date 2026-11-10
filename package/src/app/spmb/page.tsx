@@ -26,7 +26,11 @@ export default async function SpmbInformationPage() {
           <p className='max-w-xl border-l-2 border-sky-300 pl-5 text-base leading-7 text-slate-600 lg:mb-1'>{config.introduction}</p>
         </div>
       </section>
-      <div className='mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-2'>
+      <section aria-labelledby='spmb-check-status-heading' className='mx-auto mt-8 flex max-w-6xl flex-col gap-4 rounded-xl border border-sky-100 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6'>
+        <div><h2 id='spmb-check-status-heading' className='text-lg font-bold text-school-navy'>Sudah mendaftar?</h2><p className='mt-1 text-sm leading-6 text-slate-600'>Cek status pendaftaran Anda dan cetak kembali bukti pendaftaran.</p></div>
+        <Link href='/spmb/cek-status' className='inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-school-blue bg-white px-4 py-2.5 text-sm font-semibold text-school-blue transition hover:bg-sky-50'>Cek Status Pendaftaran</Link>
+      </section>
+      <div className='mx-auto mt-5 grid max-w-6xl gap-5 lg:grid-cols-2'>
         <section className='rounded-2xl border border-sky-100 bg-white p-5 sm:p-7'>
           <div className='flex items-center justify-between gap-3'>
             <h2 className='text-xl font-black text-school-navy'>Alur Pendaftaran</h2>
@@ -69,7 +73,7 @@ export default async function SpmbInformationPage() {
 
         </section>
       </div>
-      <section className='mx-auto mt-8 max-w-6xl rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>
+      <section id='kontak-spmb' className='mx-auto mt-8 max-w-6xl scroll-mt-28 rounded-2xl border border-sky-100 bg-white p-6 sm:p-7'>
         <h2 className='text-xl font-black text-school-navy'>Pendaftaran dan informasi</h2>
         <div className='mt-5 flex flex-col gap-6 border-t border-slate-100 pt-5 xl:flex-row xl:items-center xl:justify-between'>
         <div className='grid min-w-0 gap-4 sm:flex sm:flex-wrap sm:gap-x-8'>

@@ -22,7 +22,7 @@
 .spmb-applicant-toolbar { flex-wrap: wrap; }
 .spmb-applicant-toolbar .cms-toolbar-end { flex-wrap: wrap; }
 .spmb-applicant-toolbar .cms-search input { width: 230px; }
-.spmb-applicants-table { min-width: 1000px; table-layout: auto; }
+.spmb-applicants-table { min-width: 1150px; table-layout: auto; }
 .lmp-applicants-table { min-width: 1250px; table-layout: auto; }
 .lmp-applicants-table th, .lmp-applicants-table td { white-space: nowrap; }
 .lmp-applicants-table td:nth-child(2) { white-space: normal; min-width: 220px; max-width: 300px; }

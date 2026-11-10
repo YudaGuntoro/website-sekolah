@@ -32,6 +32,27 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         return ApiOk(Schedule(settings, await repository.GetWavesAsync()));
     }
 
+    public async Task<ServiceResult> CheckStatus(SpmbLookupRequest request, CancellationToken cancellationToken = default)
+    {
+        var name = request.StudentName.Trim().ToLowerInvariant();
+        var nisn = request.Nisn.Trim();
+        if (name.Length < 2 || name.Length > 150 || !System.Text.RegularExpressions.Regex.IsMatch(nisn, "^[0-9]{10}$"))
+            return ApiBadRequest("Masukkan nama lengkap dan NISN 10 digit sesuai data pendaftaran.");
+        // Exact identity pair only. Project public fields without loading family profiles or files.
+        var matches = await repository.Applications.SelectAsync(
+            x => new { x.RegistrationNumber, x.StudentName, x.Nisn, x.AcademicYear, x.WaveNumber, x.SubmittedAt, x.PreviousSchool, x.TargetGrade, x.Status, x.PaymentStatus },
+            x => x.Nisn == nisn && x.StudentName.Trim().ToLower() == name,
+            x => x.SubmittedAt, descending: true, take: 1, thenBy: x => x.Id, cancellationToken: cancellationToken);
+        var entry = matches.SingleOrDefault();
+        if (entry is null) return ApiOk(new { found = false });
+        var group = await repository.Groups.FirstAsync(g => g.AcademicYear == entry.AcademicYear && g.WaveNumber == entry.WaveNumber, cancellationToken: cancellationToken);
+        return ApiOk(new { found = true, registration = new {
+            entry.RegistrationNumber, entry.StudentName, entry.Nisn, entry.AcademicYear, entry.WaveNumber,
+            entry.SubmittedAt, entry.PreviousSchool, entry.TargetGrade, entry.Status, entry.PaymentStatus,
+            whatsappGroupUrl = group?.WhatsappGroupUrl ?? ""
+        } });
+    }
+
     public async Task<ServiceResult> UpdateSettings(SpmbSettingsRequest request)
     {
         if (request.Waves.Count != 4 || request.Waves.Any(w => w is null) || request.Waves.Select(w => w.Number).Distinct().Count() != 4)
@@ -90,6 +111,7 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var proof = await repository.GetPaymentProofInfoAsync(entry.Id);
         return ApiOk(new {
             profile = await repository.GetProfileAsync(entry.Id),
+            entry.PaymentStatus,
             transferAccountName = proof?.AccountHolderName, hasPaymentProof = proof is not null, hasDocument = await repository.HasDocumentAsync(entry.Id),
             entry.RegistrationNumber, entry.AcademicYear, entry.WaveNumber, entry.SubmittedAt,
             entry.StudentName, entry.Nisn, entry.BirthPlace, entry.BirthDate, entry.Gender,
@@ -157,25 +179,25 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         await transaction.CommitAsync();
         return await Receipt(entry);
     }
-    private static System.Linq.Expressions.Expression<Func<SpmbApplication, bool>> ApplicantFilter(string? year, int? wave, string? status, string? search) => x =>
+    private static System.Linq.Expressions.Expression<Func<SpmbApplication, bool>> ApplicantFilter(string? year, int? wave, string? status, string? search, string? payment) => x =>
             (string.IsNullOrEmpty(year) || x.AcademicYear == year) && (!wave.HasValue || x.WaveNumber == wave) &&
-            (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.RegistrationNumber.Contains(search) || (x.Nisn != null && x.Nisn.Contains(search)));
-    public async Task<ApplicantReport> Export(string? year, int? wave, string? status, string? search, CancellationToken cancellationToken = default)
+            (string.IsNullOrEmpty(status) || x.Status == status) && (string.IsNullOrEmpty(payment) || x.PaymentStatus == payment) && (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.RegistrationNumber.Contains(search) || (x.Nisn != null && x.Nisn.Contains(search)));
+    public async Task<ApplicantReport> Export(string? year, int? wave, string? status, string? search, string? payment, CancellationToken cancellationToken = default)
     {
-        var items = await repository.Applications.SelectAsync(x => new { x.Profile, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt }, ApplicantFilter(year, wave, status, search), x => x.Id, descending: true, cancellationToken: cancellationToken);
+        var items = await repository.Applications.SelectAsync(x => new { x.Profile, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.PaymentStatus, x.SubmittedAt }, ApplicantFilter(year, wave, status, search, payment), x => x.Id, descending: true, cancellationToken: cancellationToken);
         return new ApplicantReport(ApplicantReport.FileNameFor("spmb"), "Pendaftar SPMB",
-            ["Nomor pendaftaran", "Tahun ajaran", "Gelombang", "Nama calon siswa", "NISN", "Tempat lahir", "Tanggal lahir", "Jenis kelamin", "Asal sekolah", "Kelas tujuan", "Nama wali", "WhatsApp", "Email", "Alamat", "Status pendaftaran", "Waktu submit (WIB)", "Nama panggilan", "Agama", "Riwayat penyakit", "Tinggi badan (cm)", "Berat badan (kg)", "Golongan darah", "No. HP ayah/ibu", "Nama ayah", "Nama ibu", "Pekerjaan ayah", "Pekerjaan ibu", "Pekerjaan wali", "Alamat orang tua/wali", "Keadaan ekonomi", "Bahasa sehari-hari", "Masuk sekolah sebagai"],
-            items.Select(x => new string[] { x.RegistrationNumber, x.AcademicYear, x.WaveNumber.ToString(), x.StudentName, x.Nisn ?? "", x.BirthPlace, x.BirthDate.ToString("dd/MM/yyyy"), x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail ?? "", x.Address, x.Status, ApplicantReport.Wib(x.SubmittedAt), x.Profile?.Nickname ?? "", x.Profile?.Religion ?? "", x.Profile?.MedicalHistory ?? "", x.Profile?.HeightCm.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.WeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.BloodGroup ?? "", x.Profile?.ParentPhone ?? "", x.Profile?.FatherName ?? "", x.Profile?.MotherName ?? "", x.Profile?.FatherOccupation ?? "", x.Profile?.MotherOccupation ?? "", x.Profile?.GuardianOccupation ?? "", x.Profile?.ParentAddress ?? "", x.Profile?.EconomicCondition ?? "", x.Profile?.DailyLanguage ?? "", x.TargetGrade == "VII" ? "Murid baru kelas VII" : "Pindahan" }).ToList(),
+            ["Nomor pendaftaran", "Tahun ajaran", "Gelombang", "Nama calon siswa", "NISN", "Tempat lahir", "Tanggal lahir", "Jenis kelamin", "Asal sekolah", "Kelas tujuan", "Nama wali", "WhatsApp", "Email", "Alamat", "Status pendaftaran", "Status pembayaran", "Waktu submit (WIB)", "Nama panggilan", "Agama", "Riwayat penyakit", "Tinggi badan (cm)", "Berat badan (kg)", "Golongan darah", "No. HP ayah/ibu", "Nama ayah", "Nama ibu", "Pekerjaan ayah", "Pekerjaan ibu", "Pekerjaan wali", "Alamat orang tua/wali", "Keadaan ekonomi", "Bahasa sehari-hari", "Masuk sekolah sebagai"],
+            items.Select(x => new string[] { x.RegistrationNumber, x.AcademicYear, x.WaveNumber.ToString(), x.StudentName, x.Nisn ?? "", x.BirthPlace, x.BirthDate.ToString("dd/MM/yyyy"), x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail ?? "", x.Address, x.Status, x.PaymentStatus, ApplicantReport.Wib(x.SubmittedAt), x.Profile?.Nickname ?? "", x.Profile?.Religion ?? "", x.Profile?.MedicalHistory ?? "", x.Profile?.HeightCm.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.WeightKg.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", x.Profile?.BloodGroup ?? "", x.Profile?.ParentPhone ?? "", x.Profile?.FatherName ?? "", x.Profile?.MotherName ?? "", x.Profile?.FatherOccupation ?? "", x.Profile?.MotherOccupation ?? "", x.Profile?.GuardianOccupation ?? "", x.Profile?.ParentAddress ?? "", x.Profile?.EconomicCondition ?? "", x.Profile?.DailyLanguage ?? "", x.TargetGrade == "VII" ? "Murid baru kelas VII" : "Pindahan" }).ToList(),
             $"Tahun ajaran: {ApplicantReport.FilterValue(year, "Semua tahun")}   |   Gelombang: {(wave.HasValue ? wave.Value.ToString() : "Semua gelombang")}   |   Status: {ApplicantReport.FilterValue(status, "Semua status")}",
-            $"Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
+            $"Pembayaran: {ApplicantReport.FilterValue(payment, "Semua pembayaran")}   |   Pencarian: {ApplicantReport.FilterValue(search, "Semua pendaftar")}");
     }
-    public async Task<ServiceResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10)
+    public async Task<ServiceResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10, string? payment = null)
     {
         page = Math.Clamp(page, 1, 100000); limit = Math.Clamp(limit, 1, 100);
-        var filter = ApplicantFilter(year, wave, status, search);
+        var filter = ApplicantFilter(year, wave, status, search, payment);
         var total = await repository.Applications.CountAsync(filter);
         var years = await repository.GetAcademicYearsAsync();
-        var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.PreviousSchool, x.TargetGrade, x.Status, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page - 1) * limit, take: limit);
+        var items = await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, x.StudentName, x.PreviousSchool, x.TargetGrade, x.Status, x.PaymentStatus, x.SubmittedAt }, filter, x => x.Id, descending: true, skip: (page - 1) * limit, take: limit);
         return ApiOk(new { items, total, page, limit, years });
     }
     public async Task<ServiceResult> Detail(int id)
@@ -183,7 +205,7 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var proof = await repository.GetPaymentProofInfoAsync(id);
         var hasDocument = await repository.HasDocumentAsync(id);
         var profile = await repository.GetProfileAsync(id);
-        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.SubmittedAt, x.UpdatedAt, x.Version, hasDocument, profile, transferAccountName = proof == null ? null : proof.AccountHolderName, hasPaymentProof = proof != null }, x => x.Id == id)).SingleOrDefault();
+        var entry = (await repository.Applications.SelectAsync(x => new { x.Id, x.RegistrationNumber, x.AcademicYear, x.WaveNumber, WaveStartDate = x.Period.StartDate, WaveEndDate = x.Period.EndDate, x.StudentName, x.Nisn, x.BirthPlace, x.BirthDate, x.Gender, x.PreviousSchool, x.TargetGrade, x.GuardianName, x.GuardianPhone, x.GuardianEmail, x.Address, x.Status, x.PaymentStatus, x.SubmittedAt, x.UpdatedAt, x.Version, hasDocument, profile, transferAccountName = proof == null ? null : proof.AccountHolderName, hasPaymentProof = proof != null }, x => x.Id == id)).SingleOrDefault();
         return entry is null ? ApiNotFound("Pendaftar tidak ditemukan.") : ApiOk(entry);
     }
     public async Task<ServiceResult> Document(int id)
@@ -205,9 +227,11 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var entry = await repository.Applications.FirstAsync(x => x.Id == id, tracking: true);
         if (entry is null) return ApiNotFound();
         if (entry.Version != request.Version) return Conflict("Data sudah berubah. Buka ulang detail pendaftar.");
-        entry.Status = request.Status; entry.UpdatedAt = DateTime.UtcNow; entry.Version++;
+        entry.Status = request.Status;
+        if (request.PaymentStatus is not null) entry.PaymentStatus = request.PaymentStatus;
+        entry.UpdatedAt = DateTime.UtcNow; entry.Version++;
         try { await unitOfWork.SaveChangesAsync(); }
         catch (StorageConcurrencyException) { return Conflict("Data sudah berubah. Buka ulang detail pendaftar."); }
-        return ApiOk(new { entry.Status, entry.Version }, "Status pendaftaran disimpan.");
+        return ApiOk(new { entry.Status, entry.PaymentStatus, entry.Version }, "Status pendaftaran disimpan.");
     }
 }

@@ -85,6 +85,22 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
             config.AfterSubmit, config.WhatsappGroupUrl
         }, "Pendaftaran berhasil diterima.");
     }
+    public async Task<ServiceResult> CheckStatus(LmpLookupRequest request, CancellationToken cancellationToken = default)
+    {
+        var name = request.StudentName.Trim().ToLowerInvariant();
+        if (name.Length < 2 || name.Length > 150) return ApiBadRequest("Masukkan nama lengkap peserta sesuai data pendaftaran.");
+        var matches = await repository.Applications.SelectAsync(
+            x => new { x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, subjects = x.Subject.Name,
+                EventTitle = x.Event.Title, x.Event.CompetitionDate, x.SubmittedAt, x.Status, x.PaymentStatus },
+            x => x.StudentName.Trim().ToLower() == name, x => x.SubmittedAt, descending: true, take: 20, thenBy: x => x.Id, cancellationToken: cancellationToken);
+        if (matches.Count == 0) return ApiOk(new { found = false, registrations = Array.Empty<object>() });
+        var settings = await repository.GetSettingsAsync();
+        return ApiOk(new { found = true, registrations = matches.Select(x => new {
+            x.RegistrationNumber, x.StudentName, x.PreviousSchool, x.Grade, x.subjects, x.EventTitle,
+            x.CompetitionDate, x.SubmittedAt, x.Status, x.PaymentStatus, settings.Config.WhatsappGroupUrl
+        }) });
+    }
+
     private static System.Linq.Expressions.Expression<Func<LmpApplication, bool>> ApplicantFilter(string? search, string? subject, int? grade, string? status, string? payment) => x =>
             (string.IsNullOrWhiteSpace(search) || x.StudentName.Contains(search) || x.PreviousSchool.Contains(search) || x.RegistrationNumber.Contains(search)) &&
             (string.IsNullOrEmpty(subject) || x.Subject.Name == subject) && (!grade.HasValue || x.Grade == grade) &&

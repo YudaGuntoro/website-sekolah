@@ -9,6 +9,12 @@ public class SpmbController(SpmbService service) : ApiControllerBase
 {
     [HttpGet("settings")] public async Task<IActionResult> Settings() => FromService(await service.Settings());
     [HttpGet("schedule"), AllowAnonymous] public async Task<IActionResult> PublicSchedule() => FromService(await service.PublicSchedule());
+    [HttpPost("check-status"), AllowAnonymous, EnableRateLimiting("registration-lookup"), Consumes("application/json"), RequestSizeLimit(2048)]
+    public async Task<IActionResult> CheckStatus(SpmbLookupRequest request) {
+        Response.Headers.CacheControl = "no-store";
+        Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        return FromService(await service.CheckStatus(request, HttpContext.RequestAborted));
+    }
     [HttpPut("settings"), Authorize(Roles = "ADMIN,SUPERVISOR")] public async Task<IActionResult> UpdateSettings(SpmbSettingsRequest request) => FromService(await service.UpdateSettings(request));
     [HttpPost("applications"), EnableRateLimiting("registration"), AllowAnonymous, Consumes("multipart/form-data"), RequestSizeLimit(2200000), RequestFormLimits(MultipartBodyLengthLimit = 2200000)]
     public async Task<IActionResult> Submit([FromForm] SpmbSubmissionRequest request, IFormFile? paymentProof, IFormFile? document)
@@ -42,13 +48,13 @@ public class SpmbController(SpmbService service) : ApiControllerBase
         return File(download.Content, download.ContentType, download.FileName);
     }
     [HttpGet("applications/export")]
-    public async Task<IActionResult> Export(string? year, int? wave, string? status, string? search) {
-        var report = await service.Export(year, wave, status, search, HttpContext.RequestAborted);
+    public async Task<IActionResult> Export(string? year, int? wave, string? status, string? search, string? payment) {
+        var report = await service.Export(year, wave, status, search, payment, HttpContext.RequestAborted);
         Response.Headers.CacheControl = "no-store";
         Response.Headers["X-Content-Type-Options"] = "nosniff";
         return File(Cendekia.WebAPI.Reports.XlsxReportWriter.Write(report), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", report.FileName);
     }
-    [HttpGet("applications")] public async Task<IActionResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10) => FromService(await service.Applications(year, wave, status, search, page, limit));
+    [HttpGet("applications")] public async Task<IActionResult> Applications(string? year, int? wave, string? status, string? search, int page = 1, int limit = 10, string? payment = null) => FromService(await service.Applications(year, wave, status, search, page, limit, payment));
     [HttpGet("applications/{id:int}")] public async Task<IActionResult> Detail(int id) => FromService(await service.Detail(id));
     [HttpPut("applications/{id:int}/status")] public async Task<IActionResult> Status(int id, SpmbStatusRequest request) => FromService(await service.Status(id, request));
 }

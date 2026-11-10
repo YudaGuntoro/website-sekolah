@@ -13,7 +13,7 @@ for(const module of ['spmb','lmp']){
  const filters=[{}, {search:'NO-RESULT-XLSX-EXPORT-CHECK'}];
  if(row){
   filters.push({search:row.studentName});
-  if(module==='spmb')filters.push({year:row.academicYear},{wave:String(row.waveNumber)},{status:row.status},{year:row.academicYear,wave:String(row.waveNumber),status:row.status,search:row.studentName});
+  if(module==='spmb')filters.push({year:row.academicYear},{wave:String(row.waveNumber)},{status:row.status},{payment:row.paymentStatus},{year:row.academicYear,wave:String(row.waveNumber),status:row.status,payment:row.paymentStatus,search:row.studentName});
   else filters.push({subject:row.subjects},{grade:String(row.grade)},{status:row.status},{payment:row.paymentStatus},{subject:row.subjects,grade:String(row.grade),status:row.status,payment:row.paymentStatus,search:row.studentName});
  }
  for(const filter of filters){
@@ -67,6 +67,7 @@ for check in json.load(sys.stdin):
   values=[all_values[i] for i in range(5,6+len(check["numbers"]))]
   assert [v[1] for v in values[1:]]==check['numbers']
   index=values[0].index('Nama calon siswa' if check['module']=='spmb' else 'Nama peserta')
+  if check['module']=='spmb':assert 'Status pembayaran' in values[0]
   assert [v[index] for v in values[1:]]==check['names']
   assert sheet.find('s:sheetViews/s:sheetView/s:pane',ns).get('state') in ('frozen','frozenSplit')
   assert sheet.find('s:autoFilter',ns) is not None
