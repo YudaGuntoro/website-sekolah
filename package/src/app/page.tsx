@@ -194,7 +194,6 @@ export default async function Home() {
         <div aria-hidden='true' className='pointer-events-none absolute -right-48 -top-52 -z-10 h-[34rem] w-[34rem] rounded-full bg-sky-200/40 blur-3xl' />
         <div className='mx-auto grid max-w-7xl items-center gap-8 px-5 pb-8 pt-8 sm:gap-12 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[1fr_1.04fr] lg:gap-8 lg:px-10 lg:pb-24 lg:pt-16'>
           <div className='relative z-10'>
-            <p className='inline-flex rounded-full border border-school-gold/40 bg-school-butter px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-school-navy sm:text-xs'>SMPIT Cendekia Purwakarta</p>
             <h1 className='mt-4 max-w-2xl text-[32px] font-black leading-[1.12] tracking-tight text-school-navy sm:text-5xl lg:text-[3.65rem]'>Unggul dalam <span className='text-school-blue'>Bina Iman, Ilmu</span> dan Amal.</h1>
             <p className='mt-4 max-w-xl text-sm leading-6 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8'>SMPIT Cendekia Purwakarta membina iman, ilmu, dan amal melalui pembelajaran, kegiatan keagamaan, program bilingual, serta pengembangan bakat murid.</p>
             <div className='mt-5 grid grid-cols-2 gap-2 sm:mt-8 sm:flex sm:flex-row sm:flex-wrap lg:flex-nowrap'>
