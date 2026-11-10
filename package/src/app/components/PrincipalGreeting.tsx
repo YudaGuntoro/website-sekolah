@@ -18,13 +18,13 @@ export default async function PrincipalGreeting() {
   return <section id='sambutan' className='border-y border-slate-100 bg-white py-10 sm:py-20'>
     <div className={`mx-auto grid max-w-7xl items-center gap-9 px-5 sm:px-8 lg:gap-16 lg:px-10 ${greeting.imageUrl ? 'lg:grid-cols-[.35fr_.65fr]' : ''}`}>
       {greeting.imageUrl && <div className='mx-auto hidden w-full max-w-[300px] overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 shadow-[0_16px_40px_-28px_rgba(16,45,78,.35)] sm:block'>
-        <Image unoptimized src={greeting.imageUrl} alt={`Potret ${greeting.title}`} width={415} height={393} className='h-[300px] w-full object-cover object-top' />
+        <Image unoptimized src={greeting.imageUrl} alt={`Potret ${greeting.title}`} width={415} height={393} className='h-auto w-full object-contain' />
       </div>}
       <div>
         <h2 className='text-[22px] font-black leading-tight tracking-tight text-school-navy sm:text-4xl'>Sambutan Kepala <span className='text-sky-600'>Sekolah</span></h2>
         <span aria-hidden='true' className='mt-4 block h-1 w-12 rounded-full bg-school-blue' />
         {greeting.imageUrl && <div className='mx-auto mt-6 w-40 overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 shadow-sm sm:hidden'>
-          <Image unoptimized src={greeting.imageUrl} alt={`Potret ${greeting.title}`} width={415} height={393} sizes='160px' className='h-44 w-full object-cover object-top' />
+          <Image unoptimized src={greeting.imageUrl} alt={`Potret ${greeting.title}`} width={415} height={393} sizes='160px' className='h-auto w-full object-contain' />
         </div>}
         <div className='mt-5 space-y-4 text-sm leading-7 text-slate-600 sm:mt-6 sm:text-base'>
           {opening.map((paragraph, index) => <p key={index} className={`whitespace-pre-line ${index === 0 ? 'border-l-2 border-sky-200 pl-3 font-medium text-school-navy' : ''}`}>{paragraph}</p>)}
