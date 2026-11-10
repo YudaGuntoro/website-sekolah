@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { getCmsCollection } from '../cms-content'
+import GreetingMore from './GreetingMore'
 
 // Standalone preview only; a configured CMS is authoritative, including empty/draft content.
 const preview = {
@@ -28,13 +29,7 @@ export default async function PrincipalGreeting() {
         <div className='mt-5 space-y-4 text-sm leading-7 text-slate-600 sm:mt-6 sm:text-base'>
           {opening.map((paragraph, index) => <p key={index} className={`whitespace-pre-line ${index === 0 ? 'border-l-2 border-sky-200 pl-3 font-medium text-school-navy' : ''}`}>{paragraph}</p>)}
         </div>
-        {remaining.length > 0 && <details className='group mt-5'>
-          <summary className='inline-flex min-h-12 w-full cursor-pointer list-none items-center justify-center gap-3 rounded-xl border border-school-blue bg-school-blue px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:border-school-navy hover:bg-school-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-school-blue sm:w-auto [&::-webkit-details-marker]:hidden'>
-            <span className='group-open:hidden'>Baca sambutan lengkap</span><span className='hidden group-open:inline'>Tutup sambutan</span>
-            <svg viewBox='0 0 20 20' className='h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none' fill='none' stroke='currentColor' strokeWidth='1.8' aria-hidden='true'><path d='m5 7.5 5 5 5-5' /></svg>
-          </summary>
-          <div className='mt-4 space-y-4 text-sm leading-7 text-slate-600 sm:text-base'>{remaining.map((paragraph, index) => <p key={index} className='whitespace-pre-line'>{paragraph}</p>)}</div>
-        </details>}
+        {remaining.length > 0 && <GreetingMore paragraphs={remaining} />}
         <div className='mt-6 flex items-center gap-3 border-t border-slate-100 pt-5'>
           <span className='flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sky-50 text-school-blue' aria-hidden='true'><svg viewBox='0 0 24 24' className='h-6 w-6' fill='none' stroke='currentColor' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round'><path d='M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM5 21v-2a7 7 0 0 1 14 0v2' /></svg></span>
           <div><p className='text-sm font-bold text-school-navy sm:text-base'>{greeting.title}</p><p className='mt-1 text-xs leading-5 text-slate-500 sm:text-sm'>{greeting.category}</p></div>
