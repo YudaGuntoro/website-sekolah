@@ -32,13 +32,13 @@ export default function StaffGrid({ staff, category, countLabel }: { staff: Staf
       </div>
 
       {filteredStaff.length ? (
-        <div className='grid gap-5 sm:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
           {filteredStaff.map((person) => (
             <article key={person.name} className='overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_-22px_rgba(15,45,78,.2)]'>
-              <div className='relative aspect-[4/5] overflow-hidden border-b border-slate-100 bg-white'>
-                <Image unoptimized src={person.image} alt={`Foto ${person.name}`} fill sizes='(min-width: 1280px) 380px, (min-width: 640px) 50vw, 100vw' className='object-cover object-[center_35%]' />
+              <div className='relative h-60 overflow-hidden border-b border-slate-100 bg-white sm:h-64'>
+                <Image unoptimized src={person.image} alt={`Foto ${person.name}`} fill sizes='(min-width: 1280px) 285px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover object-[center_35%]' />
               </div>
-              <div className='p-5 sm:p-6'>
+              <div className='p-5'>
                 <h3 className='min-h-[3.1rem] text-lg font-bold leading-snug text-school-navy'>{person.name}</h3>
                 <p className='mt-2 min-h-10 text-sm font-semibold leading-5 text-school-blue'>{person.role}</p>
                 {person.bio && <p className='mt-3 whitespace-pre-line text-sm leading-6 text-slate-600'>{person.bio}</p>}
