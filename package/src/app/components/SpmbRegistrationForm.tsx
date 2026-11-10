@@ -43,9 +43,6 @@ export default function SpmbRegistrationForm() {
     event.preventDefault()
     if (submitting || !schedule?.activeWave) return
     const form = new FormData(event.currentTarget)
-    const document = form.get('document')
-    if (!(document instanceof File) || !document.size) { setError('Unggah PDF persyaratan sebelum mengirim pendaftaran.'); return }
-    if (document.size > 1024 * 1024 || !/\.pdf$/i.test(document.name)) { setError('Berkas persyaratan harus berupa PDF maksimal 1 MB.'); return }
     const proofError = paymentProofError(form)
     if (proofError) { setError(proofError); return }
     const value = (key: string) => String(form.get(key) || '').trim()

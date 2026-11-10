@@ -1,5 +1,6 @@
 'use client'
 import PaymentProofFields from './PaymentProofFields'
+import { uppercaseRegistrationInput } from './registration-uppercase'
 import SpmbRegistrationReceipt from './SpmbRegistrationReceipt'
 import type { FormEvent } from 'react'
 import type { Schedule, Receipt } from './SpmbRegistrationForm'
@@ -49,7 +50,7 @@ export default function SpmbRegistrationLayout({ schedule, scheduleError, error,
     </section>
     <div>
 
-      <form onSubmit={onSubmit} className='min-w-0 overflow-hidden rounded-md border border-slate-200 border-t-[3px] border-t-school-blue bg-white'>
+      <form onSubmit={onSubmit} onInputCapture={uppercaseRegistrationInput} onCompositionEndCapture={uppercaseRegistrationInput} className='min-w-0 overflow-hidden rounded-md border border-slate-200 border-t-[3px] border-t-school-blue bg-white'>
         <div className='flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 px-5 py-5 sm:px-8'><div><h2 className='text-xl font-semibold text-school-navy'>Data pendaftaran</h2><p className='mt-1 text-sm text-slate-500'>Kolom bertanda <span className='text-red-600'>*</span> wajib diisi.</p></div><span className={`text-sm ${open ? 'text-emerald-700' : 'text-slate-500'}`}>{open ? `Gelombang ${schedule!.activeWave}` : 'Formulir belum dibuka'}</span></div>
         <fieldset disabled={!open || submitting} className='min-w-0'>
           <section id='data-siswa' className='scroll-mt-24 p-5 sm:p-8'><SectionHeading number='A' title='Identitas calon murid' /><div className='grid gap-5 sm:grid-cols-2'>
@@ -87,11 +88,8 @@ export default function SpmbRegistrationLayout({ schedule, scheduleError, error,
             <label className={label}>Keadaan ekonomi *<RegistrationSelect name='economicCondition' required defaultValue=''><option value='' disabled>Pilih keadaan ekonomi</option>{['Baik', 'Kurang Baik', 'Sangat Baik', 'Tidak Stabil'].map(value => <option key={value}>{value}</option>)}</RegistrationSelect></label>
             <label className={label}>Bahasa sehari-hari<input className={input} name='dailyLanguage' maxLength={100} placeholder='Opsional' /></label>
           </div></section>
-          <section className='border-t border-slate-100 p-5 sm:p-8'><SectionHeading number='E' title='Berkas persyaratan' />
-            <p className='mb-5 text-sm leading-6 text-slate-600'>Gabungkan dokumen persyaratan pendaftaran dalam satu PDF. <a href='/spmb' target='_blank' rel='noopener noreferrer' className='font-medium text-school-blue underline underline-offset-4'>Lihat daftar persyaratan</a>.</p>
-            <label className={label}>Upload PDF persyaratan *<input name='document' type='file' required accept='.pdf,application/pdf' className='mt-2 block w-full rounded-md border border-slate-300 text-sm font-normal text-slate-600 file:mr-3 file:border-0 file:border-r file:border-slate-300 file:bg-slate-50 file:px-4 file:py-3 file:text-sm file:font-medium file:text-school-navy' /><span className='mt-2 block text-xs font-normal leading-5 text-slate-500'>Satu PDF maksimal 1 MB. Pastikan seluruh halaman lengkap dan terbaca. Berkas dikompres otomatis untuk penyimpanan tanpa menurunkan kualitas dokumen.</span></label>
-          </section>
-          <section className='border-t border-slate-100 p-5 sm:p-8'><SectionHeading number='F' title='Konfirmasi pembayaran' /><PaymentProofFields /><a href='/spmb' target='_blank' rel='noopener noreferrer' className='mt-4 inline-block text-sm font-medium text-school-blue underline underline-offset-4'>Lihat informasi biaya dan rekening sekolah</a></section>
+          <section className='border-t border-slate-100 p-5 sm:p-8'><SectionHeading number='E' title='Konfirmasi pembayaran' /><PaymentProofFields /><a href='/spmb' target='_blank' rel='noopener noreferrer' className='mt-4 inline-block text-sm font-medium text-school-blue underline underline-offset-4'>Lihat informasi biaya dan rekening sekolah</a></section>
+          <aside className='mx-5 mb-5 rounded-r-md border-l-2 border-amber-300 bg-[#fffcf3] px-4 py-3 text-sm leading-7 text-amber-900 sm:mx-8'><p>Berkas persyaratan dibawa langsung sesuai catatan persyaratan sekolah.</p><a href='/spmb' target='_blank' rel='noopener noreferrer' className='mt-1 inline-block font-semibold text-school-blue underline underline-offset-4'>Lihat persyaratan dan catatan pendaftaran</a></aside>
           <div className='border-t border-slate-200 p-5 sm:p-8'><label className='flex items-start gap-3 text-sm leading-7 text-slate-600'><input type='checkbox' name='consent' required className='mt-1.5 h-4 w-4 shrink-0 accent-blue-700' /><span>Saya memastikan data yang diisi benar dan bersedia dihubungi sekolah untuk proses pendaftaran.</span></label><div className='mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'><p className='text-xs leading-6 text-slate-500'>Periksa kembali data<br className='hidden sm:block' /> sebelum mengirim pendaftaran.</p><button disabled={submitting || !open} type='submit' className='inline-flex min-h-11 items-center justify-center rounded-md bg-school-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-school-navy disabled:cursor-not-allowed disabled:opacity-50'>{submitting ? 'Mengirim…' : 'Kirim pendaftaran'}</button></div></div>
         </fieldset>
         {error && <p role='alert' className='m-5 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-800 sm:m-7'>{error}</p>}

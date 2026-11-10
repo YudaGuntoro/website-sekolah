@@ -163,15 +163,17 @@ Backup database sebelum menjalankan `database/migrations/20261109_lmp_informatio
 
 Verifikasi: `node scripts/check-lmp-steps.mjs` menguji validasi, tambah/hapus/urutan 1?20, konflik versi, migrasi berulang, persistensi dan tampilan publik; pengaturan awal dipulihkan setelah pengujian.
 
-### PDF persyaratan SPMB
+### Berkas persyaratan SPMB: dibawa langsung dan arsip PDF lama
 
-Formulir SPMB mewajibkan satu berkas `document` PDF terpisah dari bukti transfer, maksimal 1 MiB (1.048.576 byte). Validasi dilakukan di website, controller, dan Application service (ukuran/ekstensi/header PDF). Receipt/detail menyediakan HasDocument. Pendaftaran lama tetap dapat dibaca tanpa dokumen. Endpoint staf `/api/spmb/applications/{id}/document` mengirim PDF sebagai attachment dengan no-store/nosniff; tidak tersedia URL berkas publik.
+Per 10 November 2026, sesuai keputusan pengguna, formulir publik SPMB tidak memiliki input PDF persyaratan dan backend menerima pendaftaran tanpa `document`. Berkas dibawa langsung sesuai catatan persyaratan sekolah; form/receipt mengingatkan hal tersebut dan menautkan halaman informasi. Bukti transfer tetap wajib maksimal 1 MiB. Bagian pembayaran menjadi E setelah bagian upload dihapus. LMP tidak berubah.
+
+Untuk kompatibilitas saat deploy, API masih menerima PDF opsional dari klien lama dengan validasi maksimal 1 MiB/ekstensi/header; validasi ini tidak dijalankan jika berkas tidak dikirim. Receipt tidak menganggap ketiadaan PDF sebagai kekurangan. Portal hanya menampilkan panel dokumen bila HasDocument=true. Endpoint staf `/api/spmb/applications/{id}/document` tetap mengirim arsip PDF sebagai attachment dengan no-store/nosniff; tidak tersedia URL berkas publik. Berkas lama tidak dihapus.
 
 Dokumen disimpan melalui relasi satu-ke-satu `spmb_application_documents` (PK/FK ApplicationId, ON DELETE CASCADE), terpisah dari baris peserta dan tanpa AutoInclude BLOB. Sebelum transaksi database, implementasi IRegistrationFileOptimizer mengompres seluruh byte PDF menggunakan Brotli lossless, satu proses pada satu waktu melalui gate yang sama dengan optimasi gambar. Bila hasil tidak lebih kecil, simpan raw. Kolom Compression (`br`/`raw`) dan OriginalLength mendeskripsikan encoding penyimpanan; BLOB tidak selalu merupakan PDF langsung.
 
 Repository merekonstruksi PDF saat diunduh staf, membatasi hasil hingga OriginalLength (maksimal 1 MiB), serta memeriksa panjangnya. Byte unduhan harus identik dengan PDF unggahan, sehingga kualitas gambar, isi teks, dan tanda tangan tidak ditulis ulang. Ini kompresi penyimpanan, bukan penurunan resolusi gambar dalam PDF. PDF yang sudah padat dapat menghemat sedikit atau tidak sama sekali. Dokumen lama, PDF bukti transfer dan berkas LMP tidak diubah oleh fitur ini. Batas total request SPMB 2,2 MB tetap cukup untuk PDF persyaratan dan bukti transfer yang masing-masing maksimal 1 MiB.
 
-Upgrade: backup database, jalankan `database/migrations/20261109_spmb_application_documents.sql` (juga disertakan runner NormalizeOnly), kemudian deploy backend beserta website/admin baru. `node scripts/check-spmb-documents.mjs` memverifikasi batas tepat 1 MiB, penolakan unggahan invalid, kompresi BLOB, kesamaan hash PDF unduhan, otorisasi dan pendaftaran lama; `check-file-optimizer.mjs` memverifikasi fallback raw untuk input yang tidak dapat diperkecil.
+Tabel arsip menggunakan migrasi historis `database/migrations/20261109_spmb_application_documents.sql`; tidak ada migrasi baru untuk menghapus kewajiban unggahan. Deploy backend beserta website/admin bersama. `node scripts/check-spmb-documents.mjs` memverifikasi pendaftaran tanpa PDF, kompatibilitas unggahan opsional lama, kompresi/unduhan arsip dan otorisasi; `check-spmb.mjs` memeriksa submit web tanpa field document. `check-file-optimizer.mjs` tetap memverifikasi fallback raw untuk input yang tidak dapat diperkecil.
 
 ### Catatan persyaratan SPMB
 
@@ -187,7 +189,7 @@ Data profil tambahan disimpan di `spmb_applicant_profiles` (PK/FK ApplicationId,
 
 Tinggi/berat dibatasi satu angka desimal, disimpan DECIMAL(5,1); binder decimal multipart membaca format invariant HTML (titik desimal) tanpa mengikuti locale server. API menolak angka di luar batas dan enum yang tidak dikenali. Receipt menampilkan ringkasan tambahan, detail admin menampilkan profil, dan XLSX menyertakan kolom tambahan. Laporan dengan lebih dari 24 kolom dicetak dua halaman lebar dengan nomor urut/pendaftaran diulang, agar teks lebih terbaca.
 
-Backup lalu jalankan `database/migrations/20261109_spmb_applicant_profiles.sql` (runner NormalizeOnly juga menyertakannya). Deploy backend/public/admin bersama; data lama dan status pendaftaran tidak ditulis ulang. Upload PDF persyaratan dan bukti transfer tetap masing-masing maksimal 1 MiB sesuai pengaturan sebelumnya. Verifikasi `check-spmb.mjs` mencakup validasi profil/decimal, persistensi, pengiriman web dan detail dashboard; fixture tes ada di `scripts/lib/spmb-profile-fixture.mjs`.
+Backup lalu jalankan `database/migrations/20261109_spmb_applicant_profiles.sql` (runner NormalizeOnly juga menyertakannya). Deploy backend/public/admin bersama; data lama dan status pendaftaran tidak ditulis ulang. Bukti transfer maksimal 1 MiB tetap wajib; PDF persyaratan tidak lagi diminta pada formulir SPMB. Verifikasi `check-spmb.mjs` mencakup validasi profil/decimal, persistensi, pengiriman web dan detail dashboard; fixture tes ada di `scripts/lib/spmb-profile-fixture.mjs`.
 
 ### Embed profil TikTok pada beranda
 
@@ -230,3 +232,9 @@ Sesuai keputusan pengguna, LMP menggunakan nama lengkap peserta saja; tidak mena
 Service memproyeksikan maksimal 20 pendaftaran yang cocok, terbaru lebih dahulu, tanpa mengambil BLOB/kontak guru/rekening/file/SubmissionKey/Id internal. Jika satu hasil, detail langsung tampil; jika beberapa nama sama, pengguna memilih berdasarkan nomor pendaftaran, sekolah, kelas, mata pelajaran, dan acara/tanggal lomba. Hanya detail pilihan yang dicetak. Hasil mencakup status peserta/pembayaran terkini, informasi acara historis melalui Event/Subject, serta grup WhatsApp LMP dari pengaturan. Petunjuk tetap muncul jika grup belum diatur.
 
 Fitur LMP ini tidak memerlukan migrasi SQL dan tetap berfungsi saat pendaftaran ditutup. Verifikasi lokal `LMP_ALLOW_TEST_SETUP=1 CMS_BROWSER_CHECK=1 node scripts/check-lmp-lookup.mjs` membuat/membersihkan dua peserta sintetis bernama sama, memeriksa field publik, pencocokan, status, pilihan ganda/tunggal, proxy, cetak/PDF dan mobile. Deploy API dan website bersama. Migrasi status pembayaran SPMB di atas tetap diperlukan untuk perubahan SPMB yang disertakan dalam versi kerja yang sama.
+
+### Standar huruf kapital pada pendaftaran baru
+
+Form SPMB/LMP memakai handler `registration-uppercase.ts` dengan allowlist nama field untuk mengubah isian teks menjadi kapital saat diketik/ditempel, mempertahankan posisi kursor serta menunggu composition selesai. Nama murid/peserta, panggilan, sekolah, tempat lahir, nama keluarga/guru, alamat, pekerjaan, catatan kesehatan/bahasa, dan nama rekening pengirim mengikuti standar ini. Nilai asli email, nomor/NISN, angka/tanggal, berkas, dan enum pilihan tidak diubah. Tampilan bukan sekadar CSS uppercase: value input dan payload mengikuti hasil normalisasi.
+
+Application menggunakan `RegistrationText.Upper` ketika membentuk entitas peserta/profil/bukti transfer, sehingga kiriman langsung ke API juga disimpan kapital. Receipt, portal, export dan lookup membaca data tersimpan yang sama. Pencarian status tetap tidak membedakan kapital. Tidak ada migrasi SQL atau penulisan ulang catatan historis; aturan berlaku pada pendaftaran baru. `check-spmb.mjs` / `check-lmp.mjs` memeriksa input browser dan receipt/DB-backed detail untuk huruf kapital, serta menjaga enum, email, nomor dan berkas.

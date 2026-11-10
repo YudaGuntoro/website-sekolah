@@ -124,9 +124,14 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
 
     public async Task<ServiceResult> Submit(SpmbSubmissionRequest request, PaymentProofUpload? paymentProof, PdfUpload? document = null, CancellationToken cancellationToken = default)
     {
-        if (document is null || document.Content.Length is < 8 or > 1048576 || !Path.GetExtension(document.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase) || !document.Content.AsSpan(0, 5).SequenceEqual("%PDF-"u8))
-            return ApiBadRequest("PDF persyaratan wajib diunggah, maksimal 1 MB.");
-        var compressedDocument = await fileOptimizer.CompressPdfAsync(document.Content, cancellationToken);
+        // The website now requests physical documents at re-registration. Accept optional
+        // PDFs from older clients during deployment; historical downloads remain available.
+        CompressedPdf? compressedDocument = null;
+        if (document is not null) {
+            if (document.Content.Length is < 8 or > 1048576 || !Path.GetExtension(document.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase) || !document.Content.AsSpan(0, 5).SequenceEqual("%PDF-"u8))
+                return ApiBadRequest("PDF persyaratan harus valid, maksimal 1 MB.");
+            compressedDocument = await fileOptimizer.CompressPdfAsync(document.Content, cancellationToken);
+        }
         var proofType = PaymentProofFiles.ContentType(paymentProof);
         if (proofType is null) return ApiBadRequest("Bukti transfer wajib berupa JPG, PNG, atau PDF yang valid, maksimal 1 MB.");
         if (string.IsNullOrWhiteSpace(request.TransferAccountName)) return ApiBadRequest("Nama pemilik rekening pengirim wajib diisi.");
@@ -161,15 +166,15 @@ public class SpmbService(ISpmbRepository repository, IApplicationUnitOfWork unit
         var period = await repository.GetOrCreatePeriodAsync(settings.AcademicYear, wave);
         var entry = new SpmbApplication
         {
-            Profile = new SpmbApplicantProfile { Nickname = request.Nickname.Trim(), Religion = request.Religion.Trim(), MedicalHistory = (request.MedicalHistory ?? "").Trim(), HeightCm = request.HeightCm, WeightKg = request.WeightKg, BloodGroup = request.BloodGroup.Trim(), ParentPhone = request.ParentPhone.Trim(), FatherName = request.FatherName.Trim(), MotherName = request.MotherName.Trim(), FatherOccupation = request.FatherOccupation.Trim(), MotherOccupation = request.MotherOccupation.Trim(), GuardianOccupation = (request.GuardianOccupation ?? "").Trim(), ParentAddress = request.ParentAddress.Trim(), EconomicCondition = request.EconomicCondition.Trim(), DailyLanguage = (request.DailyLanguage ?? "").Trim() },
-            Document = new SpmbDocument { Content = compressedDocument.Content, Compression = compressedDocument.Compression, OriginalLength = compressedDocument.OriginalLength },
-            PaymentProof = new SpmbPaymentProof { AccountHolderName = request.TransferAccountName.Trim(), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
+            Profile = new SpmbApplicantProfile { Nickname = RegistrationText.Upper(request.Nickname), Religion = request.Religion.Trim(), MedicalHistory = RegistrationText.Upper(request.MedicalHistory), HeightCm = request.HeightCm, WeightKg = request.WeightKg, BloodGroup = request.BloodGroup.Trim(), ParentPhone = request.ParentPhone.Trim(), FatherName = RegistrationText.Upper(request.FatherName), MotherName = RegistrationText.Upper(request.MotherName), FatherOccupation = RegistrationText.Upper(request.FatherOccupation), MotherOccupation = RegistrationText.Upper(request.MotherOccupation), GuardianOccupation = RegistrationText.Upper(request.GuardianOccupation), ParentAddress = RegistrationText.Upper(request.ParentAddress), EconomicCondition = request.EconomicCondition.Trim(), DailyLanguage = RegistrationText.Upper(request.DailyLanguage) },
+            Document = compressedDocument is null ? null : new SpmbDocument { Content = compressedDocument.Content, Compression = compressedDocument.Compression, OriginalLength = compressedDocument.OriginalLength },
+            PaymentProof = new SpmbPaymentProof { AccountHolderName = RegistrationText.Upper(request.TransferAccountName), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, AcademicYear = settings.AcademicYear, WaveNumber = wave.Number,
             Period = period, WaveRevision = period.Revision,
-            StudentName = request.StudentName.Trim(), Nisn = nisn, BirthPlace = request.BirthPlace.Trim(), BirthDate = request.BirthDate,
-            Gender = request.Gender, PreviousSchool = request.PreviousSchool.Trim(), TargetGrade = request.TargetGrade,
-            GuardianName = (request.GuardianName ?? "").Trim(), GuardianPhone = (request.GuardianPhone.StartsWith('+') ? "+" : "") + digits,
-            GuardianEmail = string.IsNullOrWhiteSpace(request.GuardianEmail) ? null : request.GuardianEmail.Trim(), Address = request.Address.Trim(),
+            StudentName = RegistrationText.Upper(request.StudentName), Nisn = nisn, BirthPlace = RegistrationText.Upper(request.BirthPlace), BirthDate = request.BirthDate,
+            Gender = request.Gender, PreviousSchool = RegistrationText.Upper(request.PreviousSchool), TargetGrade = request.TargetGrade,
+            GuardianName = RegistrationText.Upper(request.GuardianName), GuardianPhone = (request.GuardianPhone.StartsWith('+') ? "+" : "") + digits,
+            GuardianEmail = string.IsNullOrWhiteSpace(request.GuardianEmail) ? null : request.GuardianEmail.Trim(), Address = RegistrationText.Upper(request.Address),
             SubmittedAt = now, UpdatedAt = now
         };
         repository.Applications.Add(entry);

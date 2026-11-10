@@ -62,10 +62,10 @@ public class LmpService(ILmpRepository repository, IApplicationUnitOfWork unitOf
         if (subject is null) return ApiBadRequest("Mata pelajaran tidak tersedia.");
         var eventVersion = await repository.GetOrCreateEventAsync(c);
         var entry = new LmpApplication {
-            PaymentProof = new LmpPaymentProof { AccountHolderName = request.TransferAccountName.Trim(), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
+            PaymentProof = new LmpPaymentProof { AccountHolderName = RegistrationText.Upper(request.TransferAccountName), ContentType = optimizedProof.ContentType, Content = optimizedProof.Content },
             SubmissionKey = request.SubmissionKey, Event = eventVersion,
-            StudentName = request.StudentName.Trim(), PreviousSchool = request.PreviousSchool.Trim(), Grade = request.Grade,
-            SubjectId = subject.Id, ContactName = request.ContactName.Trim(), ContactPhone = request.ContactPhone,
+            StudentName = RegistrationText.Upper(request.StudentName), PreviousSchool = RegistrationText.Upper(request.PreviousSchool), Grade = request.Grade,
+            SubjectId = subject.Id, ContactName = RegistrationText.Upper(request.ContactName), ContactPhone = request.ContactPhone,
             Attachment = pdf is null ? null : new LmpDocument { Content = pdf }, SubmittedAt = DateTime.UtcNow
         };
         repository.Applications.Add(entry); await unitOfWork.SaveChangesAsync();

@@ -21,7 +21,7 @@ export default function SpmbRegistrationReceipt({ receipt, onReset }: { receipt:
       ['Pekerjaan ayah', receipt.profile.fatherOccupation], ['Pekerjaan ibu', receipt.profile.motherOccupation], ['Pekerjaan wali', receipt.profile.guardianOccupation || 'Tidak diisi'],
       ['Alamat orang tua/wali', receipt.profile.parentAddress], ['Keadaan ekonomi', receipt.profile.economicCondition], ['Bahasa sehari-hari', receipt.profile.dailyLanguage || 'Tidak diisi'],
     ] : []),
-    ['Berkas persyaratan', receipt.hasDocument ? 'PDF telah diterima' : 'Belum tersedia'],
+    ['Berkas persyaratan', 'Dibawa langsung sesuai catatan persyaratan sekolah.'],
     ['NISN', receipt.nisn || 'Tidak diisi'],
     ['Tempat, tanggal lahir', `${receipt.birthPlace}, ${birthDate(receipt.birthDate)}`],
     ['Jenis kelamin', receipt.gender],
