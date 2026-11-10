@@ -8,7 +8,7 @@ import Logo from './Logo'
 const profileNavigation = [
   { label: 'Ekstrakurikuler', href: '/ekstrakurikuler' },
   { label: 'Fasilitas', href: '/fasilitas' },
-  { label: 'Pimpinan sekolah dan yayasan', href: '/guru' },
+  { label: 'Pimpinan dan Tenaga Pendidik', href: '/guru' },
   { label: 'Prestasi murid', href: '/prestasi' },
   { label: 'Sejarah sekolah', href: '/sejarah' },
   { label: 'Struktur organisasi', href: '/struktur-organisasi' },

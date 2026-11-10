@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   description: "Dashboard pengelola konten SMPIT Cendekia Purwakarta.",
   icons: {
     apple: "/cendekia-logo-hd.png",
-    icon: "/cendekia-logo-hd.png",
-    shortcut: "/cendekia-logo-hd.png",
+    icon: { url: "/icon.png?v=cendekia-2", type: "image/png", sizes: "256x256" },
+    shortcut: "/favicon.ico?v=cendekia-2",
   },
 };
 
