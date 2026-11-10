@@ -369,8 +369,8 @@ export default async function Home() {
             <p className='mt-3 text-sm leading-6 text-slate-600 sm:mt-4 sm:leading-7 sm:text-base'>Guru dan tenaga kependidikan yang mendampingi proses belajar murid.</p>
           </div>
           <div className='grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-            {staff.map((person) => (
-              <article key={person.name} className='rounded-2xl border border-sky-100 bg-white p-3 sm:p-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,.25)] transition hover:-translate-y-1 hover:shadow-lg'>
+            {staff.slice(0, 10).map((person, index) => (
+              <article key={person.name} className={`${index < 4 ? '' : index < 6 ? 'hidden lg:block ' : 'hidden xl:block '}rounded-2xl border border-sky-100 bg-white p-3 sm:p-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,.25)] transition hover:-translate-y-1 hover:shadow-lg`}>
                 <Image unoptimized src={person.image} alt={`Foto ${person.name}`} width={415} height={393} className='hidden aspect-square w-full rounded-xl object-cover sm:block' />
                 <h3 className='text-sm font-bold leading-snug sm:truncate sm:text-base text-school-navy sm:mt-4' title={person.name}>{person.name}</h3>
                 <p className='mt-1 text-xs font-semibold sm:min-h-5 sm:truncate sm:text-sm text-school-blue' title={person.role}>{person.role}</p>
