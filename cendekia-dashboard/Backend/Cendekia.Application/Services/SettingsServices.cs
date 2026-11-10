@@ -27,22 +27,6 @@ public class WebsiteSettingsService(IEntityRepository<WebsiteSettings> repositor
     }
     private static bool ValidSocial(string value, string domain) => value.Length == 0 || (Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.IsDefaultPort && string.IsNullOrEmpty(uri.UserInfo) && (uri.Host == domain || uri.Host == "www." + domain || uri.Host == "m." + domain) && uri.AbsolutePath.Length > 1);
 }
-public class HomepageImagesService(IEntityRepository<HomepageImages> repository, IApplicationUnitOfWork unitOfWork) : ApplicationService
-{
-    public async Task<ServiceResult> Get() { var value = await repository.FirstAsync(x => x.Id == 1); return value is null ? ApiNotFound() : ApiOk(value); }
-    public async Task<ServiceResult> Public() { var x = await repository.FirstAsync(x => x.Id == 1); return x is null ? ApiNotFound() : ApiOk(new { x.HeroUrl, x.DirectionUrl, x.ProgramUrl }); }
-    public async Task<ServiceResult> Save(HomepageImagesRequest request)
-    {
-        if (!ValidImage(request.HeroUrl) || !ValidImage(request.DirectionUrl) || !ValidImage(request.ProgramUrl)) return ApiBadRequest("Gunakan URL gambar HTTPS atau path /images/. Kosongkan untuk memakai gambar bawaan.");
-        var value = await repository.FirstAsync(x => x.Id == 1, tracking: true);
-        if (value is null) return ApiNotFound();
-        if (value.Version != request.Version) return Conflict("Gambar telah diubah. Muat ulang pengaturan sebelum menyimpan.");
-        value.HeroUrl = request.HeroUrl.Trim(); value.DirectionUrl = request.DirectionUrl.Trim(); value.ProgramUrl = request.ProgramUrl.Trim(); value.Version++;
-        try { await unitOfWork.SaveChangesAsync(); } catch (StorageConcurrencyException) { return Conflict("Gambar telah diubah. Muat ulang sebelum menyimpan."); }
-        return ApiOk(value, "Gambar beranda diperbarui.");
-    }
-    private static bool ValidImage(string value) => string.IsNullOrWhiteSpace(value) || (value.Trim().StartsWith("/images/") && !value.Contains("..") && !value.Contains('\\') && !value.Any(char.IsControl)) || (Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.IsDefaultPort && string.IsNullOrEmpty(uri.UserInfo));
-}
 public class SchoolIdentityService(IEntityRepository<SchoolIdentity> repository, IApplicationUnitOfWork unitOfWork) : ApplicationService
 {
     private static List<SchoolMission> Missions(SchoolIdentity value) => value.MissionRecords.OrderBy(x => x.Position).Select(x => new SchoolMission { Title = x.Title, Text = x.Text }).ToList();

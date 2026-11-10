@@ -16,6 +16,7 @@ try {
   assert.equal(login.status, 200); token = login.data.access_token;
   assert.equal((await request('/cms/homepage-images', 'GET', undefined, '')).status, 401);
   original = (await request('/cms/homepage-images')).data; current = original;
+  assert.equal(original.photos?.length || 0, 0, "Run this local URL test before uploading real homepage photos.");
   for (const heroUrl of ['javascript:alert(1)', 'http://example.com/test.png', '//example.com/test.png', '/images/../secret', 'https://user:pass@example.com/test.png', null])
     assert.equal((await request('/cms/homepage-images', 'PUT', { ...current, heroUrl })).status, 400);
   const tag = `image-check-${Date.now()}`;
@@ -27,10 +28,13 @@ try {
   if (process.env.IMAGES_BROWSER_CHECK === '1') {
     const { chromium } = createRequire(import.meta.url)('../.verify-cms/node_modules/playwright');
     browser = await chromium.launch({ channel: 'msedge', headless: true });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    await browserSignIn(page);
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const page = await context.newPage();
+    await browserSignIn(context);
     await page.goto('http://localhost:3002/settings/images');
-    for (const title of ['Banner Utama', 'Arah Pendidikan', 'Program Belajar']) await page.getByLabel(`URL gambar ${title}`).fill(custom);
+    await page.getByText('Gunakan URL gambar', {exact:true}).first().waitFor();
+    for (const summary of await page.getByText('Gunakan URL gambar', {exact:true}).all()) await summary.click();
+    for (const title of ['Banner Utama', 'Arah Pendidikan', 'Program Unggulan']) await page.getByLabel(`URL gambar ${title}`).fill(custom);
     await page.getByRole('button', { name: 'Simpan gambar', exact: true }).click();
     await page.getByText('Gambar beranda berhasil diperbarui di website.', { exact: true }).waitFor();
     current = (await request('/cms/homepage-images')).data;
@@ -38,13 +42,14 @@ try {
     await page.setViewportSize({ width: 390, height: 844 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.goto('http://localhost:3000');
-    for (const section of ['beranda', 'tentang', 'program']) assert.equal(await page.locator(`#${section} img`).first().getAttribute('src'), custom);
+    for (const section of ['beranda', 'tentang', 'program']) assert.equal(await page.locator(`#${section} img`).first().evaluate(img => new URL(img.src).pathname), custom);
     await save({ ...current, heroUrl: 'https://images.example.invalid/unavailable.png' });
     await page.route('https://images.example.invalid/**', route => route.abort());
     await page.reload();
-    await page.waitForFunction(() => document.querySelector('#beranda img')?.getAttribute('src') === '/images/school/siswa-ceria.png');
+    await page.locator('#beranda img').first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => { const img = document.querySelector('#beranda img'); return img && new URL(img.src).pathname === '/images/school/siswa-ceria.png'; });
     await page.goto('http://localhost:3002/settings/images');
-    await page.getByLabel('URL gambar Banner Utama').waitFor();
+    await page.getByRole('button', {name: 'Gunakan gambar bawaan',exact:true}).first().waitFor();
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Gunakan gambar bawaan', exact: true }).nth(i).click();
     await page.getByRole('button', { name: 'Simpan gambar', exact: true }).click();
     await page.getByText('Gambar beranda berhasil diperbarui di website.', { exact: true }).waitFor();
@@ -53,7 +58,7 @@ try {
     current = (await request('/cms/homepage-images')).data;
     await page.goto('http://localhost:3000');
     for (const [section, file] of [['beranda', 'siswa-ceria.png'], ['tentang', 'arah-pendidikan.png'], ['program', 'bimbingan-karier.png']])
-      assert.equal(await page.locator(`#${section} img`).first().getAttribute('src'), `/images/school/${file}`);
+      assert.equal(await page.locator(`#${section} img`).first().evaluate(img => new URL(img.src).pathname), `/images/school/${file}`);
   } else await save({ ...current, heroUrl: custom, directionUrl: custom, programUrl: custom });
   assert.equal((await request('/cms/homepage-images', 'PUT', original)).status, 409);
   const pub = (await request('/school/homepage-images', 'GET', undefined, '')).data;

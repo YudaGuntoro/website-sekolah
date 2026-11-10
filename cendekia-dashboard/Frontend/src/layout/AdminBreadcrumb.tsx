@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const labels: Record<string, string> = {
   lmp: "LMP",
-  informasi: "Informasi SPMB", images: "Gambar Beranda", identity: "Visi, Misi & Motto", sambutan: "Sambutan Kepala Sekolah", settings: "Pengaturan Website", contact: "Kontak & Media Sosial", instagram: "Feed Instagram", tiktok: "Feed TikTok", content: "Konten", berita: "Berita", pengumuman: "Pengumuman", profil: "Profil Sekolah", guru: "Guru & Staf", prestasi: "Prestasi", fasilitas: "Fasilitas", program: "Program Belajar", kegiatan: "Kegiatan Rutin", ekstrakurikuler: "Ekstrakurikuler", osis: "OSIS", pendaftar: "Pendaftar", gelombang: "Pengaturan Gelombang", spmb: "SPMB", dashboard: "Dashboard", users: "Pengguna",
+  informasi: "Informasi SPMB", images: "Gambar Beranda", highlights: "Statistik Beranda", identity: "Visi, Misi & Motto", sambutan: "Sambutan Kepala Sekolah", settings: "Pengaturan Website", contact: "Kontak & Media Sosial", instagram: "Feed Instagram", tiktok: "Feed TikTok", content: "Konten", berita: "Berita", pengumuman: "Pengumuman", profil: "Profil Sekolah", guru: "Guru & Staf", prestasi: "Prestasi", fasilitas: "Fasilitas", program: "Program Belajar", kegiatan: "Kegiatan Rutin", ekstrakurikuler: "Ekstrakurikuler", osis: "OSIS", pendaftar: "Pendaftar", gelombang: "Pengaturan Gelombang", spmb: "SPMB", dashboard: "Dashboard", users: "Pengguna",
 };
 
 export default function AdminBreadcrumb() {

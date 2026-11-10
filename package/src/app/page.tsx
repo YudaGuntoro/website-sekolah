@@ -9,6 +9,7 @@ import HomepageImage from './components/HomepageImage'
 import { getHomepageImages } from './homepage-images'
 import { getSpmbAcademicYear } from './spmb/information'
 import { getSchoolIdentity } from './school-identity'
+import { getSchoolHighlights } from './school-highlights'
 import { getContactSettings, whatsappUrl } from './contact-settings'
 import LearningEnvironmentGallery from './components/LearningEnvironmentGallery'
 import SchoolHighlightsCounter from './components/SchoolHighlightsCounter'
@@ -54,14 +55,6 @@ const interests = [
   { title: 'Olahraga & Kesehatan', text: 'Gerak aktif, kebugaran, dan kerja sama tim.' },
 ]
 
-const schoolHighlights = [
-  { value: '18+', title: 'Ruang Kelas', category: 'Fasilitas belajar', text: 'Ruang belajar nyaman yang mendukung diskusi dan kolaborasi.', icon: 'classroom' },
-  { value: '30+', title: 'Tenaga Pendidik', category: 'Komunitas akademik', text: 'Guru dan staf yang mendampingi proses belajar murid.', icon: 'educators' },
-  { value: '12+', title: 'Ekstrakurikuler', category: 'Eksplorasi minat', text: 'Pilihan kegiatan untuk mengeksplorasi minat dan bakat.', icon: 'activities' },
-  { value: '3', title: 'Laboratorium', category: 'Praktik & riset', text: 'Ruang praktik untuk belajar sains, komputer, dan keterampilan.', icon: 'laboratory' },
-  { value: '1', title: 'Perpustakaan', category: 'Literasi', text: 'Koleksi bacaan dan ruang tenang untuk mencari inspirasi.', icon: 'library' },
-  { value: '4', title: 'Fokus Pengembangan', category: 'Pembelajaran holistik', text: 'Akademik, karakter, kreativitas, dan kebugaran.', icon: 'growth' },
-]
 
 function SchoolHighlightIcon({ name }: { name: string }) {
   const paths: Record<string, string> = {
@@ -178,6 +171,8 @@ function MissionList({ missions }: { missions: string[] }) {
 
 export default async function Home() {
   const spmbAcademicYear = await getSpmbAcademicYear()
+  const highlights = await getSchoolHighlights()
+  const schoolHighlights = highlights.cards
   const homepageImages = await getHomepageImages()
   const identity = await getSchoolIdentity()
   const missionCards = identity.missions.map((mission, index) => ({ ...missionVisuals[index % missionVisuals.length], ...mission }))
@@ -241,14 +236,14 @@ export default async function Home() {
 
       <PrincipalGreeting />
 
-      <section id='keunggulan' className='bg-[#f6f9fc] py-8 sm:py-20'>
+      {highlights.enabled && schoolHighlights.length > 0 && <section id='keunggulan' className='bg-[#f6f9fc] py-8 sm:py-20'>
         <div className='mx-auto max-w-7xl px-5 sm:px-8 lg:px-10'>
-          <div className='mx-auto max-w-2xl text-center'><h2 className='text-2xl font-extrabold tracking-tight text-school-navy sm:text-4xl'>Ruang untuk <span className='text-sky-500'>tumbuh lebih jauh.</span></h2><p className='mt-4 leading-7 text-slate-600'>Dukungan akademik, fasilitas, dan aktivitas yang membuka lebih banyak cara untuk belajar dan berkembang.</p></div>
+          <div className='mx-auto max-w-2xl text-center'><h2 className='text-2xl font-extrabold tracking-tight text-school-navy sm:text-4xl'>{highlights.heading}{highlights.accent && <> <span className='text-sky-500'>{highlights.accent}</span></>}</h2>{highlights.description && <p className='mt-4 leading-7 text-slate-600'>{highlights.description}</p>}</div>
           <div className='mt-6 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-4 lg:grid-cols-3'>
-            {schoolHighlights.map((item) => <article key={item.title} className='relative min-h-[120px] overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 sm:min-h-[206px] sm:rounded-2xl sm:p-7 shadow-[0_10px_30px_-24px_rgba(16,45,78,.28)] transition hover:-translate-y-1 hover:shadow-[0_18px_36px_-24px_rgba(16,45,78,.3)]'><span aria-hidden='true' className='absolute -right-8 -top-10 h-24 w-24 rounded-full bg-sky-50' /><div className='relative flex items-start justify-between gap-2 sm:gap-4'><div><p className='hidden text-[10px] font-extrabold uppercase sm:block tracking-[.17em] text-school-blue'>{item.category}</p><h3 className='text-sm font-bold leading-snug text-school-navy sm:mt-2 sm:text-base'>{item.title}</h3></div><span className='flex h-7 w-7 shrink-0 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-sky-100 bg-sky-50/70 text-school-blue'><SchoolHighlightIcon name={item.icon} /></span></div><div className='relative mt-3 flex items-end justify-between gap-3 sm:mt-7 sm:min-h-[62px]'><p className='hidden max-w-[68%] text-sm leading-6 text-slate-500 sm:block'>{item.text}</p><p className='shrink-0 text-2xl font-black leading-none tracking-tight text-school-navy sm:text-[2.75rem]'><SchoolHighlightsCounter value={item.value} /></p></div><div className='relative mt-3 h-px bg-slate-100 sm:mt-6'><span className={`block h-px bg-sky-500 ${schoolHighlights.indexOf(item) % 2 === 0 ? 'w-1/3' : 'w-1/2'}`} /></div></article>)}
+            {schoolHighlights.map((item, index) => <article key={index} className='relative min-h-[120px] overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 sm:min-h-[206px] sm:rounded-2xl sm:p-7 shadow-[0_10px_30px_-24px_rgba(16,45,78,.28)] transition hover:-translate-y-1 hover:shadow-[0_18px_36px_-24px_rgba(16,45,78,.3)]'><span aria-hidden='true' className='absolute -right-8 -top-10 h-24 w-24 rounded-full bg-sky-50' /><div className='relative flex items-start justify-between gap-2 sm:gap-4'><div className='min-w-0'><p className='hidden break-words text-[10px] font-extrabold uppercase sm:block tracking-[.17em] text-school-blue'>{item.category}</p><h3 className='break-words text-sm font-bold leading-snug text-school-navy sm:mt-2 sm:text-base'>{item.title}</h3></div><span className='flex h-7 w-7 shrink-0 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-sky-100 bg-sky-50/70 text-school-blue'><SchoolHighlightIcon name={item.icon} /></span></div><div className='relative mt-3 flex items-end justify-between gap-3 sm:mt-7 sm:min-h-[62px]'><p className='hidden min-w-0 flex-1 break-words text-sm leading-6 text-slate-500 sm:block'>{item.text}</p><p className='shrink-0 text-2xl font-black leading-none tracking-tight text-school-navy sm:text-[2.75rem]'><SchoolHighlightsCounter value={item.value} /></p></div><div className='relative mt-3 h-px bg-slate-100 sm:mt-6'><span className={`block h-px bg-sky-500 ${index % 2 === 0 ? 'w-1/3' : 'w-1/2'}`} /></div></article>)}
           </div>
         </div>
-      </section>
+      </section>}
 
       <section id='program' className='border-y border-sky-100/70 bg-[#f7faff] py-8 sm:py-20'>
         <div className='mx-auto grid max-w-7xl gap-5 px-5 sm:gap-8 sm:px-8 lg:grid-cols-[.75fr_1.65fr] lg:items-center lg:gap-12 lg:px-10'>

@@ -9,7 +9,7 @@ public class CmsControllerFeatureProvider : IApplicationFeatureProvider<Controll
 {
     public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
     {
-        string[] allowed = ["AuthController", "UsersController", "ContentController", "SchoolPublicController", "SpmbController", "WebsiteSettingsController", "SchoolIdentityController", "HomepageImagesController", "SpmbInformationController", "LmpController"];
+        string[] allowed = ["AuthController", "UsersController", "ContentController", "SchoolPublicController", "SpmbController", "WebsiteSettingsController", "SchoolIdentityController", "SchoolHighlightsController", "HomepageImagesController", "SpmbInformationController", "LmpController"];
         foreach (var controller in feature.Controllers.Where(x => !allowed.Contains(x.Name)).ToArray())
             feature.Controllers.Remove(controller);
     }

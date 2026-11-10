@@ -110,6 +110,22 @@ public class CendekiaDbContext : DbContext
             entity.Property(x => x.Version).IsConcurrencyToken();
         });
 
+        modelBuilder.Entity<SchoolHighlights>(entity => {
+            entity.ToTable("school_highlights"); entity.HasKey(x => x.Id);
+            entity.HasMany(x => x.Cards).WithOne().HasForeignKey(x => x.HighlightsId).OnDelete(DeleteBehavior.Cascade);
+            entity.Navigation(x => x.Cards).AutoInclude();
+            entity.Property(x => x.Version).IsConcurrencyToken();
+        });
+        modelBuilder.Entity<SchoolHighlightRecord>(entity => {
+            entity.ToTable("school_highlight_cards"); entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.HighlightsId, x.Position }).IsUnique().HasDatabaseName("uq_school_highlight_position");
+        });
+
+        modelBuilder.Entity<HomepageImageFile>(entity => {
+            entity.ToTable("homepage_image_files"); entity.HasKey(x => new { x.HomepageImagesId, x.Slot });
+            entity.HasOne<HomepageImages>().WithMany().HasForeignKey(x => x.HomepageImagesId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<HomepageImages>(entity =>
         {
             entity.ToTable("homepage_images");

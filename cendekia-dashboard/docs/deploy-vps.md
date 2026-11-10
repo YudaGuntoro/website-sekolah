@@ -95,3 +95,9 @@ Formulir SPMB lengkap: backup, jalankan `database/migrations/20261109_spmb_appli
 NISN LMP: backup dan hentikan API sebelum menjalankan `database/migrations/20261110_lmp_nisn.sql`, lalu deploy backend, portal, dan web utama bersama. Pendaftaran baru dan cek status wajib NISN 10 digit + nama lengkap. Nilai pendaftaran lama tetap NULL; staf dapat melengkapi NISN melalui detail portal. Jangan mengisi nomor fiktif atau mengubah data lama secara massal.
 
 Detail ekstrakurikuler: jalankan `database/migrations/20261110_extracurricular_coach.sql` sebelum backend baru. Editor portal menyediakan pelatih/pembina dan isi kegiatan/latihan; kartu publik memakai foto dan menautkan halaman detail. Foto tetap memakai migrasi/storage BLOB yang sudah ada. Kedua migrasi di atas idempotent dan disertakan runner NormalizeOnly lokal; penerapan lokal tidak berarti migrasi server sudah dijalankan.
+
+
+Statistik beranda: backup lalu jalankan `database/migrations/20261110_school_highlights.sql` sebelum backend terbaru. Deploy ulang portal dan web utama bersama; pengaturan berada di Pengaturan Website > Statistik Beranda. Enam nilai sebelumnya menjadi data awal dan harus diperiksa sekolah. Migrasi idempotent mempertahankan edit, urutan dan penghapusan; tidak menyimpan konfigurasi JSON.
+
+
+Upload gambar beranda: backup dan terapkan `database/migrations/20261110_homepage_image_files.sql` sebelum backend baru; deploy portal dan web utama bersama. Batas 1 MiB per foto, hingga tiga foto sekaligus (request 3.3 MB); konfigurasi Nginx 4400k yang sudah digunakan mencukupi. Kompresi memakai optimizer/SkiaSharp yang sudah ada, PNG transparan mempertahankan alpha. URL lama tetap didukung. Reset/ganti foto membersihkan BLOB slot lama, tanpa mengubah gambar konten CMS lainnya.

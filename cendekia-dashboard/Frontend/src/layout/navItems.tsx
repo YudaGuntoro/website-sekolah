@@ -19,6 +19,6 @@ export const navItems: NavItem[] = [
     { name: "Informasi & Pengaturan", path: "/lmp/informasi" },
     { name: "Pendaftar LMP", path: "/lmp/pendaftar" },
   ] },
-  { icon: <SettingsIcon />, name: "Pengaturan Website", subItems: [{ name: "Kontak & Media Sosial", path: "/settings/contact" }, { name: "Gambar Beranda", path: "/settings/images" }] },
+  { icon: <SettingsIcon />, name: "Pengaturan Website", subItems: [{ name: "Kontak & Media Sosial", path: "/settings/contact" }, { name: "Gambar Beranda", path: "/settings/images" }, { name: "Statistik Beranda", path: "/settings/highlights" }] },
   { icon: <GroupIcon />, name: "Pengguna", path: "/users" },
 ];
