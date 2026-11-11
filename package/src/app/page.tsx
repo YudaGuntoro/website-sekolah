@@ -422,7 +422,7 @@ export default async function Home() {
             </div>
           </div>
           <div className='relative mx-auto mt-8 hidden w-full max-w-[420px] items-center justify-center sm:flex lg:mt-0'>
-            <Image src='/images/school/siswa-ppdb-formulir.png' alt={`Dua murid membawa formulir SPMB SMPIT Cendekia ${spmbAcademicYear}`} width={1024} height={1536} className='h-[360px] w-auto max-w-full rounded-xl object-contain drop-shadow-[0_18px_28px_rgba(16,45,78,.16)] sm:h-[420px]' />
+            <HomepageImage imageUrl={homepageImages.spmbUrl || ''} defaultSrc='/images/school/siswa-ppdb-formulir.png' alt={`Dua murid membawa formulir SPMB SMPIT Cendekia ${spmbAcademicYear}`} width={1024} height={1536} className='h-[360px] w-auto max-w-full rounded-xl object-contain drop-shadow-[0_18px_28px_rgba(16,45,78,.16)] sm:h-[420px]' />
           </div>
         </div>
       </section>

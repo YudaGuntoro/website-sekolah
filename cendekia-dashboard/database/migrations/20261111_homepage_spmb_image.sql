@@ -1,0 +1,14 @@
+USE cendekia_cms;
+CREATE TEMPORARY TABLE homepage_spmb_image_guard (Acquired INT NOT NULL CHECK(Acquired=1));
+INSERT INTO homepage_spmb_image_guard VALUES(GET_LOCK('cendekia_school_schema_migration',30));
+SET @homepage_spmb_ddl=IF(EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='cendekia_cms' AND TABLE_NAME='homepage_images' AND COLUMN_NAME='SpmbUrl'),'SELECT 1','ALTER TABLE homepage_images ADD COLUMN SpmbUrl VARCHAR(1000) NOT NULL DEFAULT ''''');
+PREPARE homepage_spmb_statement FROM @homepage_spmb_ddl;
+EXECUTE homepage_spmb_statement;
+DEALLOCATE PREPARE homepage_spmb_statement;
+SET @homepage_spmb_ddl=IF(EXISTS(SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='cendekia_cms' AND TABLE_NAME='homepage_image_files' AND CONSTRAINT_NAME='ck_homepage_image_slot'),'ALTER TABLE homepage_image_files DROP CHECK ck_homepage_image_slot, ADD CONSTRAINT ck_homepage_image_slot CHECK(Slot IN(''hero'',''direction'',''program'',''spmb''))','ALTER TABLE homepage_image_files ADD CONSTRAINT ck_homepage_image_slot CHECK(Slot IN(''hero'',''direction'',''program'',''spmb''))');
+PREPARE homepage_spmb_statement FROM @homepage_spmb_ddl;
+EXECUTE homepage_spmb_statement;
+DEALLOCATE PREPARE homepage_spmb_statement;
+INSERT IGNORE INTO schema_migrations(Version,AppliedAt) VALUES('20261111_homepage_spmb_image',UTC_TIMESTAMP(6));
+DO RELEASE_LOCK('cendekia_school_schema_migration');
+DROP TEMPORARY TABLE homepage_spmb_image_guard;

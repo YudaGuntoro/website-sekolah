@@ -8,6 +8,7 @@ public class HomepageImages
     [MaxLength(1000)] public string HeroUrl { get; set; } = "";
     [MaxLength(1000)] public string DirectionUrl { get; set; } = "";
     [MaxLength(1000)] public string ProgramUrl { get; set; } = "";
+    [MaxLength(1000)] public string SpmbUrl { get; set; } = "";
     public int Version { get; set; } = 1;
 }
 
@@ -16,6 +17,7 @@ public class HomepageImagesRequest
     [MaxLength(1000), DisplayFormat(ConvertEmptyStringToNull = false)] public string HeroUrl { get; set; } = "";
     [MaxLength(1000), DisplayFormat(ConvertEmptyStringToNull = false)] public string DirectionUrl { get; set; } = "";
     [MaxLength(1000), DisplayFormat(ConvertEmptyStringToNull = false)] public string ProgramUrl { get; set; } = "";
+    [MaxLength(1000), DisplayFormat(ConvertEmptyStringToNull = false)] public string? SpmbUrl { get; set; }
     [Range(1, int.MaxValue)] public int Version { get; set; }
 }
 

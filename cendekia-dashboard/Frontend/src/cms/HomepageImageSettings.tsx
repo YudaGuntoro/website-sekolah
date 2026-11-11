@@ -6,19 +6,20 @@ import { getStoredUser } from "@/lib/auth";
 import { useToast } from "@/context/ToastContext";
 import { websiteUrl } from "./collections";
 
-type Slot = "hero" | "direction" | "program";
-type UrlKey = "heroUrl" | "directionUrl" | "programUrl";
+type Slot = "hero" | "direction" | "program" | "spmb";
+type UrlKey = "heroUrl" | "directionUrl" | "programUrl" | "spmbUrl";
 type PhotoInfo = { slot: Slot; originalBytes: number; storedBytes: number };
-type Images = { heroUrl: string; directionUrl: string; programUrl: string; version: number; photos: PhotoInfo[] };
+type Images = { heroUrl: string; directionUrl: string; programUrl: string; spmbUrl: string; version: number; photos: PhotoInfo[] };
 const maxBytes = 1024 * 1024;
 const slots: { slot: Slot; key: UrlKey; title: string; description: string; dimensions: string; fallback: string }[] = [
   { slot: "hero", key: "heroUrl", title: "Banner Utama", description: "Gambar di bagian paling atas beranda.", dimensions: "1536 x 1024", fallback: "/images/school/siswa-ceria.png" },
   { slot: "direction", key: "directionUrl", title: "Arah Pendidikan", description: "Gambar di samping visi, misi, dan motto.", dimensions: "1122 x 1402", fallback: "/images/school/arah-pendidikan.png" },
   { slot: "program", key: "programUrl", title: "Program Unggulan", description: "Gambar di samping daftar program unggulan.", dimensions: "1312 x 1199", fallback: "/images/school/bimbingan-karier.png" },
+  { slot: "spmb", key: "spmbUrl", title: "Penerimaan Murid (SPMB)", description: "Gambar pada ajakan pendaftaran SPMB di bagian bawah beranda.", dimensions: "1024 x 1536", fallback: "/images/school/siswa-ppdb-formulir.png" },
 ];
 function previewSource(value: string, fallback: string) {
   const url = value.trim();
-  if (/^\/api\/school\/homepage-images\/(hero|direction|program)\?v=\d+$/.test(url)) return url;
+  if (/^\/api\/school\/homepage-images\/(hero|direction|program|spmb)\?v=\d+$/.test(url)) return url;
   if (url.startsWith("/images/")) return `${websiteUrl}${url}`;
   return url.startsWith("https://") ? url : `${websiteUrl}${fallback}`;
 }
@@ -66,7 +67,7 @@ export default function HomepageImageSettings() {
     event.preventDefault(); if (!form || saving || !canEdit) return;
     setSaving(true); setError("");
     try {
-      const payload = { heroUrl: form.heroUrl, directionUrl: form.directionUrl, programUrl: form.programUrl, version: form.version };
+      const payload = { heroUrl: form.heroUrl, directionUrl: form.directionUrl, programUrl: form.programUrl, spmbUrl: form.spmbUrl, version: form.version };
       let saved: Images;
       if (Object.keys(photos).length) {
         const body = new FormData();

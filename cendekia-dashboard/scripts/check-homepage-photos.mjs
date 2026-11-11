@@ -16,7 +16,7 @@ async function api(path, method = 'GET', body, expected = 200, access = token) {
 }
 const sql = query => { const r = mysql(query); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
 async function save(changes = {}, photos, expected = 200) {
-  const values = { heroUrl: current.heroUrl, directionUrl: current.directionUrl, programUrl: current.programUrl, version: current.version, ...changes };
+  const values = { heroUrl: current.heroUrl, directionUrl: current.directionUrl, programUrl: current.programUrl, spmbUrl: current.spmbUrl, version: current.version, ...changes };
   let body = values;
   if (photos) {
     body = new FormData(); for (const [key, value] of Object.entries(values)) body.set(key, String(value));
@@ -42,25 +42,34 @@ try {
     { name: 'not-photo.svg', bytes: Buffer.from('<svg></svg>') },
   ]) await save({}, { hero: file }, 400);
   assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '0');
-  await save({}, { hero: { name: 'one-mib.jpg', bytes: boundaryJpeg }, direction: { name: 'transparent.png', bytes: png }, program: { name: 'program.jpg', bytes: jpeg } });
-  assert.equal(current.photos.length, 3);
+  await save({}, { hero: { name: 'one-mib.jpg', bytes: boundaryJpeg }, direction: { name: 'transparent.png', bytes: png }, program: { name: 'program.jpg', bytes: jpeg }, spmb: { name: 'spmb.png', bytes: png } });
+  assert.equal(current.photos.length, 4);
+  assert.match(current.spmbUrl, /^\/api\/school\/homepage-images\/spmb\?v=\d+$/);
+  await photo('spmb');
+  await photo('spmb', 200, base);
   assert.match(current.heroUrl, /^\/api\/school\/homepage-images\/hero\?v=\d+$/);
   const hero = current.photos.find(p => p.slot === 'hero'); assert.equal(hero.originalBytes, max); assert.ok(hero.storedBytes < max * .7);
   const firstHero = Buffer.from(await (await photo('hero')).arrayBuffer()); assert.equal(firstHero.length, hero.storedBytes);
-  assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '3');
+  assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '4');
   assert.equal(JSON.stringify(current).includes('content'), false); assert.ok(JSON.stringify(current).length < 2000);
   const publicSettings = await api('/school/homepage-images', 'GET', undefined, 200, '');
   assert.deepEqual(Object.keys(publicSettings).sort(), ['heroUrl', 'directionUrl', 'programUrl'].sort());
   const stored = sql('SELECT Slot,SHA2(Content,256),OriginalLength FROM homepage_image_files ORDER BY Slot');
   const migration = mysql(readFileSync('database/migrations/20261110_homepage_image_files.sql', 'utf8')); assert.equal(migration.status, 0, migration.stderr);
+  for (let repeat = 0; repeat < 2; repeat++) {
+    const migration = mysql(readFileSync('database/migrations/20261111_homepage_spmb_image.sql', 'utf8')); assert.equal(migration.status, 0, migration.stderr);
+  }
   assert.equal(sql('SELECT Slot,SHA2(Content,256),OriginalLength FROM homepage_image_files ORDER BY Slot'), stored);
   await save(); // Preserve every uploaded slot on ordinary JSON saves.
+  const { spmbUrl, ...legacy } = current;
+  current = await api('/cms/homepage-images', 'PUT', legacy);
+  assert.match(current.spmbUrl, /\/spmb\?v=\d+$/);
   assert.equal(sql('SELECT Slot,SHA2(Content,256),OriginalLength FROM homepage_image_files ORDER BY Slot'), stored);
   const stale = current.version - 1;
   await save({ version: stale }, { hero: { name: 'stale.png', bytes: png } }, 409);
   assert.equal(sql('SELECT Slot,SHA2(Content,256),OriginalLength FROM homepage_image_files ORDER BY Slot'), stored);
   await save({}, { hero: { name: 'replacement.png', bytes: png } });
-  assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '3', 'Replacements overwrite the existing slot, never accumulate BLOBs');
+  assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '4', 'Replacements overwrite the existing slot, never accumulate BLOBs');
   assert.notDeepEqual(Buffer.from(await (await photo('hero')).arrayBuffer()), firstHero);
 
   const { chromium } = await import('../.verify-cms/node_modules/playwright/index.mjs');
@@ -68,7 +77,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage(); page.setDefaultNavigationTimeout(60000);
   await page.goto(web + '/', { waitUntil: 'domcontentloaded' });
-  for (const [section, slot] of [['beranda', 'hero'], ['tentang', 'direction'], ['program', 'program']]) {
+  for (const [section, slot] of [['beranda', 'hero'], ['tentang', 'direction'], ['program', 'program'], ['ppdb', 'spmb']]) {
     const image = page.locator('#' + section + ' img').first(); assert.match(await image.getAttribute('src'), new RegExp('/api/school/homepage-images/' + slot));
     await image.scrollIntoViewIfNeeded();
     await image.evaluate(img => { img.loading = 'eager'; return img.decode(); });
@@ -91,11 +100,11 @@ try {
   await page.getByRole('region', { name: 'Banner Utama', exact: true }).getByRole('button', { name: 'Gunakan gambar bawaan', exact: true }).click();
   const saved = page.waitForResponse(response => response.url().endsWith('/api/cms/homepage-images') && response.request().method() === 'PUT');
   await page.getByRole('button', { name: 'Simpan gambar', exact: true }).click(); assert.equal((await saved).status(), 200);
-  await photo('hero', 404); assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '2');
+  await photo('hero', 404); assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '3');
   current = await api('/cms/homepage-images');
-  await save({ directionUrl: '/images/school/arah-pendidikan.png', programUrl: '' });
+  await save({ directionUrl: '/images/school/arah-pendidikan.png', programUrl: '', spmbUrl: '' });
   assert.equal(sql('SELECT COUNT(*) FROM homepage_image_files'), '0', 'Reset or URL replacement removes stored bytes');
-  console.log(`PASS homepage photos: 1 MiB -> ${hero.storedBytes} bytes, three-slot upload, validation/limits, JSON preservation, replacement cleanup, migration preservation, stale upload rollback, public proxy/alpha, real portal upload/reset, live website and mobile.`);
+  console.log(`PASS homepage photos: 1 MiB -> ${hero.storedBytes} bytes, four-slot upload, validation/limits, JSON preservation, replacement cleanup, migration preservation, stale upload rollback, public proxy/alpha, real portal upload/reset, live website and mobile.`);
 } finally {
   if (browser) await browser.close();
   if (original && token) { current = await api('/cms/homepage-images'); await save({ ...original, version: current.version }); }

@@ -7,13 +7,14 @@ public class HomepageImagesService(IEntityRepository<HomepageImages> repository,
     IApplicationUnitOfWork unitOfWork, IRegistrationFileOptimizer optimizer) : ApplicationService
 {
     public const int MaxPhotoBytes = 1024 * 1024;
-    private static readonly string[] Slots = ["hero", "direction", "program"];
+    private static readonly string[] Slots = ["hero", "direction", "program", "spmb"];
     private static string PhotoUrl(string slot, int version) => $"/api/school/homepage-images/{slot}?v={version}";
     private async Task<List<string>> UploadedSlots() => await files.SelectAsync(x => x.Slot, x => x.HomepageImagesId == 1);
     private static object PublicView(HomepageImages row, List<string> uploaded) => new {
         heroUrl = uploaded.Contains("hero") ? PhotoUrl("hero", row.Version) : row.HeroUrl,
         directionUrl = uploaded.Contains("direction") ? PhotoUrl("direction", row.Version) : row.DirectionUrl,
         programUrl = uploaded.Contains("program") ? PhotoUrl("program", row.Version) : row.ProgramUrl,
+        spmbUrl = uploaded.Contains("spmb") ? PhotoUrl("spmb", row.Version) : row.SpmbUrl,
     };
     private async Task<object> View(HomepageImages row)
     {
@@ -23,6 +24,7 @@ public class HomepageImagesService(IEntityRepository<HomepageImages> repository,
             heroUrl = uploaded.Contains("hero") ? PhotoUrl("hero", row.Version) : row.HeroUrl,
             directionUrl = uploaded.Contains("direction") ? PhotoUrl("direction", row.Version) : row.DirectionUrl,
             programUrl = uploaded.Contains("program") ? PhotoUrl("program", row.Version) : row.ProgramUrl,
+            spmbUrl = uploaded.Contains("spmb") ? PhotoUrl("spmb", row.Version) : row.SpmbUrl,
             row.Version, photos
         };
     }
@@ -49,6 +51,7 @@ public class HomepageImagesService(IEntityRepository<HomepageImages> repository,
         if (row.Version != request.Version) return Conflict("Gambar telah diubah. Muat ulang pengaturan sebelum menyimpan.");
         var uploaded = await UploadedSlots();
         var urls = new Dictionary<string, string> { ["hero"] = request.HeroUrl?.Trim() ?? "", ["direction"] = request.DirectionUrl?.Trim() ?? "", ["program"] = request.ProgramUrl?.Trim() ?? "" };
+        urls["spmb"] = request.SpmbUrl?.Trim() ?? (uploaded.Contains("spmb") ? PhotoUrl("spmb", row.Version) : row.SpmbUrl);
         var optimized = new Dictionary<string, ContentImageFile>();
         if (photos is not null) foreach (var (slot, photo) in photos) {
             if (!Slots.Contains(slot)) return ApiBadRequest("Posisi gambar tidak valid.");
@@ -78,7 +81,7 @@ public class HomepageImagesService(IEntityRepository<HomepageImages> repository,
                 else files.Remove(new HomepageImageFile { Slot = slot });
             }
         }
-        row.HeroUrl = urls["hero"]; row.DirectionUrl = urls["direction"]; row.ProgramUrl = urls["program"]; row.Version++;
+        row.HeroUrl = urls["hero"]; row.DirectionUrl = urls["direction"]; row.ProgramUrl = urls["program"]; row.SpmbUrl = urls["spmb"]; row.Version++;
         try { await unitOfWork.SaveChangesAsync(cancellationToken); }
         catch (StorageConcurrencyException) { return Conflict("Gambar telah diubah. Muat ulang sebelum menyimpan."); }
         catch (DuplicateRecordException) { return Conflict("Gambar telah diubah. Muat ulang sebelum menyimpan."); }

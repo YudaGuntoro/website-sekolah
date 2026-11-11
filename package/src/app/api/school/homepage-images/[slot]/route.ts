@@ -4,7 +4,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slo
   const { slot } = await params
   const api = process.env.SCHOOL_API_URL
   const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }
-  if (!api || !['hero', 'direction', 'program'].includes(slot)) return new Response(null, { status: 404, headers })
+  if (!api || !['hero', 'direction', 'program', 'spmb'].includes(slot)) return new Response(null, { status: 404, headers })
   try {
     const response = await fetch(`${api.replace(/\/$/, '')}/api/school/homepage-images/${slot}`, { headers: schoolApiHeaders(), cache: 'no-store', signal: AbortSignal.timeout(10000) })
     const type = response.headers.get('content-type') || ''
