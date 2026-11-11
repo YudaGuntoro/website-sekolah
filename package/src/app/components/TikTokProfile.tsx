@@ -27,7 +27,7 @@ export default function TikTokProfile() {
     if (!('IntersectionObserver' in window)) { setActive(true); return }
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { setActive(true); observer.disconnect() }
-    }, { rootMargin: '300px' })
+    }, { rootMargin: '1000px' })
     observer.observe(element)
     return () => observer.disconnect()
   }, [])
@@ -94,6 +94,6 @@ export default function TikTokProfile() {
         </div>
       </div>
     </div>
-    {active && <Script id='tiktok-profile-embed' src='https://www.tiktok.com/embed.js' strategy='lazyOnload' onReady={processProfile} onError={() => setStatus('unavailable')} />}
+    {active && <Script id='tiktok-profile-embed' src='https://www.tiktok.com/embed.js' strategy='afterInteractive' onReady={processProfile} onError={() => setStatus('unavailable')} />}
   </section>
 }
