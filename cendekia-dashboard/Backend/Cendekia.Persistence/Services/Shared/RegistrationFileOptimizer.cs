@@ -23,12 +23,12 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         finally { gate.Release(); }
     }
 
-    public async Task<ContentImageFile?> OptimizeContentImageAsync(string contentType, byte[] content, CancellationToken cancellationToken = default)
+    public async Task<ContentImageFile?> OptimizeContentImageAsync(string contentType, byte[] content, CancellationToken cancellationToken = default, bool trimTransparentPadding = false)
     {
         if (contentType is not ("image/jpeg" or "image/png")) return null;
         await gate.WaitAsync(cancellationToken);
         try {
-            var image = OptimizeImage(new PaymentProofFile(contentType, content), preserveTransparency: true);
+            var image = OptimizeImage(new PaymentProofFile(contentType, content), preserveTransparency: true, trimTransparentPadding: trimTransparentPadding);
             return image is null ? null : new ContentImageFile(image.ContentType, image.Content);
         }
         finally { gate.Release(); }
@@ -50,7 +50,7 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
         finally { gate.Release(); }
     }
 
-    private static PaymentProofFile? OptimizeImage(PaymentProofFile file, bool preserveTransparency = false)
+    private static PaymentProofFile? OptimizeImage(PaymentProofFile file, bool preserveTransparency = false, bool trimTransparentPadding = false)
     {
         using var data = SKData.CreateCopy(file.Content);
         using var codec = SKCodec.Create(data);
@@ -79,14 +79,38 @@ public sealed class RegistrationFileOptimizer : IRegistrationFileOptimizer, IDis
             canvas.DrawImage(image, new SKRect(0, 0, source.Width, source.Height), new SKSamplingOptions(SKFilterMode.Linear));
         }
         using var output = SKImage.FromBitmap(bitmap);
-        var best = file;
+        var bounds = transparent && trimTransparentPadding ? ContentBounds(bitmap) : SKRectI.Create(width, height);
+        using var cropped = bounds.Width != width || bounds.Height != height ? output.Subset(bounds) : null;
+        var imageToEncode = cropped ?? output;
+        PaymentProofFile? best = cropped is null ? file : null;
         foreach (var quality in new[] { 82, 78 })
         {
-            using var encoded = output.Encode(transparent ? SKEncodedImageFormat.Webp : SKEncodedImageFormat.Jpeg, quality);
-            if (encoded is not null && encoded.Size < best.Content.Length) best = new PaymentProofFile(transparent ? "image/webp" : "image/jpeg", encoded.ToArray());
-            if (best.Content.Length <= TargetBytes) break;
+            using var encoded = imageToEncode.Encode(transparent ? SKEncodedImageFormat.Webp : SKEncodedImageFormat.Jpeg, quality);
+            if (encoded is not null && (best is null || encoded.Size < best.Content.Length)) best = new PaymentProofFile(transparent ? "image/webp" : "image/jpeg", encoded.ToArray());
+            if (best is not null && best.Content.Length <= TargetBytes) break;
         }
         return best;
+    }
+
+    private static SKRectI ContentBounds(SKBitmap bitmap)
+    {
+        var left = bitmap.Width;
+        var top = bitmap.Height;
+        var right = -1;
+        var bottom = -1;
+        for (var row = 0; row < bitmap.Height; row++)
+            for (var column = 0; column < bitmap.Width; column++)
+                if (bitmap.GetPixel(column, row).Alpha > 0)
+                {
+                    left = Math.Min(left, column);
+                    top = Math.Min(top, row);
+                    right = Math.Max(right, column);
+                    bottom = Math.Max(bottom, row);
+                }
+        if (right < left) return SKRectI.Create(bitmap.Width, bitmap.Height);
+        var padding = Math.Max(2, (int)Math.Ceiling(Math.Max(right - left + 1, bottom - top + 1) * 0.02));
+        return new SKRectI(Math.Max(0, left - padding), Math.Max(0, top - padding),
+            Math.Min(bitmap.Width, right + padding + 1), Math.Min(bitmap.Height, bottom + padding + 1));
     }
 
     private static void Orient(SKCanvas canvas, SKEncodedOrigin origin, int width, int height)

@@ -58,6 +58,25 @@ using(var transparent=new SKBitmap(new SKImageInfo(256,256,SKColorType.Rgba8888,
  using var decodedPhoto=SKBitmap.Decode(result!.Content);Check(decodedPhoto.GetPixel(0,0).Alpha==0 && Math.Abs(decodedPhoto.GetPixel(128,128).Alpha-128)<=3,"CMS image transparency must survive compression");
 }
 var cmsJpeg=await optimizer.OptimizeContentImageAsync("image/jpeg",original.Content);Check(cmsJpeg is not null && cmsJpeg.ContentType=="image/jpeg" && cmsJpeg.Content.Length<original.Content.Length,"CMS JPEG should compress");
+using(var portrait=new SKBitmap(new SKImageInfo(400,800,SKColorType.Rgba8888,SKAlphaType.Premul))) {
+ using(var canvas=new SKCanvas(portrait)){canvas.Clear(SKColors.Transparent);using var ink=new SKPaint{Color=SKColors.Blue};canvas.DrawRect(100,350,200,400,ink);}
+ var encoded=Encode(portrait,SKEncodedImageFormat.Png,100);
+ var standard=await optimizer.OptimizeContentImageAsync("image/png",encoded);
+ using var unchanged=SKBitmap.Decode(standard!.Content);Check(unchanged.Width==400 && unchanged.Height==800,"Ordinary CMS images must retain their canvas");
+ var result=await optimizer.OptimizeContentImageAsync("image/png",encoded,trimTransparentPadding:true);
+ Check(result is not null,"Homepage portrait must optimize");
+ using var cropped=SKBitmap.Decode(result!.Content);
+ Check(cropped.Width==216 && cropped.Height==416,"Homepage portrait must trim transparent margins with two percent padding");
+ Check(cropped.GetPixel(0,0).Alpha==0 && cropped.GetPixel(8,8).Alpha==255 && cropped.GetPixel(207,407).Alpha==255,"Cropping must preserve the entire subject and transparent padding");
+}
+foreach(var color in new[]{SKColors.Transparent,SKColors.Green}) {
+ using var blank=new SKBitmap(new SKImageInfo(40,80,SKColorType.Rgba8888,SKAlphaType.Premul));
+ using(var canvas=new SKCanvas(blank)){canvas.Clear(color);}
+ var result=await optimizer.OptimizeContentImageAsync("image/png",Encode(blank,SKEncodedImageFormat.Png,100),trimTransparentPadding:true);
+ using var preserved=SKBitmap.Decode(result!.Content);
+ Check(preserved.Width==40 && preserved.Height==80,"Empty transparent and opaque backgrounds must retain valid dimensions");
+}
+Console.WriteLine("PASS: homepage transparent padding trim, full subject preservation, unchanged CMS images and opaque backgrounds.");
 Console.WriteLine("PASS: CMS photo compression and transparent PNG preservation.");
 var repeated="%PDF-1.4\n"u8.ToArray().Concat(Enumerable.Repeat((byte)32,100000)).ToArray();
 var packed=await optimizer.CompressPdfAsync(repeated);Check(packed.Compression=="br" && packed.Content.Length<repeated.Length,"PDF storage should compress repetitive bytes");

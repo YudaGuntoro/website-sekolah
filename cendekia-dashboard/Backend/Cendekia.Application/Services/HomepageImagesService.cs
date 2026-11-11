@@ -57,7 +57,7 @@ public class HomepageImagesService(IEntityRepository<HomepageImages> repository,
             var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
             var mime = ext is ".jpg" or ".jpeg" && bytes[0] == 255 && bytes[1] == 216 && bytes[2] == 255 ? "image/jpeg"
                 : ext == ".png" && bytes.AsSpan(0, 8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}) ? "image/png" : null;
-            var result = mime is null ? null : await optimizer.OptimizeContentImageAsync(mime, bytes, cancellationToken);
+            var result = mime is null ? null : await optimizer.OptimizeContentImageAsync(mime, bytes, cancellationToken, trimTransparentPadding: true);
             if (result is null) return ApiBadRequest("Foto tidak dapat dibaca atau resolusinya terlalu besar. Gunakan JPG/PNG yang valid maksimal 1 MB.");
             optimized[slot] = result;
         }

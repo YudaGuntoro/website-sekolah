@@ -185,9 +185,9 @@ export default async function Home() {
   const visibleFacilities = cmsFacilities === null ? facilities : cmsFacilities.map((e, index) => ({ title: e.title, detail: [e.summary, e.body !== e.summary ? e.body : ''].filter(Boolean).join('\n\n'), icon: facilities[index % facilities.length].icon, tone: facilities[index % facilities.length].tone }))
   return (
     <main>
-      <section id='beranda' className='relative isolate overflow-hidden bg-gradient-to-br from-[#edf6ff] via-white to-[#f0f7ff] py-0 sm:py-14'>
+      <section id='beranda' className='relative isolate overflow-hidden bg-gradient-to-br from-[#edf6ff] via-white to-[#f0f7ff] py-0'>
         <div aria-hidden='true' className='pointer-events-none absolute -right-48 -top-52 -z-10 h-[34rem] w-[34rem] rounded-full bg-sky-200/40 blur-3xl' />
-        <div className='mx-auto grid max-w-7xl items-center gap-8 px-5 pb-8 pt-8 sm:gap-12 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[1fr_1.04fr] lg:gap-8 lg:px-10 lg:pb-24 lg:pt-16'>
+        <div className='mx-auto grid max-w-7xl items-center gap-8 px-5 pb-8 pt-8 sm:gap-12 sm:px-8 sm:py-12 lg:grid-cols-[1fr_1.04fr] lg:gap-8 lg:px-10 lg:py-14'>
           <div className='relative z-10'>
             <h1 className='mt-4 max-w-2xl text-[32px] font-black leading-[1.12] tracking-tight text-school-navy sm:text-5xl lg:text-[3.65rem]'>Unggul dalam <span className='text-school-blue'>Bina Iman, Ilmu</span> dan Amal.</h1>
             <p className='mt-4 max-w-xl text-sm leading-6 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8'>SMPIT Cendekia Purwakarta membina iman, ilmu, dan amal melalui pembelajaran, kegiatan keagamaan, program bilingual, serta pengembangan bakat murid.</p>
@@ -197,7 +197,7 @@ export default async function Home() {
               <a href='/brosur-ppdb.pdf' download className='inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-sky-200 bg-white px-2 py-2.5 text-xs sm:px-4 sm:py-3 sm:text-sm font-bold text-school-blue transition hover:border-sky-400 hover:bg-sky-50'><svg viewBox='0 0 24 24' className='h-4 w-4 fill-none stroke-current' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3'/></svg>Unduh brosur</a>
             </div>
           </div>
-          <div className='relative z-10 mx-auto w-full max-w-[220px] sm:max-w-[600px]'><HomepageImage imageUrl={homepageImages.heroUrl} defaultSrc='/images/school/siswa-ceria.png' alt='Murid SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(16,45,78,.12)]' /></div>
+          <div className='relative z-10 mx-auto w-full max-w-[220px] sm:max-w-[600px]'><HomepageImage imageUrl={homepageImages.heroUrl} defaultSrc='/images/school/siswa-ceria.png' alt='Murid SMPIT Cendekia ceria dan siap menjadi unggulan' width={1536} height={1024} priority className='h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(16,45,78,.12)] sm:max-h-[440px] lg:max-h-[520px]' /></div>
         </div>
       </section>
 
