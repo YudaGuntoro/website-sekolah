@@ -24,9 +24,9 @@ export default async function PengumumanPage() {
           <div className='mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
             {announcements.map((announcement, index) => (
               <article key={announcement.title} className='group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_32px_-26px_rgba(16,45,78,.3)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_-25px_rgba(30,101,168,.22)]'>
-                <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${iconColors[index % iconColors.length]}`}>
+                {announcement.image ? <img src={announcement.image} alt={announcement.title} className='aspect-[1.7] w-full rounded-xl object-cover' loading='lazy' /> : <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${iconColors[index % iconColors.length]}`}>
                   <svg viewBox='0 0 24 24' className='h-8 w-8 fill-none stroke-current' strokeWidth='1.6' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M4 9h5l11-5v16L9 15H4V9ZM9 9v6M6 15l1 6h4l-2-6M1 10v4' /></svg>
-                </span>
+                </span>}
                 <h2 className='mt-6 text-lg font-bold leading-snug text-school-navy'>{announcement.title}</h2>
                 <p className='mt-3 flex items-center gap-2 text-xs font-medium text-school-blue'>
                   <svg viewBox='0 0 24 24' className='h-4 w-4 shrink-0 fill-none stroke-current' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><rect x='3' y='5' width='18' height='16' rx='2' /><path d='M16 3v4M8 3v4M3 11h18' /></svg>

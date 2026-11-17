@@ -3,7 +3,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { useState } from 'react'
 
-type Announcement = { title: string; date: string; text: string }
+type Announcement = { title: string; date: string; text: string; image: string }
 
 export default function AnnouncementDialog({ announcement }: { announcement: Announcement }) {
   const [open, setOpen] = useState(false)
@@ -30,7 +30,8 @@ export default function AnnouncementDialog({ announcement }: { announcement: Ann
                 <svg viewBox='0 0 24 24' className='h-4 w-4 shrink-0 fill-none stroke-current' strokeWidth='1.7' strokeLinecap='round' aria-hidden='true'><rect x='3' y='5' width='18' height='16' rx='2' /><path d='M8 3v4M16 3v4M3 11h18' /></svg>
                 {announcement.date}
               </p>
-              <p className='mt-5 border-t border-sky-100 pt-5 text-sm leading-7 text-slate-600 sm:text-base'>{announcement.text}</p>
+              {announcement.image && <img src={announcement.image} alt={announcement.title} className='mt-5 max-h-[60vh] w-full rounded-xl object-contain' />}
+              <p className='mt-5 whitespace-pre-line border-t border-sky-100 pt-5 text-sm leading-7 text-slate-600 sm:text-base'>{announcement.text}</p>
               <div className='mt-7 flex justify-end'>
                 <button type='button' onClick={() => setOpen(false)} className='rounded-full bg-school-blue px-6 py-2.5 text-sm font-bold text-white transition hover:bg-school-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-school-blue'>Tutup</button>
               </div>

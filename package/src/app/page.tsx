@@ -104,20 +104,6 @@ function AchievementPlaceholder({ index }: { index: number }) {
   )
 }
 
-function PdfPlaceholder() {
-  return (
-    <div className='hidden aspect-[1.7] items-center justify-center rounded-lg bg-sky-50 sm:flex'>
-      <svg viewBox='0 0 64 76' aria-hidden='true' className='h-16 w-14'>
-        <path d='M12 2h27l19 19v49a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4Z' fill='#bfdbfe'/>
-        <path d='M39 2v16a3 3 0 0 0 3 3h16' fill='#93c5fd'/>
-        <rect x='5' y='19' width='33' height='17' rx='3' fill='#1e65a8'/>
-        <text x='21.5' y='31.5' fill='white' fontSize='12' fontWeight='700' textAnchor='middle'>PDF</text>
-        <path d='M20 46h29M20 55h29M20 64h20' stroke='white' strokeLinecap='round' strokeWidth='4'/>
-      </svg>
-    </div>
-  )
-}
-
 function NewsVisual({ kind }: { kind: string }) {
   const styles: Record<string, { bg: string; accent: string; label: string; icon: string }> = {
     literasi: { bg: 'from-sky-100 via-blue-50 to-indigo-100', accent: 'text-blue-700', label: 'READ · THINK · CREATE', icon: '▤' },
@@ -337,7 +323,7 @@ export default async function Home() {
           <div className='mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4'>
             {announcements.map((announcement) => (
               <article key={announcement.title} className='flex flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,.25)] sm:p-5'>
-                <PdfPlaceholder />
+                {announcement.image && <img src={announcement.image} alt={announcement.title} className='mb-4 aspect-[1.7] w-full rounded-lg object-cover sm:mb-0' loading='lazy' />}
                 <p className='mt-5 hidden items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-school-blue sm:flex'><span className='flex h-5 w-5 items-center justify-center rounded-full bg-sky-50 text-xs'>ⓘ</span>Detail Pengumuman</p>
                 <h3 className='text-[15px] font-bold leading-snug text-slate-900 sm:mt-3 sm:min-h-[3.25rem] sm:text-base'>{announcement.title}</h3>
                 <div className='mt-3 flex items-center justify-between gap-3 sm:mt-2 sm:flex-1 sm:flex-col sm:items-stretch'>
