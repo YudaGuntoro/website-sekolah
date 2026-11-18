@@ -54,3 +54,11 @@ public class SpmbInformationRequest
     [Required] public SpmbInformationConfig Config { get; set; } = new();
     [Range(1, int.MaxValue)] public int Version { get; set; }
 }
+
+public class SpmbBrochureFile
+{
+    public int InformationId { get; set; } = 1;
+    public byte[] Content { get; set; } = [];
+    public string Compression { get; set; } = "raw";
+    public int OriginalLength { get; set; }
+}

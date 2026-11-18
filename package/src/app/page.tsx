@@ -8,7 +8,7 @@ import PrincipalGreeting from './components/PrincipalGreeting'
 import ProgramIcon from './components/ProgramIcon'
 import HomepageImage from './components/HomepageImage'
 import { getHomepageImages } from './homepage-images'
-import { getSpmbAcademicYear } from './spmb/information'
+import { getSpmbInformation } from './spmb/information'
 import { getSchoolIdentity } from './school-identity'
 import { getSchoolHighlights } from './school-highlights'
 import { getContactSettings, whatsappUrl } from './contact-settings'
@@ -153,7 +153,7 @@ function MissionList({ missions }: { missions: string[] }) {
 }
 
 export default async function Home() {
-  const spmbAcademicYear = await getSpmbAcademicYear()
+  const { academicYear: spmbAcademicYear, config: spmbInformation } = await getSpmbInformation()
   const highlights = await getSchoolHighlights()
   const schoolHighlights = highlights.cards
   const homepageImages = await getHomepageImages()
@@ -184,7 +184,7 @@ export default async function Home() {
                   <span className='text-[11px] font-medium leading-4 text-white'>(Lomba Mata Pelajaran)</span>
                 </Link>
                 <a href='#tentang' className='inline-flex min-h-14 items-center justify-center rounded-xl border border-sky-200 bg-white px-2 py-2 text-center text-xs font-bold text-school-navy transition-colors hover:border-sky-400 hover:bg-sky-50 sm:text-sm'>Kenali sekolah kami</a>
-                <a href='/brosur-ppdb.pdf' download className='inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-white px-2 py-2 text-xs font-bold text-school-blue transition-colors hover:border-sky-400 hover:bg-sky-50 sm:text-sm'><svg viewBox='0 0 24 24' className='h-4 w-4 shrink-0 fill-none stroke-current' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3'/></svg>Unduh brosur</a>
+                {spmbInformation.brochureUrl && <a href={spmbInformation.brochureUrl} download className='inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-white px-2 py-2 text-xs font-bold text-school-blue transition-colors hover:border-sky-400 hover:bg-sky-50 sm:text-sm'><svg viewBox='0 0 24 24' className='h-4 w-4 shrink-0 fill-none stroke-current' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><path d='M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3'/></svg>Unduh brosur</a>}
               </div>
             </div>
           </div>

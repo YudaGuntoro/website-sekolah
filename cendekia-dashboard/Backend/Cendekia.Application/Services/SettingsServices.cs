@@ -53,8 +53,42 @@ internal static class OrderedChildren
         for (var i = 0; i < input.Count; i++) { if (i >= rows.Count) rows.Add(create()); apply(rows[i], input[i], i + 1); }
     }
 }
-public class SpmbInformationService(IEntityRepository<SpmbInformation> repository, IApplicationUnitOfWork unitOfWork) : ApplicationService
+public class SpmbInformationService(IEntityRepository<SpmbInformation> repository, IEntityRepository<SpmbBrochureFile> files, IApplicationUnitOfWork unitOfWork, IRegistrationFileOptimizer optimizer) : ApplicationService
 {
+    public async Task<ServiceResult> UploadBrochure(string filename, byte[] bytes, int version, CancellationToken cancellationToken)
+    {
+        if (bytes.Length < 8 || bytes.Length > 1024 * 1024 || !filename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || !bytes.AsSpan(0, 5).SequenceEqual("%PDF-"u8))
+            return ApiBadRequest("Brosur harus berupa PDF yang valid dan maksimal 1 MB.");
+        var packed = await optimizer.CompressPdfAsync(bytes, cancellationToken);
+        await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken);
+        var row = await repository.FirstAsync(x => x.Id == 1, tracking: true, cancellationToken: cancellationToken);
+        if (row is null) return ApiNotFound();
+        if (row.Version != version) return Conflict("Informasi SPMB telah berubah. Muat ulang sebelum mengunggah.");
+        var file = await files.FirstAsync(x => x.InformationId == 1, tracking: true, cancellationToken: cancellationToken);
+        if (file is null) { file = new SpmbBrochureFile(); files.Add(file); }
+        file.Content = packed.Content; file.Compression = packed.Compression; file.OriginalLength = packed.OriginalLength;
+        row.Config.BrochureUrl = "/api/school/spmb-brochure"; row.Version++;
+        try { await unitOfWork.SaveChangesAsync(cancellationToken); }
+        catch (StorageConcurrencyException) { return Conflict("Informasi SPMB telah berubah. Muat ulang sebelum mengunggah."); }
+        catch (DuplicateRecordException) { return Conflict("Informasi SPMB telah berubah. Muat ulang sebelum mengunggah."); }
+        await transaction.CommitAsync(cancellationToken);
+        return ApiOk(new { config = Read(row), row.Version }, "Brosur berhasil diperbarui.");
+    }
+    public async Task<ServiceResult> Brochure()
+    {
+        var file = await files.FirstAsync(x => x.InformationId == 1);
+        if (file is null) return ApiNotFound();
+        if (file.OriginalLength is < 1 or > 1048576) throw new InvalidDataException("Invalid PDF length.");
+        byte[] bytes;
+        if (file.Compression == "raw") { bytes = file.Content; if (bytes.Length != file.OriginalLength) throw new InvalidDataException("Invalid PDF length."); }
+        else if (file.Compression == "br") {
+            using var input = new MemoryStream(file.Content);
+            using var stream = new System.IO.Compression.BrotliStream(input, System.IO.Compression.CompressionMode.Decompress);
+            bytes = new byte[file.OriginalLength]; await stream.ReadExactlyAsync(bytes);
+            if (stream.ReadByte() != -1) throw new InvalidDataException("Invalid PDF length.");
+        } else throw new InvalidDataException("Invalid PDF compression.");
+        return ApiOk(new ContentImageFile("application/pdf", bytes));
+    }
     private static SpmbInformationConfig Read(SpmbInformation value) {
         var c = value.Config;
         c.Steps = value.StepRecords.OrderBy(x => x.Position).Select(x => new SpmbInformationStep { Title = x.Title, Description = x.Description, Icon = x.Icon, ShowPayment = x.ShowPayment }).ToList();

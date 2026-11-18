@@ -2,7 +2,7 @@
 import { FormSkeleton } from "@/components/common/LoadingSkeleton";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { apiGet, apiPut } from "@/lib/api";
+import { apiGet, apiPut, apiRequest } from "@/lib/api";
 import { getStoredUser } from "@/lib/auth";
 import { useToast } from "@/context/ToastContext";
 import { ArrowUpIcon, ArrowDownIcon, TrashBinIcon } from "@/icons";
@@ -23,6 +23,7 @@ export default function SpmbInformationEditor() {
   const [data, setData] = useState<Data | null>(null); const [year, setYear] = useState("");
   const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false);
   const [error, setError] = useState(""); const [canEdit, setCanEdit] = useState(false);
+  const [brochure, setBrochure] = useState<File | null>(null);
   const toast = useToast();
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -49,6 +50,18 @@ export default function SpmbInformationEditor() {
     catch (e) { setError(e instanceof Error ? e.message : "Gagal menyimpan informasi SPMB."); }
     finally { setSaving(false); }
   }
+  async function uploadBrochure() {
+    if (!data || !brochure || saving) return;
+    if (brochure.size > 1024 * 1024 || !brochure.name.toLowerCase().endsWith(".pdf")) { setError("Pilih berkas PDF maksimal 1 MB."); return; }
+    setSaving(true); setError("");
+    try {
+      const form = new FormData(); form.append("file", brochure); form.append("version", String(data.version));
+      const saved = await apiRequest<Data>("/api/cms/spmb-information/brochure", { method: "POST", body: form });
+      setData(prev => prev ? { ...prev, version: saved.version, config: { ...prev.config, brochureUrl: saved.config.brochureUrl } } : saved);
+      setBrochure(null); toast.success({ message: "Brosur berhasil diperbarui di website." });
+    } catch (e) { setError(e instanceof Error ? e.message : "Gagal mengunggah brosur."); }
+    finally { setSaving(false); }
+  }
   const config = data?.config;
   return <div className="cms-page spmb-information-editor">
     <div className="cms-page-heading"><div><p className="cms-eyebrow">PENERIMAAN MURID BARU</p><h1>Informasi SPMB</h1><p>Edit isi halaman SPMB dengan tampilan alur dan persyaratan yang tetap konsisten.</p></div><a className="cms-button-secondary" href={`${websiteUrl}/spmb`} target="_blank" rel="noopener noreferrer">Lihat website &#8599;</a></div>
@@ -73,7 +86,7 @@ export default function SpmbInformationEditor() {
         <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>Biaya Pendaftaran</h2></div><div className="cms-form-body"><div className="cms-form-grid"><label>Nominal biaya (Rp)<input type="number" min={0} max={1000000000} step={1} required value={config.feeAmount} onChange={e => change("feeAmount", Number(e.target.value))} /></label><label>Metode pembayaran<input maxLength={300} value={config.paymentDescription} onChange={e => change("paymentDescription", e.target.value)} /></label></div><div className="cms-form-grid"><label>Nama bank<input maxLength={150} value={config.bankName} onChange={e => change("bankName", e.target.value)} /></label><label>Nomor rekening<input maxLength={100} value={config.accountNumber} onChange={e => change("accountNumber", e.target.value)} /></label></div><label>Atas nama rekening<input maxLength={150} value={config.accountHolder} onChange={e => change("accountHolder", e.target.value)} /></label></div></section>
         <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>Persyaratan Berkas</h2></div><div className="cms-form-body cms-form-grid"><label>Berkas calon siswa baru<textarea rows={7} maxLength={20000} value={config.newStudentDocuments.join("\n")} onChange={e => change("newStudentDocuments", e.target.value.split(/\r?\n/))} /><small>Satu berkas per baris, maksimal 40 berkas.</small></label><label>Berkas murid pindahan<textarea rows={7} maxLength={20000} value={config.transferDocuments.join("\n")} onChange={e => change("transferDocuments", e.target.value.split(/\r?\n/))} /><small>Satu berkas per baris, maksimal 40 berkas.</small></label></div></section>
         <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>Catatan persyaratan</h2></div><div className="cms-form-body"><label>Catatan persyaratan<textarea aria-label="Catatan persyaratan" rows={4} maxLength={2000} value={config.documentNotes} onChange={e => change("documentNotes", e.target.value)} placeholder="Contoh: Berkas persyaratan dibawa pada saat daftar ulang." /><small>Ditampilkan dalam kotak informasi tersendiri di bawah daftar berkas. Kosongkan untuk menyembunyikannya.</small></label></div></section>
-        <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>Brosur & Kontak</h2></div><div className="cms-form-body"><label>URL brosur<input maxLength={1000} placeholder="https://... atau /brosur-ppdb.pdf" value={config.brochureUrl} onChange={e => change("brochureUrl", e.target.value)} /><small>Kosongkan untuk menyembunyikan tombol brosur. Tombol formulir tetap menuju pendaftaran SPMB.</small></label><p className="text-sm text-slate-500">WhatsApp dan email otomatis mengikuti <Link className="text-blue-600 underline" href="/settings/contact">Kontak & Media Sosial</Link>.</p></div></section>
+        <section className="cms-panel overflow-hidden"><div className="cms-section-heading"><h2>Brosur & Kontak</h2></div><div className="cms-form-body"><label>Unggah brosur PDF<input type="file" accept="application/pdf,.pdf" onChange={e => setBrochure(e.target.files?.[0] || null)} /><small>PDF maksimal 1 MB. Berkas dikompres otomatis saat disimpan.</small></label><button type="button" className="cms-button-secondary" disabled={!brochure || saving} onClick={() => void uploadBrochure()}>Unggah dan terbitkan brosur</button><label>URL brosur<input maxLength={1000} placeholder="https://... atau /brosur-ppdb.pdf" value={config.brochureUrl} onChange={e => change("brochureUrl", e.target.value)} /><small>Kosongkan untuk menyembunyikan tombol brosur. Tombol formulir tetap menuju pendaftaran SPMB.</small></label><p className="text-sm text-slate-500">WhatsApp dan email otomatis mengikuti <Link className="text-blue-600 underline" href="/settings/contact">Kontak & Media Sosial</Link>.</p></div></section>
       </fieldset>
       <div className="mt-5 flex justify-end">{canEdit && <button className="cms-button" disabled={saving}>{saving ? "Menyimpan..." : "Simpan informasi SPMB"}</button>}</div>
     </form>}

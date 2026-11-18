@@ -1,3 +1,9 @@
+## Brosur SPMB
+
+Portal `/spmb/informasi` menyediakan unggah dan terbitkan PDF maksimal 1 MiB, dengan validasi di browser dan backend. Backend memakai kompresi Brotli lossless atau raw bila kompresi tidak lebih kecil. Kompresi ini menghemat penyimpanan database; PDF yang diunduh tetap sama dengan file asli dan ukuran unduhnya tidak berkurang. File yang lebih dari 1 MiB harus diperkecil sebelum diunggah. Penggantian memakai Version informasi SPMB dan disimpan atomik bersama URL; perubahan lain yang belum disimpan di editor tetap berada di form. Beranda dan halaman SPMB menggunakan URL yang sama. URL kosong menyembunyikan tombol.
+
+Terapkan `database/migrations/20261118_spmb_brochure.sql` sebelum backend baru; runner NormalizeOnly juga menyertakannya. File BLOB terpisah dari metadata dan diambil melalui `/api/school/spmb-brochure`, dengan proxy website no-store. URL brosur sebelumnya tidak diubah migrasi.
+
 # Arsitektur backend dan normalisasi database
 
 ## Surat penerimaan SPMB

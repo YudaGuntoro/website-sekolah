@@ -40,6 +40,7 @@ public class CendekiaDbContext : DbContext
         modelBuilder.Entity<LmpEvent>(e => { e.ToTable("lmp_events"); e.HasKey(x => x.Id); e.Property(x => x.Title).UseCollation("utf8mb4_bin"); });
         modelBuilder.Entity<SchoolContentCollection>(e => { e.ToTable("school_content_collections"); e.HasKey(x => x.Code); });
         modelBuilder.Entity<SchoolMissionRecord>(e => { e.ToTable("school_missions"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.IdentityId, x.Position }).IsUnique(); });
+        modelBuilder.Entity<SpmbBrochureFile>(e => { e.ToTable("spmb_brochure_files"); e.HasKey(x => x.InformationId); e.Property(x => x.Content).HasColumnType("mediumblob"); e.HasOne<SpmbInformation>().WithOne().HasForeignKey<SpmbBrochureFile>(x => x.InformationId).OnDelete(DeleteBehavior.Cascade); });
         modelBuilder.Entity<SpmbInformationStepRecord>(e => { e.ToTable("spmb_information_steps"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.Position }).IsUnique(); });
         modelBuilder.Entity<SpmbDocumentRequirement>(e => { e.ToTable("spmb_document_requirements"); e.HasKey(x => x.Id); e.HasIndex(x => new { x.InformationId, x.ApplicantType, x.Position }).IsUnique(); });
         modelBuilder.Entity<LmpSubject>(e => { e.ToTable("lmp_subjects"); e.HasKey(x => x.Id); e.HasIndex(x => x.Code).IsUnique(); e.HasIndex(x => x.Name).IsUnique(); });
