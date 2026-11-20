@@ -24,11 +24,11 @@ const date = (value: string) => new Intl.DateTimeFormat('id-ID', { day: 'numeric
 const byName = (a: { name: string }, b: { name: string }) => a.name.trim().localeCompare(b.name.trim(), 'id', { sensitivity: 'base' })
 export async function getSchoolContent() {
   const entries = await getCmsContent()
-  if (entries === null) return { ...defaults, announcements: defaults.announcements.map(n => ({ ...n, image: '' })), schoolNews: defaults.schoolNews.map(n => ({ ...n, image: '' })), staff: defaults.staff.map(n => ({ ...n, bio: '' })).sort(byName), achievements: [] }
+  if (entries === null) return { ...defaults, announcements: defaults.announcements.map(n => ({ ...n, slug: n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), summary: n.text, image: '', publishedAt: '' })), schoolNews: defaults.schoolNews.map(n => ({ ...n, image: '' })), staff: defaults.staff.map(n => ({ ...n, bio: '' })).sort(byName), achievements: [] }
   const group = (key: string) => entries.filter(e => e.collection === key)
   return {
     schoolNews: group('berita').map(e => ({ slug: e.slug, title: e.title, category: e.category, text: e.summary, body: e.body.split(/\n\s*\n/).filter(Boolean), image: e.imageUrl, date: date(e.publishedAt), publishedAt: e.publishedAt.slice(0, 10), visual: 'literasi' })),
-    announcements: group('pengumuman').map(e => ({ title: e.title, date: date(e.publishedAt), text: e.body || e.summary, image: e.imageUrl })),
+    announcements: group('pengumuman').map(e => ({ slug: e.slug, title: e.title, date: date(e.publishedAt), publishedAt: e.publishedAt.slice(0, 10), summary: e.summary || e.body, text: e.body || e.summary, image: e.imageUrl })),
     achievements: group('prestasi')
       .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt) || a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug))
       .map(e => ({ slug: e.slug, title: e.title, level: e.category, body: [e.summary, e.body !== e.summary ? e.body : ''].filter(Boolean).join('\n\n'), image: e.imageUrl })),
