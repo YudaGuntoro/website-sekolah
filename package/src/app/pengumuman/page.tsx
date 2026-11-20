@@ -25,14 +25,14 @@ export default async function PengumumanPage() {
                     <p className='text-xs font-semibold text-school-blue'>{item.date}</p>
                     <h2 className='mt-3 text-xl font-bold leading-snug text-school-navy group-hover:text-school-blue'>{item.title}</h2>
                     <p className='mt-3 line-clamp-3 text-sm leading-6 text-slate-600'>{item.summary}</p>
-                    <span className='mt-auto pt-6 text-sm font-bold text-school-blue'>Baca selengkapnya <span aria-hidden='true'>?</span></span>
+                    <span className='mt-auto pt-6 text-sm font-bold text-school-blue'>Baca selengkapnya <span aria-hidden='true'>&#8594;</span></span>
                   </div>
                 </Link>
               </article>
             ))}
           </div>
         ) : <p className='mt-10 rounded-2xl border border-sky-100 bg-white p-8 text-slate-600'>Belum ada pengumuman saat ini.</p>}
-        <Link href='/#pengumuman' className='mt-10 inline-flex items-center gap-2 text-sm font-bold text-school-blue hover:underline'><span aria-hidden='true'>?</span> Kembali ke beranda</Link>
+        <Link href='/#pengumuman' className='mt-10 inline-flex items-center gap-2 text-sm font-bold text-school-blue hover:underline'><span aria-hidden='true'>&#8592;</span> Kembali ke beranda</Link>
       </div>
     </main>
   )

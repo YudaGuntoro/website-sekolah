@@ -37,7 +37,7 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
           <div className='p-6 sm:p-10'>
             {item.image && <img src={item.image} alt={item.title} className='mb-8 max-h-[32rem] w-full rounded-xl object-contain' />}
             <div className='whitespace-pre-line text-base leading-8 text-slate-700'>{item.text}</div>
-            <Link href='/pengumuman' className='mt-10 inline-flex items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'><span aria-hidden='true'>?</span> Semua pengumuman</Link>
+            <Link href='/pengumuman' className='mt-10 inline-flex items-center gap-2 rounded-full bg-school-blue px-5 py-3 text-sm font-bold text-white transition hover:bg-school-navy'><span aria-hidden='true'>&#8592;</span> Semua pengumuman</Link>
           </div>
         </article>
       </div>

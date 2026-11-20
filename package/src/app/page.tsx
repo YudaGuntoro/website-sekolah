@@ -331,7 +331,7 @@ export default async function Home() {
                     {announcement.date}
                   </p>
                   <div className='shrink-0 sm:mt-auto sm:pt-2'>
-                    <Link href={`/pengumuman/${encodeURIComponent(announcement.slug)}`} className='inline-flex items-center justify-center gap-2 rounded-lg border border-sky-400 px-3 py-2 text-xs font-bold text-school-blue transition hover:bg-sky-50 sm:w-full sm:rounded-xl sm:px-4 sm:py-2.5'>Baca pengumuman <span aria-hidden='true'>?</span></Link>
+                    <Link href={`/pengumuman/${encodeURIComponent(announcement.slug)}`} className='inline-flex items-center justify-center gap-2 rounded-lg border border-sky-400 px-3 py-2 text-xs font-bold text-school-blue transition hover:bg-sky-50 sm:w-full sm:rounded-xl sm:px-4 sm:py-2.5'>Baca pengumuman <span aria-hidden='true'>&#8594;</span></Link>
                   </div>
                 </div>
               </article>
